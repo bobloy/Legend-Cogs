@@ -1,0 +1,10 @@
+{
+    "AUTHOR" : "Bobloy",
+    "INSTALL_MSG" : "Thank you for installing Clash Royale Activity Checker, get started with [p]setactivity",
+    "NAME" : "activity",
+    "SHORT" : "Clash Royale Activity Checker",
+    "DESCRIPTION" : "Clash Royale Activity Checker for trophy pushing clans",
+    "TAGS" : ["clashroyale", "legend","management", "activity", "trophy"],
+    "REQUIREMENTS" : ["bs4", "json","requests","os","asyncio"],
+    "HIDDEN" : false
+}
