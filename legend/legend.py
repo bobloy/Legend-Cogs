@@ -36,6 +36,7 @@ commands_text =  """Here are some of the Legend Family Bot commands, you can use
 **!heist** - Play a heist with a crew in #heist channel.
 **!slot** - Play the slot machine.
 **!buy** - Take a look at what you can purchase with your credits.
+**!balance** - To check your current bank balance.
 **!profile** - view your server profile.
 **!deck** - make and save your deck.
 **!legend** - to see status of all Legend Family clans.
@@ -74,6 +75,9 @@ social_info = """Stay Social! Come and follow us on these platforms to stay up t
 https://twitter.com/TheLegendClans
 https://www.facebook.com/LegendClans
 https://www.instagram.com/legendclans
+
+Visit our website to see live clan statistics:
+https://legendclans.com
 """
 
 class legend:
@@ -705,9 +709,6 @@ class legend:
                 break
 
         if membership:
-            if not leftClan:
-                await self.bot.say("Approval failed, You have not yet left your current clan.")
-                return
 
             trophies = profiledata['trophies']
             maxtrophies = profiledata['stats']['maxTrophies']
@@ -742,6 +743,10 @@ class legend:
                 else:
                     await self.bot.say("Approval failed, there is a waiting queue for this clan. Please first join the waiting list.")
                     return
+
+            if not leftClan:
+                await self.bot.say("Approval failed, You have not yet left your current clan.")
+                return
 
             recruitCode = ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(6))
 
