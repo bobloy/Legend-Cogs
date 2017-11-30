@@ -195,6 +195,93 @@ class legend:
             await self.bot.remove_roles(member, *roles)
         except:
             pass
+    
+    @commands.group(pass_context=True)
+    @checks.mod_or_permissions(administrator=True)
+    async def clans(self, ctx):
+        """Base command for managing clash royale clans. [p]help clans for details"""
+        if ctx.invoked_subcommand is None:
+            await self.bot.send_cmd_help(ctx)
+
+    @clans.command(pass_context=True, name="register")
+    @checks.mod_or_permissions(administrator=True)
+    async def clans_register(self, ctx, clankey, ctag, role: discord.Role, nickname):
+        """Register a clan for tracking"""
+        toregister = {
+            'tag': ctag,
+            'role': role.name,
+            'role_id': role.id,
+            'name': nickname,   # Not good, will fix later
+            'nickname' : nickname,
+            'waiting': [],
+            'personalbest': 0,
+            'bonustitle': "",
+            'discord': None
+            }
+        
+        self.c[clankey] = toregister
+        self.save_data()
+        await self.bot.say("Success")
+        
+    @clans.command(pass_context=True, name="delete")
+    @checks.mod_or_permissions(administrator=True)
+    async def clans_delete(self, ctx, clankey):
+        """Remove a clan from tracking"""
+        if self.c.pop(clankey, None):
+            self.save_data()
+            await self.bot.say("Success")
+            return
+        await self.bot.say("Failed")
+    
+    @clans.command(pass_context=True, name="pb")
+    @checks.mod_or_permissions(administrator=True)
+    async def clans_pb(self, ctx, clankey, pb: int):
+        """Set a Personal Best requirement for a clan"""
+        try:
+            self.c[clankey]['personalbest'] = pb
+        except KeyError:
+            await self.bot.say("Please use a valid clanname : "+", ".join(key for key in self.c.keys()))
+            return 
+        
+        self.save_data()        
+        await self.bot.say("Success")
+    
+    
+    @clans.command(pass_context=True, name="bonus")
+    @checks.mod_or_permissions(administrator=True)
+    async def clans_bonus(self, ctx, clankey, *bonus):
+        """Add bonus information to title of clan (i.e. Age: 21+)"""
+        try:
+            self.c[clankey]['bonustitle'] = " ".join(bonus)
+        except KeyError:
+            await self.bot.say("Please use a valid clanname : "+",".join(key for key in self.c.keys()))
+            return 
+        
+        self.save_data()
+        await self.bot.say("Success")
+    
+    @clans.command(pass_context=True, name="discord")
+    @checks.mod_or_permissions(administrator=True)
+    async def clans_discord(self, ctx, clankey, discordinv):
+        """Add discord invite link"""
+        try:
+            self.c[clankey]['discord'] = discordinv
+        except KeyError:
+            await self.bot.say("Please use a valid clanname : "+",".join(key for key in self.c.keys()))
+            return 
+        
+        self.save_data()
+        await self.bot.say("Success")
+
+    @clans.command(pass_context=True, name="discord")
+    @checks.mod_or_permissions(administrator=True)
+    async def clans_family(self, ctx, url, *FamilyName):
+        """Add discord invite link"""
+        self.c['settings']['familyname'] = " ".join(FamilyName)
+        self.c['settings']['url'] = url
+
+        self.save_data()
+        await self.bot.say("Success")
 
     async def _is_commander(self, member):
         server = member.server
