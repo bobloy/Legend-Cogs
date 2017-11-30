@@ -197,6 +197,16 @@ class legend:
         
         self.save_data()
         await self.bot.say("Success")
+        
+    @clans.command(pass_context=True, name="discord")
+    @checks.mod_or_permissions(administrator=True)
+    async def clans_family(self, ctx, url, *FamilyName):
+        """Add discord invite link"""
+        self.c['settings']['familyname'] = " ".join(FamilyName)
+        self.c['settings']['url'] = url
+        
+        self.save_data()
+        await self.bot.say("Success")
 
     async def _is_commander(self, member):
         server = member.server
@@ -247,7 +257,11 @@ class legend:
         totalMembers = sum(clans[x]['memberCount'] for x in range(len(clans)))
 
         embed=discord.Embed(title="", description="Our Family is made up of " + str(self.numClans()) + " clans with a total of " + str(totalMembers) + " members. We have " + str((self.numClans()*50)-totalMembers) + " spots left.", color=0xf1c747)
-        embed.set_author(name="LeGeND Family Clans", url="http://cr-api.com/clan/family/legend", icon_url="https://i.imgur.com/dtSMITE.jpg")
+        
+        if "settings" in self.c:
+            embed.set_author(name=self.c['settings']['familyname'], url=self.c['settings']['url'], icon_url="https://i.imgur.com/dtSMITE.jpg")
+        else:
+            embed.set_author(name="LeGeND Family Clans", url="http://cr-api.com/clan/family/legend", icon_url="https://i.imgur.com/dtSMITE.jpg")
         embed.set_footer(text=credits, icon_url=creditIcon)
 
         foundClan = False
