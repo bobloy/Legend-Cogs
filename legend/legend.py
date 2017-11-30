@@ -1200,10 +1200,6 @@ class legend:
     async def platoon(self, ctx, member: discord.Member):
         """Toggle Platoon Role for Brawlers"""
         server = ctx.message.server
-        legendServer = ["374596069989810176"]
-
-        if server.id not in legendServer:
-            return await self.bot.say("This command can only be executed in the Legend Family Server")
 
         role = discord.utils.get(server.roles, name="Platoon")
         try:
@@ -1223,10 +1219,6 @@ class legend:
     async def guest(self, ctx, member: discord.Member):
         """Add guest role and change nickname to CR"""
         server = ctx.message.server
-        legendServer = ["374596069989810176"]
-
-        if server.id not in legendServer:
-            return await self.bot.say("This command can only be executed in the Legend Family Server")
 
         try:
             await self.bot.type()
@@ -1264,10 +1256,6 @@ class legend:
         """Use this command after kicking people from clan"""
 
         server = ctx.message.server
-        legendServer = ["374596069989810176"]
-
-        if server.id not in legendServer:
-            return await self.bot.say("This command can only be executed in the Legend Family Server")
 
         rolesToRemove = await self.clans.rolesClans()
         rolesToRemove += ["Bait", "Siege", "Cycle", "Control",
