@@ -15,7 +15,7 @@ import requests
 creditIcon = "https://i.imgur.com/TP8GXZb.png"
 credits = "Bot by GR8 | Titan"
 BOTCOMMANDER_ROLES = ["Family Representative", "Clan Manager",
-                      "Clan Deputy", "Co-Leader", "Hub Officer", "admin"]
+                      "Clan Deputy", "Co-Leader", "Hub Officer", "admin", "Admin"]
 
 rules_text = """**Here are some Legend Family Discord server rules.**\n
 • No Hateful, obscene, offensive, racist, sexual or violent words allowed in chat or images.
