@@ -513,7 +513,7 @@ class legend:
         allowed = await self._is_commander(author)
 
         if not allowed:
-            await self.bot.say("You dont have enough permissions to use Audit. Type !contact to ask for help.")
+            await self.bot.say("You dont have enough permissions to use Audit.")
             return
 
         await self.bot.type()
@@ -638,7 +638,7 @@ class legend:
         allowed = await self._is_commander(author)
 
         if not allowed:
-            await self.bot.say("You dont have enough permissions to assign guest role. Type !contact to ask for help.")
+            await self.bot.say("You dont have enough permissions to assign guest role.")
             return
 
         role = discord.utils.get(server.roles, name="Guest")
@@ -655,16 +655,11 @@ class legend:
         """Send instructions to people joining a clan"""
         server = ctx.message.server
         author = ctx.message.author
-        legendServer = ["374596069989810176"]
-
-        if server.id not in legendServer:
-            await self.bot.say("This command can only be executed in the LeGeND Family Server")
-            return
 
         allowed = await self._is_commander(author)
 
         if not allowed:
-            await self.bot.say("You dont have enough permissions to approve a recruit. Type !contact to ask for help.")
+            await self.bot.say("You dont have enough permissions to approve a recruit.")
             return
 
         clankey = clankey.lower()
@@ -770,16 +765,11 @@ class legend:
         """Add people to the waiting list for a clan"""
         server = ctx.message.server
         author = ctx.message.author
-        legendServer = ["374596069989810176"]
-
-        if server.id not in legendServer:
-            await self.bot.say("This command can only be executed in the LeGeND Family Server")
-            return
 
         allowed = await self._is_commander(author)
 
         if not allowed:
-            await self.bot.say("You dont have enough permissions to add someone to the waiting list. Type !contact to ask for help.")
+            await self.bot.say("You dont have enough permissions to add someone to the waiting list.")
             return
 
         clankey = clankey.lower()
@@ -857,16 +847,11 @@ class legend:
         """Delete people from the waiting list for a clan"""
         server = ctx.message.server
         author = ctx.message.author
-        legendServer = ["374596069989810176"]
-
-        if server.id not in legendServer:
-            await self.bot.say("This command can only be executed in the LeGeND Family Server")
-            return
 
         allowed = await self._is_commander(author)
 
         if not allowed:
-            await self.bot.say("You dont have enough permissions to delete someone to the waiting list. Type !contact to ask for help.")
+            await self.bot.say("You dont have enough permissions to delete someone to the waiting list.")
             return
 
         clankey = clankey.lower()
@@ -900,16 +885,11 @@ class legend:
 
         server = ctx.message.server
         author = ctx.message.author
-        legendServer = ["374596069989810176"]
-
-        if server.id not in legendServer:
-            await self.bot.say("This command can only be executed in the LeGeND Family Server")
-            return
 
         allowed = await self._is_commander(author)
 
         if not allowed:
-            await self.bot.say("You dont have enough permissions to delete someone to the waiting list. Type !contact to ask for help.")
+            await self.bot.say("You dont have enough permissions to delete someone to the waiting list.")
             return
 
         try:
