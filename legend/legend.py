@@ -84,6 +84,7 @@ class legend:
         self.bot = bot
         self.clash = dataIO.load_json('cogs/tags.json')
         self.c = dataIO.load_json('cogs/clans.json')
+        self.settings = dataIO.load_json('data/legend/settings.json')
         self.welcome = dataIO.load_json('data/legend/welcome.json')
         self.bank = dataIO.load_json('data/economy/bank.json')
 
@@ -93,6 +94,10 @@ class legend:
     def save_data(self):
         """Saves the json"""
         dataIO.save_json('cogs/clans.json', self.c)
+        
+    def save_settings(self):
+        """Saves the json"""
+        dataIO.save_json('data/legend/settings.json', self.c)
         
     async def id_generator(size=6, chars=string.ascii_uppercase + string.digits):
        return ''.join(random.choice(chars) for _ in range(size))
@@ -199,6 +204,17 @@ class legend:
         
         self.save_data()
         await self.bot.say("Success")
+        
+    @clans.command(pass_context=True, name="discord")
+    @checks.mod_or_permissions(administrator=True)
+    async def clans_family(self, ctx, url, *FamilyName):
+        """Add Clan Family name and link"""
+        
+        self.settings['url'] = url
+        self.settings['family'] = " ".join(FamilyName)
+
+        self.save_data()
+        await self.bot.say("Success")
 
     async def _is_commander(self, member):
         server = member.server
@@ -249,7 +265,10 @@ class legend:
         totalMembers = sum(clans[x]['memberCount'] for x in range(len(clans)))
 
         embed=discord.Embed(title="", description="Our Family is made up of " + str(self.numClans()) + " clans with a total of " + str(totalMembers) + " members. We have " + str((self.numClans()*50)-totalMembers) + " spots left.", color=0xf1c747)
-        embed.set_author(name="LeGeND Family Clans", url="http://cr-api.com/clan/family/legend", icon_url="https://i.imgur.com/dtSMITE.jpg")
+        if "url" in self.settings and "family" in self.settings:
+            embed.set_author(name=self.settings['family'], url=self.settings['url'], icon_url="https://i.imgur.com/dtSMITE.jpg")
+        else:
+            embed.set_author(name="LeGeND Family Clans", url="http://cr-api.com/clan/family/legend", icon_url="https://i.imgur.com/dtSMITE.jpg")
         embed.set_footer(text=credits, icon_url=creditIcon)
 
         foundClan = False
