@@ -276,6 +276,17 @@ class legend:
     @clans.command(pass_context=True, name="discord")
     @checks.mod_or_permissions(administrator=True)
     async def clans_family(self, ctx, url, *FamilyName):
+        """Add Clan Family name and link"""
+
+        self.settings['url'] = url
+        self.settings['family'] = " ".join(FamilyName)
+
+        self.save_data()
+        await self.bot.say("Success")
+
+    @clans.command(pass_context=True, name="discord")
+    @checks.mod_or_permissions(administrator=True)
+    async def clans_family(self, ctx, url, *FamilyName):
         """Add discord invite link"""
         self.c['settings']['familyname'] = " ".join(FamilyName)
         self.c['settings']['url'] = url
