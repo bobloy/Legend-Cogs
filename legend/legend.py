@@ -975,6 +975,11 @@ def check_files():
         print("Creating empty clans.json...")
         dataIO.save_json(f, {})
         
+    f = "data/legend/settings.json"
+    if not fileIO(f, "check"):
+        print("Creating empty settings.json...")
+        dataIO.save_json(f, {})
+        
 def check_clans():
     c = dataIO.load_json('cogs/clans.json')
     for clankey in c.keys():
