@@ -12,9 +12,7 @@ import string
 
 creditIcon = "https://i.imgur.com/TP8GXZb.png"
 credits = "Bot by GR8 | Academy"
-# numClans = 12
-# clanArray = ['d8','esports','squad','d82','prime','legion','rising','phantom','plague','d83','academy','dynasty']
-BOTCOMMANDER_ROLES =  ["Family Representative", "Clan Manager", "Clan Deputy", "Co-Leader", "Hub Officer", "admin", "Admin"];
+BOTCOMMANDER_ROLES =  ["Family Representative", "Clan Manager", "Clan Deputy", "Co-Leader", "Hub Officer", "admin"];
 
 rules_text = """**Here are some Legend Family Discord server rules.**\n
 • Be respectful of other members. Do not talk them down in any way.
@@ -296,23 +294,10 @@ class legend:
                 title += "["+str(clans[x]['typeName'])+"] "
 
             title += clans[x]['name'] + " (#" + clans[x]['tag'] + ") "
-
-            # clans[x]['maxtrophies'] = 0
-
-            # if clans[x]['tag'] == self.c['d8']['tag']:
-                # title += "PB: 4600+"
-                # clans[x]['maxtrophies'] = 4600
-
-            # if clans[x]['tag'] == self.c['esports']['tag']:
-                # title += "PB: 4300+"
-                # clans[x]['maxtrophies'] = 4300
             
             if personalbest > 0:
                 title += "PB: "+str(personalbest)+"+  "
                 clans[x]['maxtrophies'] = personalbest
-            
-            # if clans[x]['tag'] == self.c['prime']['tag']:
-                # title += "Age: 21+"
             
             if bonustitle is not None:
                 title += bonustitle
@@ -320,7 +305,7 @@ class legend:
             desc = ":shield: " + showMembers + "     :trophy: " + str(clans[x]['requiredScore']) + "+     :medal: " +str(clans[x]['score'])
             totalMembers += clans[x]['memberCount']
 
-            if (member is None) or ((trophies >= clans[x]['requiredScore']) and (maxtrophies > clans[x]['maxtrophies'])):
+            if (member is None) or ((trophies >= clans[x]['requiredScore']) and (maxtrophies > personalbest)):
                 foundClan = True
                 embed.add_field(name=title, value=desc, inline=False)
 
@@ -375,7 +360,6 @@ class legend:
             if self.c[clankey]['tag'] == clantag:
                 membership = True
                 savekey = clankey
-                # clindex = int(x)
                 break
 
         if membership:
@@ -408,6 +392,11 @@ class legend:
 
             await self.bot.say(mymessage)
 
+            welcomeMsg = rand_choice(self.welcome["GREETING"])
+            await self.bot.send_message(discord.Object(id='374596069989810178'), welcomeMsg.format(member, server))
+
+            await self._remove_roles(member, ['Guest'])
+
             if self.c[savekey]['discord'] is not None:
                 joinLink = "https://discord.gg/" + str(self.c[savekey]['discord'])
                 await self.bot.send_message(member, 
@@ -424,11 +413,6 @@ class legend:
 
             roleName = discord.utils.get(server.roles, name=role_names[0])
             await self.bot.send_message(discord.Object(id='375839851955748874'), '**' + ctx.message.author.name + '** recruited ' + '** ' + ign + ' (#'+ profiletag + ')** to ' + roleName.mention)
-
-            welcomeMsg = rand_choice(self.welcome["GREETING"])
-            await self.bot.send_message(discord.Object(id='374596069989810178'), welcomeMsg.format(member, server))
-
-            await self._remove_roles(member, ['Guest'])
 
             await asyncio.sleep(300)
             await self.bot.send_message(member,rules_text)
@@ -482,7 +466,6 @@ class legend:
             if self.c[clankey]['tag'] == clantag:
                 membership = True
                 savekey = clankey
-                # clindex = int(x)
                 break
 
         if membership:
@@ -819,7 +802,6 @@ class legend:
             if self.c[clankey]['tag'] == clantag:
                 membership = False # False
                 savekey = clankey
-                # clindex = int(x)
                 break
 
         if membership:
@@ -928,7 +910,6 @@ class legend:
             if self.c[clankey]['tag'] == clantag:
                 membership = False # False
                 savekey = clankey
-                # clindex = int(x)
                 break
 
         if membership:
