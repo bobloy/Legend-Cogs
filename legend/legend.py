@@ -205,7 +205,7 @@ class legend:
         self.save_data()
         await self.bot.say("Success")
         
-    @clans.command(pass_context=True, name="discord")
+    @clans.command(pass_context=True, name="family")
     @checks.mod_or_permissions(administrator=True)
     async def clans_family(self, ctx, url, *FamilyName):
         """Add Clan Family name and link"""
