@@ -65,7 +65,7 @@ There are 2 factors to win: convince more players to participate within your cla
 **3 golden Rules for clanwars:** We respect the Opponent (no BMing if you win), we play to have fun (no obligation to participate), and don't join if you think you cannot play.
 """
 
-coaching_info = """If you are looking to climb in your trophies and get better at the game, we have coaches at Legend Academy that can help you get to the top! Come join the Academy server and start a session with a dedicated coach now at https://discord.gg/b8r86Hg
+coaching_info = """If you are looking to climb in your trophies and get better at the game, we have coaches at Legend Academy that can help you get to the top! Come join the Academy server and start a session with a dedicated coach now at https://discord.gg/eDzUwvx
 """
 
 social_info = """Stay Social! Come and follow us on these platforms to stay up to date on the latest news and announcements.
@@ -84,6 +84,7 @@ class legend:
         self.bot = bot
         self.clash = dataIO.load_json('cogs/tags.json')
         self.c = dataIO.load_json('cogs/clans.json')
+        self.settings = dataIO.load_json('data/legend/settings.json')
         self.welcome = dataIO.load_json('data/legend/welcome.json')
         self.bank = dataIO.load_json('data/economy/bank.json')
 
@@ -93,6 +94,10 @@ class legend:
     def save_data(self):
         """Saves the json"""
         dataIO.save_json('cogs/clans.json', self.c)
+        
+    def save_settings(self):
+        """Saves the json"""
+        dataIO.save_json('data/legend/settings.json', self.c)
         
     async def id_generator(size=6, chars=string.ascii_uppercase + string.digits):
        return ''.join(random.choice(chars) for _ in range(size))
@@ -200,13 +205,15 @@ class legend:
         self.save_data()
         await self.bot.say("Success")
         
-    @clans.command(pass_context=True, name="family")
+
+    @clans.command(pass_context=True, name="discord")
     @checks.mod_or_permissions(administrator=True)
     async def clans_family(self, ctx, url, *FamilyName):
-        """Add discord invite link"""
-        self.c['settings']['familyname'] = " ".join(FamilyName)
-        self.c['settings']['url'] = url
+        """Add Clan Family name and link"""
         
+        self.settings['url'] = url
+        self.settings['family'] = " ".join(FamilyName)
+
         self.save_data()
         await self.bot.say("Success")
 
@@ -259,9 +266,8 @@ class legend:
         totalMembers = sum(clans[x]['memberCount'] for x in range(len(clans)))
 
         embed=discord.Embed(title="", description="Our Family is made up of " + str(self.numClans()) + " clans with a total of " + str(totalMembers) + " members. We have " + str((self.numClans()*50)-totalMembers) + " spots left.", color=0xf1c747)
-        
-        if "settings" in self.c:
-            embed.set_author(name=self.c['settings']['familyname'], url=self.c['settings']['url'], icon_url="https://i.imgur.com/dtSMITE.jpg")
+        if "url" in self.settings and "family" in self.settings:
+            embed.set_author(name=self.settings['family'], url=self.settings['url'], icon_url="https://i.imgur.com/dtSMITE.jpg")
         else:
             embed.set_author(name="LeGeND Family Clans", url="http://cr-api.com/clan/family/legend", icon_url="https://i.imgur.com/dtSMITE.jpg")
         embed.set_footer(text=credits, icon_url=creditIcon)
@@ -693,7 +699,6 @@ class legend:
             if self.c[clankey]['tag'] == clantag:
                 membership = False
                 savekey = clankey
-                # clindex = int(x)
                 break
 
         if membership:
@@ -719,6 +724,9 @@ class legend:
                         await self.bot.say("Approval failed, you are not first in queue for the waiting list on this server.")
                         return
                     else:
+                        self.c[clankey]['waiting'].pop(0)
+                        dataIO.save_json('cogs/clans.json', self.c)
+                        
                         role = discord.utils.get(server.roles, name="Waiting")
                         try:
                             await self.bot.remove_roles(member, role)
@@ -726,8 +734,6 @@ class legend:
                             raise
                         except discord.HTTPException:
                             raise
-                        self.c[clankey]['waiting'].pop(0)
-                        dataIO.save_json('cogs/clans.json', self.c)
                 else:
                     await self.bot.say("Approval failed, there is a waiting queue for this clan. Please first join the waiting list.")
                     return
@@ -798,10 +804,10 @@ class legend:
             return
 
         membership = True
-        for clankey in self.clanArray():
-            if self.c[clankey]['tag'] == clantag:
+        for clanKey in self.clanArray():
+            if self.c[clanKey]['tag'] == clantag:
                 membership = False # False
-                savekey = clankey
+                savekey = clanKey
                 break
 
         if membership:
@@ -829,8 +835,8 @@ class legend:
                 raise
             await self.bot.say(member.mention + " You have been added to the waiting list for **"+ clan_name + "**. We will mention you when a spot is available.")
 
-            roleName = discord.utils.get(server.roles, name=clan_role)
-            await self.bot.send_message(discord.Object(id='375839968096157697'), '**' + member.mention + '** was added to the **Waiting List** for ' + roleName.mention)
+            #roleName = discord.utils.get(server.roles, name=clan_role)
+            #await self.bot.send_message(discord.Object(id='375839968096157697'), '**' + member.mention + '** was added to the **Waiting List** for ' + roleName.mention)
         else:
             await self.bot.say("Cannot add you to the waiting list, You are already a part of a clan in the family.")
 
@@ -870,6 +876,23 @@ class legend:
             await self.bot.say(member.mention + " has been removed from the waiting list for **"+ clan_name + "**.")
         except ValueError:
             await self.bot.say("Recruit not found in the waiting list.")
+
+    @commands.command(pass_context=True)
+    async def waitinglist(self, ctx):
+        """Show status of the waiting list."""
+        message = ""
+        
+        await self.bot.type()
+
+        for clan in self.c:
+            if self.c[clan]["waiting"]:
+                message += "\n**" + self.c[clan]["name"] + "**\n"
+
+                for index, userID in enumerate(self.c[clan]["waiting"]):
+                    user = discord.utils.get(ctx.message.server.members, id = userID)
+                    message += str(index+1) + ". " + user.name + "\n"
+
+        await self.bot.say(message)
 
     @commands.command(pass_context=True, no_pm=True)
     async def inactive(self, ctx, member: discord.Member):
@@ -915,7 +938,7 @@ class legend:
         if membership:
             rolesToRemove = ["Member"]
             for x in range(0,self.numClans()):
-                rolesToRemove.append(self.c[savekey]['role'])
+                rolesToRemove.append(self.c[clankey]['role'])
 
             await self._remove_roles(member, rolesToRemove)
 
@@ -939,6 +962,11 @@ def check_files():
     f = "cogs/clans.json"
     if not fileIO(f, "check"):
         print("Creating empty clans.json...")
+        dataIO.save_json(f, {})
+        
+    f = "data/legend/settings.json"
+    if not fileIO(f, "check"):
+        print("Creating empty settings.json...")
         dataIO.save_json(f, {})
         
 def check_clans():
