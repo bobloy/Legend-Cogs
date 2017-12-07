@@ -14,6 +14,8 @@ import aiohttp
 from __main__ import send_cmd_help
 import asyncio
 from crapipy import AsyncClient
+import socket
+import urllib.request  as urllib2
 
 BOTCOMMANDER_ROLES =  ["Family Representative", "Clan Manager", "Clan Deputy", "Co-Leader", "Hub Officer", "admin"];
 creditIcon = "https://i.imgur.com/TP8GXZb.png"
@@ -204,6 +206,27 @@ class clashroyale:
     	embed.add_field(name="Country", value=clandata.region.name, inline=True)
     	embed.set_footer(text=credits, icon_url=creditIcon)
     	await self.bot.say(embed=embed)
+
+    @commands.command()
+    async def api(self):
+    	"""Ping the CR API  """
+
+    	socket.setdefaulttimeout( 10 )  # timeout in seconds
+
+    	await self.bot.type()
+
+    	url = 'http://api.cr-api.com/profile/CRRYRPCC'
+    	try :
+    	    req = urllib2.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
+    	    response = urllib2.urlopen(req).read()
+    	except socket.timeout as e:
+    	    await self.bot.say('We failed to reach the server. Reason: ' + str(e))
+    	except urllib2.HTTPError as e:
+    	    await self.bot.say('The server couldn\'t fulfill the request. Reason: ' + str(e.code))
+    	except urllib2.URLError as e:
+    	    await self.bot.say('We failed to reach the server. Reason: ' + str(e.reason))
+    	else :
+    	    await self.bot.say('API is working!')
 
     @commands.group(pass_context=True)
     async def save(self, ctx):
@@ -400,6 +423,9 @@ def check_folders():
     if not os.path.exists("data/clashroyale"):
         print("Creating data/clashroyale folder...")
         os.makedirs("data/clashroyale")
+    if not os.path.exists("data/BrawlStats"):
+        print("Creating data/BrawlStats folder...")
+        os.makedirs("data/BrawlStats")
 
 def check_files():
     f = "cogs/tags.json"
@@ -409,6 +435,10 @@ def check_files():
     f = "cogs/mini_tags.json"
     if not fileIO(f, "check"):
         print("Creating empty mini_tags.json...")
+        fileIO(f, "save", [])
+    f = "data/BrawlStats/tags.json"
+    if not fileIO(f, "check"):
+        print("Creating empty tags.json...")
         fileIO(f, "save", [])
 
 def setup(bot):
