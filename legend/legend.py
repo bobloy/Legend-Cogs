@@ -11,7 +11,7 @@ from random import choice as rand_choice
 import string
 
 creditIcon = "https://i.imgur.com/TP8GXZb.png"
-credits = "Bot by GR8 | Academy"
+credits = "Bot by GR8 | Titan"
 BOTCOMMANDER_ROLES =  ["Family Representative", "Clan Manager", "Clan Deputy", "Co-Leader", "Hub Officer", "admin", "Leader"];
 
 rules_text = """**Here are some Legend Family Discord server rules.**\n
@@ -46,7 +46,7 @@ commands_text =  """Here are some of the Legend Family Bot commands, you can use
 
 info_text = """You will find several channels on our Discord Server\n
 **#global-chat**: to discuss about the game.
-**#tourneys**: Dozens of tourney's posted everyday. 
+**#tourneys**: Dozens of tournaments posted everyday. 
 **#news**: important info about family.
 **#deck-recommendation**: decks discussion.
 **#off-topic**: you can chat about anything unrelated to clash royale here.
@@ -236,6 +236,16 @@ class legend:
         else:
             return False
 
+    async def _is_member(self, member):
+        server = member.server
+        botcommander_roles = [discord.utils.get(server.roles, name=r) for r in ["Member", "Family Representative", "Clan Manager", "Clan Deputy", "Co-Leader", "Hub Officer", "admin"]]
+        botcommander_roles = set(botcommander_roles)
+        author_roles = set(member.roles)
+        if len(author_roles.intersection(botcommander_roles)):
+            return True
+        else:
+            return False
+
     @commands.command(pass_context=True)
     async def legend(self, ctx, member: discord.Member = None):
         """ Show Legend clans, can also show clans based on a member's trophies"""
@@ -335,6 +345,12 @@ class legend:
         
         server = ctx.message.server
         author = ctx.message.author
+
+
+        isMember = await self._is_member(member)
+        if isMember:
+            await self.bot.say("Error, " + member.mention + " is not a new member.")
+            return
 
         try:
             await self.updateClash()
