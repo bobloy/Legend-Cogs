@@ -163,7 +163,7 @@ class legend:
 
             statsroyale = await self.bot.wait_for_message(timeout=5, author=discord.Object(id=345270428245164032))
 
-            response = requests.get('http://statsroyale.com/profile/'+profiletag+'?appjson=1', timeout=5, headers=headers, proxies=dict(http="69.39.224.129:80",))
+            response = requests.get('http://statsroyale.com/profile/'+profiletag+'?appjson=1', timeout=5, headers=headers)
             return response.json()
         except (requests.exceptions.Timeout, json.decoder.JSONDecodeError):
             return None
@@ -177,7 +177,7 @@ class legend:
         }
 
         try:
-            response = requests.get('http://statsroyale.com/clan/'+clantag+'?appjson=1', timeout=5, headers=headers, proxies=dict(http="69.39.224.129:80",))
+            response = requests.get('http://statsroyale.com/clan/'+clantag+'?appjson=1', timeout=5, headers=headers)
             if not response.from_cache:
                 await self.bot.send_message(discord.Object(id=393081792824999939), "!clan "+ clantag)
             return response.json()
