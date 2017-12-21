@@ -16,6 +16,10 @@ import asyncio
 from crapipy import AsyncClient
 import socket
 import urllib.request  as urllib2
+from fake_useragent import UserAgent
+import requests_cache
+
+requests_cache.install_cache('statsroyale_cache', backend='sqlite', expire_after=300)
 
 BOTCOMMANDER_ROLES =  ["Family Representative", "Clan Manager", "Clan Deputy", "Co-Leader", "Hub Officer", "admin", "Leader"];
 creditIcon = "https://i.imgur.com/TP8GXZb.png"
@@ -35,6 +39,36 @@ class clashroyale:
     	self.clash_mini = dataIO.load_json(clash_mini)
     	self.brawl = dataIO.load_json(brawl)
     	self.cycle = dataIO.load_json(cycle)
+
+    async def getProfile(self, profiletag):
+        ua = UserAgent()
+        headers = {
+            "User-Agent": ua.random
+        }
+
+        try:
+            await self.bot.send_message(discord.Object(id=393081792824999939), "!profile "+ profiletag)
+            await asyncio.sleep(1)
+            return requests.get('http://statsroyale.com/profile/'+profiletag+'?appjson=1', timeout=5, headers=headers, proxies=dict(http="69.39.224.129:80",)).json()
+        except (requests.exceptions.Timeout, json.decoder.JSONDecodeError):
+            return None
+        except requests.exceptions.RequestException as e:
+            return None
+
+    async def getClan(self, clantag):
+        ua = UserAgent()
+        headers = {
+            "User-Agent": ua.random
+        }
+
+        try:
+            await self.bot.send_message(discord.Object(id=393081792824999939), "!clan "+ clantag)
+            await asyncio.sleep(1)
+            return requests.get('http://statsroyale.com/clan/'+clantag+'?appjson=1', timeout=5, headers=headers, proxies=dict(http="69.39.224.129:80",)).json()
+        except (requests.exceptions.Timeout, json.decoder.JSONDecodeError):
+            return None
+        except requests.exceptions.RequestException as e:
+            return None
 
     @commands.command(pass_context=True, aliases=['clashprofile','cprofile','cProfile'])
     async def clashProfile(self, ctx, member: discord.Member = None):
@@ -189,44 +223,22 @@ class clashroyale:
     @commands.command(pass_context=True)
     async def clan(self, ctx, clantag):
     	"""View Clash Royale Clan statistics and information """
-    	client = AsyncClient()
     	try:
-    		clandata = await client.get_clan(clantag)
+    		clandata = await self.getClan(clantag)
     	except:
     		await self.bot.say("Error: cannot reach Clash Royale Servers. Please try again later.")
     		return
 
-    	embed=discord.Embed(title=clandata.name + " (#" + clantag + ")", description=clandata.description, color=0x0080ff)
-    	embed.set_thumbnail(url='http://api.cr-api.com'+ str(clandata.badge.url))
-    	embed.add_field(name="Members", value=str(clandata.memberCount)+"/50", inline=True)
-    	embed.add_field(name="Donations", value=clandata.donations, inline=True)
-    	embed.add_field(name="Score", value=clandata.score, inline=True)
-    	embed.add_field(name="Required Trophies", value=clandata.requiredScore, inline=True)
-    	embed.add_field(name="Status", value=clandata.typeName, inline=True)
-    	embed.add_field(name="Country", value=clandata.region.name, inline=True)
+    	embed=discord.Embed(title=clandata['alliance']['header']['name'] + " (#" + clantag + ")", description=clandata['alliance']['description'], color=0x0080ff)
+    	embed.set_thumbnail(url='https://statsroyale.com/images/badges/16000002.png')
+    	embed.add_field(name="Members", value=str(clandata['alliance']['header']['numberOfMembers'])+"/50", inline=True)
+    	embed.add_field(name="Donations", value=str(clandata['alliance']['header']['donations']), inline=True)
+    	embed.add_field(name="Score", value=str(clandata['alliance']['header']['score']), inline=True)
+    	embed.add_field(name="Required Trophies", value=str(clandata['alliance']['header']['requiredScore']), inline=True)
+    	embed.add_field(name="Status", value=str(clandata['alliance']['header']['type']), inline=True)
+    	embed.add_field(name="Country", value=str(clandata['alliance']['header']['region']), inline=True)
     	embed.set_footer(text=credits, icon_url=creditIcon)
     	await self.bot.say(embed=embed)
-
-    @commands.command()
-    async def api(self):
-    	"""Ping the CR API  """
-
-    	socket.setdefaulttimeout( 10 )  # timeout in seconds
-
-    	await self.bot.type()
-
-    	url = 'http://api.cr-api.com/profile/CRRYRPCC'
-    	try :
-    	    req = urllib2.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
-    	    response = urllib2.urlopen(req).read()
-    	except socket.timeout as e:
-    	    await self.bot.say('We failed to reach the server. Reason: ' + str(e))
-    	except urllib2.HTTPError as e:
-    	    await self.bot.say('The server couldn\'t fulfill the request. Reason: ' + str(e.code))
-    	except urllib2.URLError as e:
-    	    await self.bot.say('We failed to reach the server. Reason: ' + str(e.reason))
-    	else :
-    	    await self.bot.say('API is working!')
 
     @commands.group(pass_context=True)
     async def save(self, ctx):
@@ -257,7 +269,6 @@ class clashroyale:
 
 	    server = ctx.message.server
 	    author = ctx.message.author
-	    client = AsyncClient()
 
 	    profiletag = profiletag.strip('#').upper().replace('O', '0')
 	    check = ['P', 'Y', 'L', 'Q', 'G', 'R', 'J', 'C', 'U', 'V', '0', '2', '8', '9']
@@ -286,12 +297,12 @@ class clashroyale:
 	    	member = ctx.message.author
 
 	    try:
-	    	profiledata = await client.get_profile(profiletag)
+	    	profiledata = await self.getProfile(profiletag)
 
 	    	self.clash.update({member.id: {'tag': profiletag}})
 	    	dataIO.save_json('cogs/tags.json', self.clash)
 
-	    	await self.bot.say('**' +profiledata.name + ' (#'+ profiletag + ')** has been successfully saved on ' + member.mention)
+	    	await self.bot.say('**' +profiledata['profile']['name'] + ' (#'+ profiletag + ')** has been successfully saved on ' + member.mention)
 	    except:
 	    	await self.bot.say("We cannot find your ID in our database, please try again. Type !contact to ask for help.")
 
