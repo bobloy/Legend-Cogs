@@ -153,6 +153,13 @@ class legend:
     
     @commands.group(pass_context=True)
     @checks.mod_or_permissions(administrator=True)
+    async def apitoken(self, ctx, token):
+        """Set the api token"""
+        self.auth["token"] = token
+        dataIO.save_json('cogs/auth.json', self.auth)
+            
+    @commands.group(pass_context=True)
+    @checks.mod_or_permissions(administrator=True)
     async def clans(self, ctx):
         """Base command for managing clash royale clans. [p]help clans for details"""
         if ctx.invoked_subcommand is None:
