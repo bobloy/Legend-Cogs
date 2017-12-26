@@ -66,7 +66,7 @@ class clashroyale:
 
 	    	embed=discord.Embed(title="", color=0x0080ff)
 	    	embed.set_author(name=profiledata['name'] + " (#"+profiledata['tag']+")", icon_url=clanurl)
-	    	embed.set_thumbnail(url="https://statsroyale.com/images/leagues/league-1.png") #TODO
+	    	embed.set_thumbnail(url="https://cr-api.github.io/cr-api-assets/arenas/{}.png".format(profiledata['arena']['arena'].replace(' ', '').lower()))
 	    	embed.add_field(name="Trophies", value=profiledata['trophies'], inline=True)
 	    	embed.add_field(name="Highest Trophies", value=profiledata['stats']['maxTrophies'], inline=True)
 	    	embed.add_field(name="Level", value=profiledata['stats']['level'], inline=True)
@@ -122,7 +122,7 @@ class clashroyale:
 	    	if profiledata['clan'] is None:
 	    		clanurl = "https://i.imgur.com/4EH5hUn.png"
 	    	else:
-	    		clanurl = "http://statsroyale.com/images/badges/"+str(profiledata['clan']['badge'])+".png"
+	    		clanurl = profiledata['clan']['badge']['image']
 
 	    	embed=discord.Embed(title="", color=0x0080ff, description="Your Upcoming chests.")
 	    	embed.set_author(name=profiledata['name'] + " (#"+profiledata['tag']+")", icon_url=clanurl)
