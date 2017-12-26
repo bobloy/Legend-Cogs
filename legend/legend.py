@@ -235,6 +235,19 @@ class legend:
         self.save_data()
         await self.bot.say("Success")
         
+    # @clans.command(pass_context=True, name="emoji")
+    # @checks.mod_or_permissions(administrator=True)
+    # async def clans_emoji(self, ctx, clankey, emoji: discord.Emoji):
+        # """Add emoji"""
+        # try:
+            # self.c[clankey]['emoji'] = discordinv
+        # except KeyError:
+            # await self.bot.say("Please use a valid clanname : "+",".join(key for key in self.c.keys()))
+            # return 
+        
+        # self.save_data()
+        # await self.bot.say("Success")
+        
     @clans.command(pass_context=True, name="family")
     @checks.mod_or_permissions(administrator=True)
     async def clans_family(self, ctx, url, *FamilyName):
@@ -326,7 +339,7 @@ class legend:
                     numWaiting = len(self.c[clankey]['waiting'])
                     personalbest = self.c[clankey]['personalbest']
                     bonustitle = self.c[clankey]['bonustitle']
-                    emoji = self.c[clankey]['emoji']
+                    # emoji = self.c[clankey]['emoji']
                     break
 
             if numWaiting > 0:
@@ -351,7 +364,8 @@ class legend:
             if bonustitle is not None:
                 title += bonustitle
 
-            desc = emoji + " " + showMembers + "     :trophy: " + str(clans[x]['requiredScore']) + "+     :medal: " +str(clans[x]['score'])
+            # desc = emoji + " " + showMembers + "     :trophy: " + str(clans[x]['requiredScore']) + "+     :medal: " +str(clans[x]['score'])
+            desc = showMembers + "     :trophy: " + str(clans[x]['requiredScore']) + "+     :medal: " +str(clans[x]['score'])
             totalMembers += clans[x]['memberCount']
 
             if (member is None) or ((clans[x]['requiredScore'] <= trophies) and (maxtrophies > personalbest) and (trophies - clans[x]['requiredScore'] < 1500)):
