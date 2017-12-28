@@ -20,7 +20,7 @@ requests_cache.install_cache('statsroyale_cache', backend='sqlite', expire_after
 
 BOTCOMMANDER_ROLES =  ["Family Representative", "Clan Manager", "Clan Deputy", "Co-Leader", "Hub Officer", "admin", "Leader"];
 creditIcon = "https://i.imgur.com/TP8GXZb.png"
-credits = "Bot by GR8 | Titan"
+credits = "Cog by GR8 | Titan"
 
 clash = os.path.join("cogs", "tags.json")
 clash_mini = os.path.join("cogs", "mini_tags.json")
