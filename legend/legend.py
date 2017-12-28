@@ -12,7 +12,7 @@ import string
 import datetime
 
 creditIcon = "https://i.imgur.com/TP8GXZb.png"
-credits = "Bot by GR8 | Titan"
+credits = "Cog by GR8 | Titan"
 BOTCOMMANDER_ROLES =  ["Family Representative", "Clan Manager", "Clan Deputy", "Co-Leader", "Hub Officer", "admin", "Leader"];
 
 rules_text = """**Here are some Legend Family Discord server rules.**\n
@@ -677,7 +677,7 @@ class legend:
     async def topmembers(self, number=10):
         """Show Top Legend Family Members"""
 
-        if number > 50:
+        if number > 100:
             await self.bot.say("Sorry! the number must be below 50.")
             return
 
@@ -691,6 +691,11 @@ class legend:
         message = "```py\n"
         for x in range(0, number):
             message += str(x + 1).zfill(2) + ".  [" + str(players['data'][x]['score']) + "]  " + players['data'][x]['name'] + " (" + players['data'][x]['clan_name'] + ") " + "\n"
+            if (x+1) % 40 == 0:
+                message += "```"
+                await self.bot.say(message)
+                message = "```py\n"
+
         message += "```"
 
         await self.bot.say(message)
@@ -950,6 +955,8 @@ class legend:
         """Show status of the waiting list."""
 
         message = ""
+        counterClans = 0
+        counterPlayers = 0
 
         server = ctx.message.server
         author = ctx.message.author
@@ -965,11 +972,13 @@ class legend:
 
         for indexC, clan in enumerate(self.c):
             if self.c[clan]["waiting"]:
+                counterClans += 1
                 message = ""
                 for index, userID in enumerate(self.c[clan]["waiting"]):
                     user = discord.utils.get(ctx.message.server.members, id = userID)
                     try:
                         message += str(index+1) + ". " + user.name + "\n"
+                        counterPlayers += 1
                     except AttributeError:
                         self.c[clan]['waiting'].remove(userID)
                         dataIO.save_json('cogs/clans.json', self.c)
@@ -979,6 +988,7 @@ class legend:
         if not message:
             await self.bot.say("The waiting list is empty")
         else:
+            embed.description = "We have " + str(counterPlayers) + " people waiting for " + str(counterClans) + " clans."
             embed.set_author(name="LeGeND Family Waiting List", icon_url="https://i.imgur.com/dtSMITE.jpg")
             embed.set_footer(text=credits, icon_url=creditIcon)
             await self.bot.say(embed=embed)
