@@ -104,7 +104,7 @@ class clashroyale:
         try:
             profiletag = self.clash[member.id]['tag']
         except:
-            await self.bot.say("You need to first save your profile using ``!save clash #GAMETAG``")'
+            await self.bot.say("You need to first save your profile using ``!save clash #GAMETAG``")
             return
         
         await self.bot.type()
