@@ -256,7 +256,7 @@ class legend:
         self.settings['url'] = url
         self.settings['family'] = " ".join(FamilyName)
 
-        self.save_data()
+        self.save_settings()
         await self.bot.say("Success")
 
     async def _is_commander(self, member):
