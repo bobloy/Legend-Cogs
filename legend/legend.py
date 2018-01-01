@@ -288,7 +288,7 @@ class legend:
         self.settings['url'] = url
         self.settings['family'] = " ".join(FamilyName)
 
-        self.save_data()
+        self.save_settings()
         await self.bot.say("Success")
 
     @clans.command(pass_context=True, name="discord")
