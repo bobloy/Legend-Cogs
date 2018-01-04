@@ -127,8 +127,9 @@ class clashroyale:
 		"""View your upcoming chest cycle for Clash Royale."""
 
 
-			if member is None:
-				member = ctx.message.author
+		if member is None:
+			member = ctx.message.author
+			
 		try:
 			profiletag = self.clash[member.id]['tag']
 		except:
