@@ -189,7 +189,7 @@ class clashroyale:
 			await self.bot.say("Error: cannot reach Clash Royale Servers. Please try again later.")
 			return
 
-	@commands.command(pass_context=True, aliases=['clanwar'])
+	@commands.command(pass_context=True, aliases=['cw'])
 	async def tournament(self, ctx, tag, password = None):
 		"""View Clash Royale Tournament Information """
 
@@ -202,7 +202,12 @@ class clashroyale:
 			cards = self.getCards(maxCapacity)
 			coins = self.getCoins(maxCapacity)
 
-			embed=discord.Embed(title=tourneydata['name']+" (#"+tourneydata['tag']+")", description=tourneydata['description'], color=0x00ffff)
+			try:
+				desc = tourneydata['description']
+			except KeyError:
+				desc = "No description"
+
+			embed=discord.Embed(title=tourneydata['name']+" (#"+tourneydata['tag']+")", description=desc, color=0x00ffff)
 			embed.set_thumbnail(url='https://statsroyale.com/images/tournament.png')
 			embed.add_field(name="Players", value=str(tourneydata['capacity']) + "/" + str(maxCapacity), inline=True)
 			embed.add_field(name="Status", value=tourneydata['status'].capitalize(), inline=True)
@@ -216,8 +221,8 @@ class clashroyale:
 
 			if tourneydata['status'] != "ended":
 				
-				startTime = self.sec2tme(tourneydata['startTime'] - int(time.time()))
-				endTime = self.sec2tme(tourneydata['endTime'] - int(time.time()))
+				startTime = self.sec2tme((tourneydata['createTime'] + tourneydata['preparationDuration']) - int(time.time()))
+				endTime = self.sec2tme((tourneydata['createTime'] + tourneydata['preparationDuration'] + tourneydata['duration']) - int(time.time()))
 
 				embed.add_field(name="Starts In", value=startTime, inline=True)
 				embed.add_field(name="Ends In", value=endTime, inline=True)
@@ -229,8 +234,7 @@ class clashroyale:
 			await self.bot.say(embed=embed)
 
 		except:
-	   		await self.bot.say("Error: cannot reach Clash Royale Servers. Please try again later.")
-	   		raise
+	   		await self.bot.say("Error: Tournament not found. Please try again later!")
 
 	@commands.group(pass_context=True)
 	async def save(self, ctx):

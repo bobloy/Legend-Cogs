@@ -151,6 +151,7 @@ class legend:
         roles = [discord.utils.get(server.roles, name=role_name) for role_name in role_names]
         try:
             await self.bot.remove_roles(member, *roles)
+            await asyncio.sleep(3)
         except:
             pass
     
@@ -322,7 +323,7 @@ class legend:
                 trophies = profiledata['trophies']
                 maxtrophies = profiledata['stats']['maxTrophies']
                 maxmembers = 50
-                await self.bot.say("Hello " + member.mention + ", these are all the clans you are allowed to join, based on your statistics. Your current trophies are: " + str(trophies))
+                await self.bot.say("Hello {}, these are all the clans you are allowed to join, based on your statistics. \nYour Trophies: {}\nYour Personal Best: {}".format(member.mention, str(trophies), str(maxtrophies)))
             except (requests.exceptions.Timeout, json.decoder.JSONDecodeError):
                 await self.bot.say("Error: cannot reach Clash Royale Servers. Please try again later.")
                 return
@@ -335,7 +336,7 @@ class legend:
 
         try:
             await self.bot.type()
-            clans = requests.get('http://api.cr-api.com/clan/'+','.join(self.c[clan]["tag"] for clan in self.c), headers=self.getAuth(), timeout=10).json()
+            clans = requests.get('http://api.cr-api.com/clan/'+','.join(self.c[clan]["tag"] for clan in self.c)+'?exclude=members', headers=self.getAuth(), timeout=10).json()
         except (requests.exceptions.Timeout, json.decoder.JSONDecodeError):
                 await self.bot.say("Error: cannot reach Clash Royale Servers. Please try again later.")
                 return
@@ -345,7 +346,7 @@ class legend:
                 
         clans = sorted(clans, key=lambda clanned: clanned['requiredScore'], reverse=True)
         
-        embed=discord.Embed(color=0xf1c747)
+        embed=discord.Embed(color=0xFAA61A)
         if "url" in self.settings and "family" in self.settings:
             embed.set_author(name=self.settings['family'], url=self.settings['url'], icon_url="https://i.imgur.com/dtSMITE.jpg")
         else:
@@ -485,7 +486,7 @@ class legend:
                 await self.bot.say("Approval failed, you don't meet the trophy requirements.")
                 return
 
-            if (clandata['type'] == "Closed"):
+            if (clandata['type'] == "closed"):
                 await self.bot.say("Approval failed, the clan is currently closed.")
                 return
 
@@ -975,10 +976,26 @@ class legend:
             if player_trophy < clanReq:
                 cr_members_with_less_trophies.append(cr_members_name[index])
 
+        cr_clanSettings = []
+        cr_clanSettings.append(clandata['badge']['id'] == 16000002)
+        cr_clanSettings.append(clandata['location']['name'] == "International")
+        cr_clanSettings.append("LeGeND Family🔥13 Clans🔥LegendClans.com🔥Daily Tourneys🔥Weekly Clanwar🔥discord.me/legendfamily🔥" in clandata['description'])
+        cr_clanSettings.append(clandata['type'] != "closed")
+
         message = ""
 
+        if False in cr_clanSettings:
+            message += "\n\n:warning: Problems in clan settings for **" + clan_name + "**:```"
+
+            if cr_clanSettings[0] is False: message += "\n• Clan Badge is incorrect."
+            if cr_clanSettings[1] is False: message += "\n• Clan Location is incorrect."
+            if cr_clanSettings[2] is False: message += "\n• Clan description is incorrect."
+            if cr_clanSettings[3] is False: message += "\n• Clan is closed."
+
+            message += "```"
+
         if cr_members_with_no_player_tag:
-            message += "\n\n:warning: **("+str(len(cr_members_with_no_player_tag))+")** Players in **" + clan_name + "**, but have **NO** tags saved or have **NOT** joined discord: ```• "
+            message += "\n\n:warning: **("+str(len(cr_members_with_no_player_tag))+")** Players in **" + clan_name + "**, but have **NOT** joined discord: ```• "
             message += "\n• ".join(cr_members_with_no_player_tag)
             message += "```"
 
