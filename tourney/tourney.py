@@ -160,14 +160,14 @@ class tournament:
 	    	'http': random.choice(proxies_list)
 		}
 
-		try:
+		# try:
 			tourneydata = requests.get('http://statsroyale.com/tournaments?appjson=1', timeout=10).json()
-		except (requests.exceptions.Timeout, json.decoder.JSONDecodeError):
-			await self.bot.say("Error: cannot reach Clash Royale Servers. Please try again later.")
-			return
-		except requests.exceptions.RequestException as e:
-			await self.bot.say(e)
-			return
+		# except (requests.exceptions.Timeout, json.decoder.JSONDecodeError):
+			# await self.bot.say("Error: cannot reach Clash Royale Servers. Please try again later.")
+			# return
+		# except requests.exceptions.RequestException as e:
+			# await self.bot.say(e)
+			# return
 
 		numTourney = list(range(len(tourneydata['tournaments'])))
 		random.shuffle(numTourney)
