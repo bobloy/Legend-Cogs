@@ -15,7 +15,7 @@ import async_timeout
 
 lastTag = '0'
 creditIcon = "https://i.imgur.com/TP8GXZb.png"
-credits = "Bot by GR8 | Titan"
+credits = "Cog by GR8 | Titan"
 
 proxies_list = ['195.162.4.111:3239','94.249.160.49:2179','173.211.31.3:3133','45.43.218.82:3212','45.43.219.185:3315','172.82.173.100:3230','172.82.177.111:5241','64.44.18.31:3161','107.175.43.100:3230','93.127.128.41:3171']
 
@@ -169,7 +169,7 @@ class tournament:
 		    # await self.bot.say("Error, this command is only available for Legend Members and Guests.")
 		    # return
 		
-		loop = asyncio.get_event_loop()
+		# loop = asyncio.get_event_loop()
 		# future = asyncio.Future()
 		# asyncio.ensure_future(fetch2(future,'http://statsroyale.com/tournaments?appjson=1'))
 		# loop.run_until_complete(future)
@@ -177,7 +177,7 @@ class tournament:
 		# tourneydata= future.result()
 		# loop.close()
 		
-		tourneydata = loop.run_until_complete(await fetch2('http://statsroyale.com/tournaments?appjson=1'))
+		tourneydata = await fetch2('http://statsroyale.com/tournaments?appjson=1')
 		
 		print(tourneydata)
 		tourneydata = tourneydata.json()
