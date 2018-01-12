@@ -169,13 +169,13 @@ class tournament:
 		    # await self.bot.say("Error, this command is only available for Legend Members and Guests.")
 		    # return
 		
-		loop = asyncio.get_event_loop()
+		loop2 = asyncio.get_event_loop()
 		future = asyncio.Future()
 		asyncio.ensure_future(fetch2(future,'http://statsroyale.com/tournaments?appjson=1'))
-		loop.run_until_complete(future)
+		loop2.run_until_complete(future)
 		print(future.result())
 		tourneydata= future.result()
-		loop.close()
+		loop2.close()
 		
 		tourneydata = tourneydata.json()
 		
