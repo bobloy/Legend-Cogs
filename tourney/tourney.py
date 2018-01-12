@@ -170,9 +170,6 @@ class tournament:
 		    # return
 		
 		loop = asyncio.get_event_loop()
-		loop.run_until_complete(fetch2('http://statsroyale.com/tournaments?appjson=1'))
-		
-		loop = asyncio.get_event_loop()
 		future = asyncio.Future()
 		asyncio.ensure_future(fetch2(future,'http://statsroyale.com/tournaments?appjson=1'))
 		loop.run_until_complete(future)
