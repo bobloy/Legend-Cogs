@@ -32,7 +32,7 @@ def getTopTourneyNew():
 	}
 
 	try:
-		tourneydata = requests.get('http://statsroyale.com/tournaments?appjson=1', timeout=5)
+		tourneydata = requests.get('http://statsroyale.com/tournaments?appjson=1', timeout=5, headers=headers)
 		print(tourneydata)
 		tourneydata = tourneydata.json()
 	except (requests.exceptions.Timeout, json.decoder.JSONDecodeError):
@@ -163,7 +163,7 @@ class tournament:
 		}
 
 		# try:
-		tourneydata = requests.get('http://statsroyale.com/tournaments?appjson=1', timeout=10)
+		tourneydata = requests.get('http://statsroyale.com/tournaments?appjson=1', timeout=5, headers=headers)
 		print(tourneydata)
 		tourneydata = tourneydata.json()
 		# except (requests.exceptions.Timeout, json.decoder.JSONDecodeError):
