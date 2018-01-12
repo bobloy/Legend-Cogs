@@ -24,11 +24,11 @@ async def fetch(session, url):
         async with session.get(url) as response:
             return await response.text()
 
-async def fetch2(future, url):			
+async def fetch2(url):			
 	async with aiohttp.ClientSession() as session:
 		html = await fetch(session, url)
 		print(html)
-		future.set_result(html)
+		return html
 		
 # Returns a list with tournaments
 def getTopTourneyNew():
@@ -169,16 +169,19 @@ class tournament:
 		    # await self.bot.say("Error, this command is only available for Legend Members and Guests.")
 		    # return
 		
-		loop2 = asyncio.get_event_loop()
-		future = asyncio.Future()
-		asyncio.ensure_future(fetch2(future,'http://statsroyale.com/tournaments?appjson=1'))
-		loop2.run_until_complete(future)
-		print(future.result())
-		tourneydata= future.result()
-		loop2.close()
+		loop = asyncio.get_event_loop()
+		# future = asyncio.Future()
+		# asyncio.ensure_future(fetch2(future,'http://statsroyale.com/tournaments?appjson=1'))
+		# loop.run_until_complete(future)
+		# print(future.result())
+		# tourneydata= future.result()
+		# loop.close()
 		
+		tourneydata = loop.run_until_complete(fetch2('http://statsroyale.com/tournaments?appjson=1'))
+		
+		print(tourneydata)
 		tourneydata = tourneydata.json()
-		
+		loop.close()
 		# ua = UserAgent()
 		# ua.update()
 		# headers = {
