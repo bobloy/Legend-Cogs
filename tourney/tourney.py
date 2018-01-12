@@ -177,11 +177,12 @@ class tournament:
 		# tourneydata= future.result()
 		# loop.close()
 		
-		tourneydata = loop.run_until_complete(fetch2('http://statsroyale.com/tournaments?appjson=1'))
+		tourneydata = loop.run_until_complete(await fetch2('http://statsroyale.com/tournaments?appjson=1'))
 		
 		print(tourneydata)
 		tourneydata = tourneydata.json()
 		loop.close()
+		
 		# ua = UserAgent()
 		# ua.update()
 		# headers = {
