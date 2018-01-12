@@ -23,8 +23,9 @@ def getTopTourneyNew():
 	tourney = {}
 
 	ua = UserAgent()
+	ua.update()
 	headers = {
-	    "User-Agent": ua.random
+	    "User-Agent": str(ua.random)
 	}
 
 	proxies = {
@@ -155,8 +156,9 @@ class tournament:
 		    # return
 
 		ua = UserAgent()
+		ua.update()
 		headers = {
-		    "User-Agent": ua.random
+		    "User-Agent": str(ua.random)
 		}
 		proxies = {
 	    	'http': random.choice(proxies_list)
