@@ -22,7 +22,7 @@ proxies_list = ['195.162.4.111:3239','94.249.160.49:2179','173.211.31.3:3133','4
 async def fetch(session, url):
     with async_timeout.timeout(10):
         async with session.get(url) as response:
-            return await response
+            return await response.json()
 
 async def fetch2(url):			
 	async with aiohttp.ClientSession() as session:
