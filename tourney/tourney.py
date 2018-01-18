@@ -17,72 +17,18 @@ lastTag = '0'
 creditIcon = "https://i.imgur.com/TP8GXZb.png"
 credits = "Cog by GR8 | Titan"
 
-proxies_list = ['195.162.4.111:3239','94.249.160.49:2179','173.211.31.3:3133','45.43.218.82:3212','45.43.219.185:3315','172.82.173.100:3230','172.82.177.111:5241','64.44.18.31:3161','107.175.43.100:3230','93.127.128.41:3171']
-
-async def fetch(session, url):
-    with async_timeout.timeout(10):
-        async with session.get(url) as response:
-            return response
-
-async def fetch2(url):			
-	async with aiohttp.ClientSession() as session:
-		html = await fetch(session, url)
-		return html
-		
-# Returns a list with tournaments
-def getTopTourneyNew():
-
-	global lastTag
-	tourney = {}
-
-	ua = UserAgent()
-	ua.update()
-	headers = {
-	    "User-Agent": str(ua.random)
-	}
-
-	proxies = {
-    	'http': random.choice(proxies_list)
-	}
-
-	try:
-		tourneydata = requests.get('http://statsroyale.com/tournaments?appjson=1', timeout=5, headers=headers)
-		print(tourneydata)
-		tourneydata = tourneydata.json()
-	except (requests.exceptions.Timeout, json.decoder.JSONDecodeError):
-		return None
-	except requests.exceptions.RequestException as e:
-		return None
-
-	numTourney = len(tourneydata['tournaments'])
-
-	for x in range(0, numTourney):
-
-		title = tourneydata['tournaments'][x]['title']
-		totalPlayers = tourneydata['tournaments'][x]['totalPlayers']
-		maxPlayers = tourneydata['tournaments'][x]['maxPlayers']
-		full = tourneydata['tournaments'][x]['full']
-		timeLeft = tourneydata['tournaments'][x]['timeLeft']
-		hashtag = tourneydata['tournaments'][x]['hashtag']
-		cards = getCards(maxPlayers)
-		coins = getCoins(maxPlayers)
-		time = sec2tme(timeLeft)
-		players = str(totalPlayers) + "/" + str(maxPlayers)
-
-		if (maxPlayers > 50) and (not full) and (timeLeft > 600) and ((totalPlayers + 4) < maxPlayers) and (hashtag != lastTag):
-			
-			lastTag = hashtag
-			
-			tourney['tag'] = hashtag
-			tourney['title'] = title
-			tourney['players'] = players
-			tourney['time'] = time
-			tourney['gold'] = coins
-			tourney['cards'] = cards
-
-			return tourney
-
-	return None
+proxies_list = [
+	'94.249.160.49:6998',
+	'93.127.128.41:7341',
+	'107.175.43.100:6858',
+	'64.44.18.31:3691',
+	'172.82.173.100:5218',
+	'172.82.177.111:3432',
+	'45.43.219.185:2461',
+	'45.43.218.82:3577',
+	'173.211.31.3:8053',
+	'195.162.4.111:4762'
+]
 
 # Converts maxPlayers to Cards
 def getCards(maxPlayers):
@@ -118,10 +64,14 @@ class tournament:
 		self.bot = bot
 		self.path = 'data/tourney/settings.json'
 		self.settings = dataIO.load_json(self.path)
+		self.auth = dataIO.load_json('cogs/auth.json')
 		
 	def save_data(self):
 		"""Saves the json"""
 		dataIO.save_json(self.path, self.settings)
+
+	def getAuth(self):
+		return {"auth" : self.auth['token']}
 
 	async def _is_allowed(self, member):
 		server = member.server
@@ -133,10 +83,73 @@ class tournament:
 		else:
 		    return False
 
+	# Returns a list with tournaments
+	def getTopTourneyNew(self):
+
+		global lastTag
+		tourney = {}
+
+		ua = UserAgent()
+		headers = {
+		    "User-Agent": ua.random
+		}
+
+		proxies = {
+	    	'http': random.choice(proxies_list)
+		}
+
+		try:
+			tourneydata = requests.get('http://statsroyale.com/tournaments?appjson=1', timeout=5, headers=headers, proxies=proxies).json()
+		except (requests.exceptions.Timeout, json.decoder.JSONDecodeError):
+			return None
+		except requests.exceptions.RequestException as e:
+			return None
+
+		numTourney = len(tourneydata['tournaments'])
+
+		for x in range(0, numTourney):
+
+			hashtag = tourneydata['tournaments'][x]['hashtag']
+			title = tourneydata['tournaments'][x]['title']
+			totalPlayers = tourneydata['tournaments'][x]['totalPlayers']
+			full = tourneydata['tournaments'][x]['full']
+			maxPlayers = tourneydata['tournaments'][x]['maxPlayers']
+			timeLeft = tourneydata['tournaments'][x]['timeLeft']
+			cards = getCards(maxPlayers)
+			coins = getCoins(maxPlayers)
+			time = sec2tme(timeLeft)
+			players = str(totalPlayers) + "/" + str(maxPlayers)
+
+			if (maxPlayers > 50) and (not full) and (timeLeft > 600) and ((totalPlayers + 4) < maxPlayers) and (hashtag != lastTag):
+
+				lastTag = hashtag
+
+				try:
+					tourneydataAPI = requests.get('http://api.cr-api.com/tournaments/{}'.format(hashtag), headers=self.getAuth(), timeout=10).json()
+					totalPlayers = tourneydataAPI['capacity']
+					full = tourneydataAPI['capacity'] == tourneydataAPI['maxCapacity']
+					isClosed = tourneydataAPI['type'] == 'open'
+
+					if (full) or ((totalPlayers + 4) > maxPlayers) or (not isClosed):
+						return None
+				except :
+					pass
+				
+				tourney['tag'] = hashtag
+				tourney['title'] = title
+				tourney['players'] = players
+				tourney['time'] = time
+				tourney['gold'] = coins
+				tourney['cards'] = cards
+
+				return tourney
+
+		return None
+
 	# checks for a tourney every 5 minutes
 	async def checkTourney(self):
 		while self is self.bot.get_cog("tournament"):
-			data = getTopTourneyNew()
+			data = self.getTopTourneyNew()
 			if data is not None:
 				embed=discord.Embed(title="New Tournament", description="We found an open tournament. You can type !tourney to search for more.", color=0x00ffff)
 				embed.set_thumbnail(url='https://statsroyale.com/images/tournament.png')

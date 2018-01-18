@@ -61,6 +61,10 @@ Score is calculated in a way that allows every participant to contribute to help
 
 There are 2 factors to win: convince more players to participate within your clan and earn more tournament trophies. Both are **equally important**. We publish tourneys and passwords at same time, so we give equal chances to each clan and player. 
 
+Every Sunday, there will be a **special Gizer clanwar** where various clans outside and inside the family will join a tournament and the top clan will recieve $5 from Gizer. 
+
+Each and every participant will recieve discord credits for getting trophies for their clan. The more trophies you can collect, the more credits you will get. Credits can used in LeGeND shop to buy various items.
+
 **All clans** will be closed/full to avoid any leaks, nobody will be allowed to join.
 
 **3 golden Rules for clanwars:** We respect the Opponent (no BMing if you win), we play to have fun (no obligation to participate), and don't join if you think you cannot play.
@@ -216,24 +220,6 @@ class legend:
         self.save_data()        
         await self.bot.say("Success")
 
-    @clans.command(pass_context=True, name="toggle")
-    @checks.mod_or_permissions(administrator=True)
-    async def clans_toggle(self, ctx, clankey):
-        """Toggles visibility of clans in !legend"""
-        clankey = clankey.lower()
-        try:
-            self.c[clankey]['hide'] = not self.c[clankey]['hide']
-        except KeyError:
-            await self.bot.say("Please use a valid clanname : "+", ".join(key for key in self.c.keys()))
-            return 
-        
-        self.save_data()
-        if self.c[clankey]['hide'] == True:
-            await self.bot.say("Success, Clan is now hidden")
-        else:
-            await self.bot.say("Success, Clan is now visible")
-    
-    
     @clans.command(pass_context=True, name="bonus")
     @checks.mod_or_permissions(administrator=True)
     async def clans_bonus(self, ctx, clankey, *bonus):
@@ -319,7 +305,7 @@ class legend:
                 await self.updateClash()
                 await self.bot.type()
                 profiletag = self.clash[member.id]['tag']
-                profiledata = requests.get('http://api.cr-api.com/player/{}'.format(profiletag), headers=self.getAuth(), timeout=10).json()
+                profiledata = requests.get('http://api.cr-api.com/player/{}?exclude=games,currentDeck,cards,battles,achievements'.format(profiletag), headers=self.getAuth(), timeout=10).json()
                 trophies = profiledata['trophies']
                 maxtrophies = profiledata['stats']['maxTrophies']
                 maxmembers = 50
@@ -344,8 +330,8 @@ class legend:
                 await self.bot.say(e)
                 return
                 
-        clans = sorted(clans, key=lambda clanned: clanned['requiredScore'], reverse=True)
-        
+        clans = sorted(clans, key=lambda clanned: (clanned['requiredScore'], clanned['score']), reverse=True)
+       
         embed=discord.Embed(color=0xFAA61A)
         if "url" in self.settings and "family" in self.settings:
             embed.set_author(name=self.settings['family'], url=self.settings['url'], icon_url="https://i.imgur.com/dtSMITE.jpg")
@@ -361,13 +347,11 @@ class legend:
             numWaiting = 0
             personalbest = 0
             bonustitle = None
-            hide = False
             
             for clankey in self.clanArray():
                 if self.c[clankey]['tag'] == clans[x]['tag']:
                     numWaiting = len(self.c[clankey]['waiting'])
                     personalbest = self.c[clankey]['personalbest']
-                    hide = self.c[clankey]['hide']
                     bonustitle = self.c[clankey]['bonustitle']
                     # emoji = self.c[clankey]['emoji']
                     totalWaiting += numWaiting
@@ -399,7 +383,7 @@ class legend:
             # desc = emoji + " " + showMembers + "     :trophy: " + str(clans[x]['requiredScore']) + "+     :medal: " +str(clans[x]['score'])
             desc = showMembers + "     :trophy: " + str(clans[x]['requiredScore']) + "+     :medal: " +str(clans[x]['score'])
 
-            if (member is None) or ((clans[x]['requiredScore'] <= trophies) and (maxtrophies > personalbest) and (trophies - clans[x]['requiredScore'] < 1500) and (hide is False)):
+            if (member is None) or ((clans[x]['requiredScore'] <= trophies) and (maxtrophies > personalbest) and (trophies - clans[x]['requiredScore'] < 1500) and (clans[x]['type'] != 'closed')):
                 foundClan = True
                 embed.add_field(name=title, value=desc, inline=False)
 
@@ -423,7 +407,7 @@ class legend:
         allowed = await self._is_commander(author)
 
         if not allowed:
-            await self.bot.say("You dont have enough permissions to approve a recruit. Type !contact to ask for help.")
+            await self.bot.say("You dont have enough permissions to approve a recruit.")
             return
 
         clankey = clankey.lower()
@@ -432,13 +416,9 @@ class legend:
             clan_tag = self.c[clankey]['tag']
             clan_name = self.c[clankey]['name'] 
             clan_role = self.c[clankey]['role'] 
-            clan_hidden = self.c[clankey]['hide'] 
+            clan_pb = self.c[clankey]['personalbest'] 
         except KeyError:
             await self.bot.say("Please use a valid clanname : "+", ".join(key for key in self.c.keys()))
-            return
-
-        if clan_hidden:
-            await self.bot.say("Approval failed, this clan is hidden. Type !contact to ask for help.")
             return
 
         leftClan = False
@@ -446,7 +426,7 @@ class legend:
             await self.updateClash()
             await self.bot.type()
             profiletag = self.clash[member.id]['tag']
-            profiledata = requests.get('http://api.cr-api.com/player/{}'.format(profiletag), headers=self.getAuth(), timeout=10).json()
+            profiledata = requests.get('http://api.cr-api.com/player/{}?exclude=games,currentDeck,cards,battles,achievements'.format(profiletag), headers=self.getAuth(), timeout=10).json()
             clandata = requests.get('http://api.cr-api.com/clan/{}'.format(clan_tag), headers=self.getAuth(), timeout=10).json()
             ign = profiledata['name']
             if profiledata['clan'] is None:
@@ -482,7 +462,7 @@ class legend:
                 await self.bot.say("Approval failed, the clan is Full.")
                 return
 
-            if (trophies < clandata['requiredScore']):
+            if ((trophies < clandata['requiredScore']) and (maxtrophies < clan_pb)):
                 await self.bot.say("Approval failed, you don't meet the trophy requirements.")
                 return
 
@@ -520,9 +500,9 @@ class legend:
                 "Congratulations, You have been approved to join **"+ clan_name + " (#" + clan_tag + ")**. Please follow the instructions below on how to join: \n\n" +
                 "Your Recruit Code is: ``" + recruitCode + "`` \n\n"+
                 "All you have to do is search the clan name in Clash Royale, request to join and enter your recruit code in the request message.\n\n" +
-                "That's it! Now wait for your the clan leader to accept. \n\n" +
+                "That's it! Now wait for your clan leadership to accept you. \n\n" +
                 "If you do not see a 'request to join' button, make sure you leave your current clan and check the trophy requirements. \n\n" + 
-                "**IMPORTANT**: Once your clan leader has accepted your request, let a staff member in discord know that you have been accepted. They will then unlock all the member channels for you."
+                "**IMPORTANT**: Once your clan leadership has accepted your request, let a staff member in discord know that you have been accepted. They will then unlock all the member channels for you."
                 )
             await self.bot.say(member.mention + " has been approved for **" + clan_name + "**. Please check your DM for instructions on how to join.")
 
@@ -548,8 +528,8 @@ class legend:
             await self.updateClash()
             await self.bot.type()
             profiletag = self.clash[member.id]['tag']
-            profiledata = requests.get('http://api.cr-api.com/player/{}'.format(profiletag), headers=self.getAuth(), timeout=10).json()
-            if profiledata['clan']['tag'] is None:
+            profiledata = requests.get('http://api.cr-api.com/player/{}?exclude=games,currentDeck,cards,battles,achievements'.format(profiletag), headers=self.getAuth(), timeout=10).json()
+            if profiledata['clan'] is None:
                 clantag = ""
                 clanname = ""
             else: 
@@ -640,7 +620,7 @@ class legend:
                     )
 
             roleName = discord.utils.get(server.roles, name=role_names[0])
-            await self.bot.send_message(discord.Object(id='375839851955748874'), '**' + ctx.message.author.name + '** recruited ' + '** ' + ign + ' (#'+ profiletag + ')** to ' + roleName.mention)
+            await self.bot.send_message(discord.Object(id='375839851955748874'), '**' + ctx.message.author.display_name + '** recruited ' + '** ' + ign + ' (#'+ profiletag + ')** to ' + roleName.mention)
 
             await asyncio.sleep(300)
             await self.bot.send_message(member,rules_text)
@@ -682,29 +662,26 @@ class legend:
         allowed = await self._is_commander(author)
 
         if not allowed:
-            await self.bot.say("You dont have enough permissions to add someone to the waiting list. Type !contact to ask for help.")
+            await self.bot.say("You dont have enough permissions to add someone to the waiting list.")
             return
 
         clankey = clankey.lower()
+        offline = False
 
         try:
             clan_tag = self.c[clankey]['tag']
             clan_name = self.c[clankey]['name'] 
-            clan_role = self.c[clankey]['role'] 
-            clan_hidden = self.c[clankey]['hide'] 
+            clan_role = self.c[clankey]['role']
+            clan_pb = self.c[clankey]['personalbest'] 
         except KeyError:
             await self.bot.say("Please use a valid clanname : "+", ".join(key for key in self.c.keys()))
-            return
-
-        if clan_hidden:
-            await self.bot.say("Cannot add you to the waiting list, this clan is hidden. Type !contact to ask for help.")
             return
 
         try:
             await self.updateClash()
             await self.bot.type()
             profiletag = self.clash[member.id]['tag']
-            profiledata = requests.get('http://api.cr-api.com/player/{}'.format(profiletag), headers=self.getAuth(), timeout=10).json()
+            profiledata = requests.get('http://api.cr-api.com/player/{}?exclude=games,currentDeck,cards,battles,achievements'.format(profiletag), headers=self.getAuth(), timeout=10).json()
             clandata = requests.get('http://api.cr-api.com/clan/{}'.format(clan_tag), headers=self.getAuth(), timeout=10).json()
             ign = profiledata['name']
             if profiledata['clan'] is None:
@@ -714,8 +691,8 @@ class legend:
                 clantag = profiledata['clan']['tag']
                 clanname = profiledata['clan']['name']
         except (requests.exceptions.Timeout, json.decoder.JSONDecodeError):
-            await self.bot.say("Error: cannot reach Clash Royale Servers. Please try again later.")
-            return
+            await self.bot.say("Warning: cannot reach Clash Royale Servers. Using offline waiting list.")
+            offline = True
         except requests.exceptions.RequestException as e:
             await self.bot.say(e)
             return
@@ -724,20 +701,23 @@ class legend:
             return
 
         membership = True
-        for clanKey in self.clanArray():
-            if self.c[clanKey]['tag'] == clantag:
-                membership = False # False
-                savekey = clanKey
-                break
+
+        if not offline:
+            for clanKey in self.clanArray():
+                if self.c[clanKey]['tag'] == clantag:
+                    membership = False # False
+                    savekey = clanKey
+                    break
 
         if membership:
 
-            trophies = profiledata['trophies']
-            maxtrophies = profiledata['stats']['maxTrophies']
+            if not offline:
+                trophies = profiledata['trophies']
+                maxtrophies = profiledata['stats']['maxTrophies']
 
-            if (trophies < clandata['requiredScore']):
-                await self.bot.say("Cannot add you to the waiting list, you don't meet the trophy requirements.")
-                return
+                if ((trophies < clandata['requiredScore']) and (maxtrophies < clan_pb)):
+                    await self.bot.say("Cannot add you to the waiting list, you don't meet the trophy requirements.")
+                    return
 
             if member.id not in self.c[clankey]['waiting']:
                 self.c[clankey]['waiting'].append(member.id)
@@ -766,7 +746,7 @@ class legend:
         allowed = await self._is_commander(author)
 
         if not allowed:
-            await self.bot.say("You dont have enough permissions to delete someone to the waiting list. Type !contact to ask for help.")
+            await self.bot.say("You dont have enough permissions to delete someone to the waiting list.")
             return
 
         clankey = clankey.lower()
@@ -821,7 +801,7 @@ class legend:
                 for index, userID in enumerate(self.c[clan]["waiting"]):
                     user = discord.utils.get(ctx.message.server.members, id = userID)
                     try:
-                        message += str(index+1) + ". " + user.name + "\n"
+                        message += str(index+1) + ". " + user.display_name + "\n"
                         counterPlayers += 1
                     except AttributeError:
                         self.c[clan]['waiting'].remove(userID)
@@ -851,7 +831,7 @@ class legend:
             await self.updateClash()
             await self.bot.type()
             profiletag = self.clash[member.id]['tag']
-            profiledata = requests.get('http://api.cr-api.com/player/{}'.format(profiletag), headers=self.getAuth(), timeout=10).json()
+            profiledata = requests.get('http://api.cr-api.com/player/{}?exclude=games,currentDeck,cards,battles,achievements'.format(profiletag), headers=self.getAuth(), timeout=10).json()
             clantag = profiledata['clan']['tag']
             clanname = profiledata['clan']['name']
             ign = profiledata['name']
@@ -914,7 +894,7 @@ class legend:
         allowed = await self._is_commander(author)
 
         if not allowed:
-            await self.bot.say("You dont have enough permissions to use Audit. Type !contact to ask for help.")
+            await self.bot.say("You dont have enough permissions to use Audit.")
             return
 
         await self.bot.type()
@@ -979,7 +959,7 @@ class legend:
         cr_clanSettings = []
         cr_clanSettings.append(clandata['badge']['id'] == 16000002)
         cr_clanSettings.append(clandata['location']['name'] == "International")
-        cr_clanSettings.append("LeGeND Family🔥13 Clans🔥LegendClans.com🔥Daily Tourneys🔥Weekly Clanwar🔥discord.me/legendfamily🔥" in clandata['description'])
+        cr_clanSettings.append("LeGeND Family🔥14 Clans🔥LegendClans.com🔥Daily Tourneys🔥Weekly Clanwar🔥discord.me/legendfamily🔥" in clandata['description'])
         cr_clanSettings.append(clandata['type'] != "closed")
 
         message = ""
@@ -1089,7 +1069,7 @@ class legend:
             await self.updateClash()
             await self.bot.type()
             profiletag = self.clash[member.id]['tag']
-            profiledata = requests.get('http://api.cr-api.com/player/{}'.format(profiletag), headers=self.getAuth(), timeout=10).json()
+            profiledata = requests.get('http://api.cr-api.com/player/{}?exclude=games,currentDeck,cards,battles,achievements'.format(profiletag), headers=self.getAuth(), timeout=10).json()
             ign = profiledata['name']
             if profiledata['clan'] is None:
                 clantag = ""
@@ -1121,7 +1101,7 @@ class legend:
 
             await self._remove_roles(member, rolesToRemove)
 
-            await self.bot.send_message(member, "Hey there, I am sorry to inform you that we have removed you from the clan for not meeting the proper activity requirements. We hope to see you back again soon when you are able to follow the clan requirements.")
+            await self.bot.send_message(member, "Hey there, I am sorry to inform you that we have removed you from the clan. We hope to see you back again soon when you are able to follow the clan requirements.")
 
             await self.bot.say("Member and clan roles removed.")
         else:
@@ -1168,8 +1148,6 @@ def check_clans():
             c[clankey]['bonustitle'] = ""
         if 'personalbest' not in c[clankey]:
             c[clankey]['personalbest'] = 0   
-        if 'hide' not in c[clankey]:
-            c[clankey]['hide'] = False      
     dataIO.save_json('cogs/clans.json', c)
 
 def check_auth():

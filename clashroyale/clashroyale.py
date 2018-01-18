@@ -24,7 +24,6 @@ creditIcon = "https://i.imgur.com/TP8GXZb.png"
 credits = "Cog by GR8 | Titan"
 
 clash = os.path.join("cogs", "tags.json")
-clash_mini = os.path.join("cogs", "mini_tags.json")
 brawl = os.path.join("data", "BrawlStats", "tags.json")
 auth = os.path.join("cogs", "auth.json")
 
@@ -34,7 +33,6 @@ class clashroyale:
 	def __init__(self, bot):
 		self.bot = bot
 		self.clash = dataIO.load_json(clash)
-		self.clash_mini = dataIO.load_json(clash_mini)
 		self.brawl = dataIO.load_json(brawl)
 		self.auth = dataIO.load_json(auth)
 
@@ -68,7 +66,7 @@ class clashroyale:
 		else:
 			return "{} hour, {} mins".format(h,m)
 
-	@commands.command(pass_context=True, aliases=['clashprofile','cprofile','cProfile'])
+	@commands.command(pass_context=True, aliases=['clashprofile'])
 	async def clashProfile(self, ctx, member: discord.Member = None):
 		"""View your Clash Royale Profile Data and Statstics."""
 
@@ -84,7 +82,7 @@ class clashroyale:
 		await self.bot.type()
 
 		try:
-			profiledata = requests.get('http://api.cr-api.com/player/{}'.format(profiletag), headers=self.getAuth(), timeout=10).json()
+			profiledata = requests.get('http://api.cr-api.com/player/{}?exclude=currentDeck,cards,battles,achievements'.format(profiletag), headers=self.getAuth(), timeout=10).json()
 		except:
 			await self.bot.say("Error: cannot reach Clash Royale Servers. Please try again later.")
 			return
@@ -138,7 +136,7 @@ class clashroyale:
 		await self.bot.type()
 
 		try:
-			profiledata = requests.get('http://api.cr-api.com/player/{}'.format(profiletag), headers=self.getAuth(), timeout=10).json()
+			profiledata = requests.get('http://api.cr-api.com/player/{}?exclude=games,currentDeck,cards,battles,achievements'.format(profiletag), headers=self.getAuth(), timeout=10).json()
 		except:
 			await self.bot.say("Error: cannot reach Clash Royale Servers. Please try again later.")
 			return
@@ -270,7 +268,7 @@ class clashroyale:
 		check = ['P', 'Y', 'L', 'Q', 'G', 'R', 'J', 'C', 'U', 'V', '0', '2', '8', '9']
 
 		if any(i not in check for i in profiletag):
-			await self.bot.say("The ID you provided has invalid characters. Please try again. Type !contact to ask for help.")
+			await self.bot.say("The ID you provided has invalid characters. Please try again.")
 			return
 
 		allowed = False
@@ -286,7 +284,7 @@ class clashroyale:
 				allowed = True
 
 		if not allowed:
-			await self.bot.say("You dont have enough permissions to set tags for others. Type !contact to ask for help.")
+			await self.bot.say("You dont have enough permissions to set tags for others.")
 			return
 
 		await self.bot.type()
@@ -297,72 +295,21 @@ class clashroyale:
 		try:
 			profiledata = requests.get('http://api.cr-api.com/player/{}'.format(profiletag), headers=self.getAuth(), timeout=10).json()
 
+			for key, value in self.clash.items():
+				if profiletag == self.clash[key]['tag']:
+					user = discord.utils.get(ctx.message.server.members, id = key)
+					try:
+						await self.bot.say("Error, This Player ID is already linked with **" + user.display_name + "**")
+						return
+					except:
+						pass
+
 			self.clash.update({member.id: {'tag': profiletag}})
 			dataIO.save_json('cogs/tags.json', self.clash)
 
 			await self.bot.say('**' +profiledata['name'] + ' (#'+ profiletag + ')** has been successfully saved on ' + member.mention)
 		except:
-			await self.bot.say("We cannot find your ID in our database, please try again. Type !contact to ask for help.")
-
-	@save.command(pass_context=True, name="mini")
-	async def save_mini(self, ctx, profiletag : str, member: discord.Member = None):
-		""" save your Clash Royale MINI Profile Tag	
-
-		Example:
-			!save mini #8Q8LR0JJU @GR8
-			!save mini #8Q8LR0JJU
-
-		Type !contact to ask for help.
-		"""
-
-		server = ctx.message.server
-		author = ctx.message.author
-
-		profiletag = profiletag.strip('#').upper().replace('O', '0')
-		check = ['P', 'Y', 'L', 'Q', 'G', 'R', 'J', 'C', 'U', 'V', '0', '2', '8', '9']
-
-		if any(i not in check for i in profiletag):
-			await self.bot.say("The ID you provided has invalid characters. Please try again. Type !contact to ask for help.")
-			return
-
-		allowed = False
-		if member is None:
-			allowed = True
-		elif member.id == author.id:
-			allowed = True
-		else:
-			botcommander_roles = [discord.utils.get(server.roles, name=r) for r in BOTCOMMANDER_ROLES]
-			botcommander_roles = set(botcommander_roles)
-			author_roles = set(author.roles)
-			if len(author_roles.intersection(botcommander_roles)):
-				allowed = True
-
-		if not allowed:
-			await self.bot.say("You dont have enough permissions to set tags for others. Type !contact to ask for help.")
-			return
-
-		if member is None:
-			member = ctx.message.author
-		
-		try:
-			profiledata = requests.get('http://api.cr-api.com/player/{}'.format(profiletag), headers=self.getAuth(), timeout=10).json()
-
-			if "8CL09V0C" not in profiledata['clan']['tag']:
-				await self.bot.say("This feature is only available to members of LeGEnD Minis!")
-				return
-
-			self.clash_mini.update({member.id: {'tag': profiledata['tag']}})
-			dataIO.save_json('cogs/mini_tags.json', self.clash_mini)
-
-			await self.bot.say('Mini player **' +profiledata['name'] + ' (#'+ profiledata['tag'] + ')** has been successfully saved on ' + member.mention)
-		except (requests.exceptions.Timeout):
-			await self.bot.say("Error: cannot reach Clash Royale Servers. Please try again later.")
-			return
-		except requests.exceptions.RequestException as e:
-			await self.bot.say(e)
-			return
-		except:
-			await self.bot.say("We cannot find your ID in our database, please try again. Type !contact to ask for help.")
+			await self.bot.say("We cannot find your ID in our database, please try again.")
 
 	@save.command(pass_context=True, name="brawl")
 	async def save_brawl(self, ctx, profiletag : str, member: discord.Member = None):
@@ -381,7 +328,7 @@ class clashroyale:
 		check = ['P', 'Y', 'L', 'Q', 'G', 'R', 'J', 'C', 'U', 'V', '0', '2', '8', '9']
 
 		if any(i not in check for i in profiletag):
-			await self.bot.say("The ID you provided has invalid characters. Please try again. Type !contact to ask for help.")
+			await self.bot.say("The ID you provided has invalid characters. Please try again.")
 			return
 
 		allowed = False
@@ -426,7 +373,7 @@ class clashroyale:
 
 			await self.bot.say(tagUsername + ' has been successfully saved. Now you can use ``!brawlProfile`` ``!band``')
 		except:
-			await self.bot.say("We cannot find your ID in our database, please try again. Type !contact to ask for help.")
+			await self.bot.say("We cannot find your ID in our database, please try again.")
 
 def check_folders():
 	if not os.path.exists("data/clashroyale"):
@@ -440,10 +387,6 @@ def check_files():
 	f = "cogs/tags.json"
 	if not fileIO(f, "check"):
 		print("Creating empty tags.json...")
-		fileIO(f, "save", [])
-	f = "cogs/mini_tags.json"
-	if not fileIO(f, "check"):
-		print("Creating empty mini_tags.json...")
 		fileIO(f, "save", [])
 	f = "data/BrawlStats/tags.json"
 	if not fileIO(f, "check"):
