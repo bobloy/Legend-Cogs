@@ -174,7 +174,7 @@ class tournament:
 
 		try:
 			async with aiohttp.ClientSession() as session:
-				async with session.get(url, timeout=30, proxy="http://45.79.100.62") as resp:
+				async with session.get(url, timeout=30, proxy="http://52.168.49.33") as resp:
 					print(resp)
 					data = await resp.json()
 		except json.decoder.JSONDecodeError:
