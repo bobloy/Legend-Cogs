@@ -16,18 +16,18 @@ lastTag = '0'
 creditIcon = "https://i.imgur.com/TP8GXZb.png"
 credits = "Cog by GR8 | Titan"
 
-proxies_list = [
-	'94.249.160.49:6998',
-	'93.127.128.41:7341',
-	'107.175.43.100:6858',
-	'64.44.18.31:3691',
-	'172.82.173.100:5218',
-	'172.82.177.111:3432',
-	'45.43.219.185:2461',
-	'45.43.218.82:3577',
-	'173.211.31.3:8053',
-	'195.162.4.111:4762'
-]
+# proxies_list = [
+	# '94.249.160.49:6998',
+	# '93.127.128.41:7341',
+	# '107.175.43.100:6858',
+	# '64.44.18.31:3691',
+	# '172.82.173.100:5218',
+	# '172.82.177.111:3432',
+	# '45.43.219.185:2461',
+	# '45.43.218.82:3577',
+	# '173.211.31.3:8053',
+	# '195.162.4.111:4762'
+# ]
 
 # Converts maxPlayers to Cards
 def getCards(maxPlayers):
@@ -169,7 +169,7 @@ class tournament:
 			await asyncio.sleep(120)
 			
 	async def fetch_tourney(self):
-		"""Fetch tournament data."""
+		"""Fetch tournament data. Run sparingly"""
 		url = "{}".format('http://statsroyale.com/tournaments?appjson=1')
 
 		try:
@@ -187,7 +187,7 @@ class tournament:
 		return data
 
 	@commands.group(pass_context=True, no_pm=True)
-	async def tourney(self, ctx):
+	async def tourney(self, ctx, players: int=0):
 		"""Check an open tournament in clash royale instantly"""
 
 		author = ctx.message.author
