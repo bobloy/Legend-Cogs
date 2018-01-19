@@ -29,6 +29,7 @@ proxies_list = [
 	'195.162.4.111:4762'
 ]
 
+
 # Converts maxPlayers to Cards
 def getCards(maxPlayers):
 	if maxPlayers == 50: return 25
