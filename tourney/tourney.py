@@ -29,21 +29,6 @@ proxies_list = [
 	'195.162.4.111:4762'
 ]
 
-async def fetch_tourney():
-    """Fetch tournament data."""
-    url = "{}".format('http://statsroyale.com/tournaments?appjson=1')
-
-    try:
-        async with aiohttp.ClientSession() as session:
-            async with session.get(url, timeout=30) as resp:
-                data = await resp.json()
-    except json.decoder.JSONDecodeError:
-        raise
-    except asyncio.TimeoutError:
-        raise
-
-    return data
-    
 # Converts maxPlayers to Cards
 def getCards(maxPlayers):
 	if maxPlayers == 50: return 25
@@ -96,7 +81,7 @@ class tournament:
 		    return True
 		else:
 		    return False
-
+    
 	# Returns a list with tournaments
 	def getTopTourneyNew(self):
 
@@ -181,6 +166,21 @@ class tournament:
 
 				await asyncio.sleep(900)
 			await asyncio.sleep(120)
+            
+    async def fetch_tourney(self):
+        """Fetch tournament data."""
+        url = "{}".format('http://statsroyale.com/tournaments?appjson=1')
+
+        try:
+            async with aiohttp.ClientSession() as session:
+                async with session.get(url, timeout=30) as resp:
+                    data = await resp.json()
+        except json.decoder.JSONDecodeError:
+            raise
+        except asyncio.TimeoutError:
+            raise
+
+        return data
 
 	@commands.group(pass_context=True, no_pm=True)
 	async def tourney(self, ctx):
@@ -202,15 +202,17 @@ class tournament:
 		proxies = {
 	    	'http': random.choice(proxies_list)
 		}
-
-		try:
-			tourneydata = requests.get('http://statsroyale.com/tournaments?appjson=1', timeout=5, headers=headers, proxies=proxies).json()
-		except (requests.exceptions.Timeout, json.decoder.JSONDecodeError):
-			await self.bot.say("Error: cannot reach Clash Royale Servers. Please try again later.")
-			return
-		except requests.exceptions.RequestException as e:
-			await self.bot.say(e)
-			return
+        
+        tourneydata = await self.fetch_tourney()
+        
+		# try:
+			# tourneydata = requests.get('http://statsroyale.com/tournaments?appjson=1', timeout=5, headers=headers, proxies=proxies).json()
+		# except (requests.exceptions.Timeout, json.decoder.JSONDecodeError):
+			# await self.bot.say("Error: cannot reach Clash Royale Servers. Please try again later.")
+			# return
+		# except requests.exceptions.RequestException as e:
+			# await self.bot.say(e)
+			# return
 
 		numTourney = list(range(len(tourneydata['tournaments'])))
 		random.shuffle(numTourney)
