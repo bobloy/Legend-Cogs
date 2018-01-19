@@ -11,7 +11,6 @@ import os
 from fake_useragent import UserAgent
 
 import aiohttp
-import async_timeout
 
 lastTag = '0'
 creditIcon = "https://i.imgur.com/TP8GXZb.png"
@@ -44,7 +43,7 @@ async def fetch_tourney():
         raise
 
     return data
-
+    
 # Converts maxPlayers to Cards
 def getCards(maxPlayers):
 	if maxPlayers == 50: return 25
@@ -190,42 +189,28 @@ class tournament:
 		author = ctx.message.author
 
 		self.bot.type()
-        
-        tourneydata = fetch_tourney()
-		# allowed = await self._is_allowed(author)
-		# if not allowed:
-		    # await self.bot.say("Error, this command is only available for Legend Members and Guests.")
-		    # return
-		
-		# loop = asyncio.get_event_loop()
-		# future = asyncio.Future()
-		# asyncio.ensure_future(fetch2(future,'http://statsroyale.com/tournaments?appjson=1'))
-		# loop.run_until_complete(future)
-		# print(future.result())
-		# tourneydata= future.result()
-		# loop.close()
-        
-		
-		
-		# ua = UserAgent()
-		# ua.update()
-		# headers = {
-		    # "User-Agent": str(ua.random)
-		# }
-		# proxies = {
-	    	# 'http': random.choice(proxies_list)
-		# }
 
-		# # try:
-		# tourneydata = requests.get('http://statsroyale.com/tournaments?appjson=1', timeout=5, headers=headers)
-		# print(tourneydata)
-		# tourneydata = tourneydata.json()
-		# except (requests.exceptions.Timeout, json.decoder.JSONDecodeError):
-			# await self.bot.say("Error: cannot reach Clash Royale Servers. Please try again later.")
-			# return
-		# except requests.exceptions.RequestException as e:
-			# await self.bot.say(e)
-			# return
+		allowed = await self._is_allowed(author)
+		if not allowed:
+		    await self.bot.say("Error, this command is only available for Legend Members and Guests.")
+		    return
+
+		ua = UserAgent()
+		headers = {
+		    "User-Agent": ua.random
+		}
+		proxies = {
+	    	'http': random.choice(proxies_list)
+		}
+
+		try:
+			tourneydata = requests.get('http://statsroyale.com/tournaments?appjson=1', timeout=5, headers=headers, proxies=proxies).json()
+		except (requests.exceptions.Timeout, json.decoder.JSONDecodeError):
+			await self.bot.say("Error: cannot reach Clash Royale Servers. Please try again later.")
+			return
+		except requests.exceptions.RequestException as e:
+			await self.bot.say(e)
+			return
 
 		numTourney = list(range(len(tourneydata['tournaments'])))
 		random.shuffle(numTourney)
