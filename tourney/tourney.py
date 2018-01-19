@@ -173,7 +173,7 @@ class tournament:
 		url = "{}".format('http://statsroyale.com/tournaments?appjson=1')
 
 		try:
-			async with aiohttp.ClientSession() as session:
+			async with aiohttp.ClientSession(proxies=["35.199.5.145"]) as session:
 				async with session.get(url, timeout=30) as resp:
 					print(resp)
 					data = await resp.json()
