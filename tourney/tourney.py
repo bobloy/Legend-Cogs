@@ -73,14 +73,15 @@ class tournament:
 		return {"auth" : self.auth['token']}
 
 	async def _is_allowed(self, member):
-		server = member.server
-		botcommander_roles = [discord.utils.get(server.roles, name=r) for r in ["Member", "Family Representative", "Clan Manager", "Clan Deputy", "Co-Leader", "Hub Officer", "admin", "Guest"]]
-		botcommander_roles = set(botcommander_roles)
-		author_roles = set(member.roles)
-		if len(author_roles.intersection(botcommander_roles)):
-			return True
-		else:
-			return False
+		return True
+		# server = member.server
+		# botcommander_roles = [discord.utils.get(server.roles, name=r) for r in ["Member", "Family Representative", "Clan Manager", "Clan Deputy", "Co-Leader", "Hub Officer", "admin", "Guest"]]
+		# botcommander_roles = set(botcommander_roles)
+		# author_roles = set(member.roles)
+		# if len(author_roles.intersection(botcommander_roles)):
+			# return True
+		# else:
+			# return False
 	
 	# Returns a list with tournaments
 	def getTopTourneyNew(self):
