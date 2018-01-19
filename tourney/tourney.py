@@ -78,10 +78,10 @@ class tournament:
 		botcommander_roles = set(botcommander_roles)
 		author_roles = set(member.roles)
 		if len(author_roles.intersection(botcommander_roles)):
-		    return True
+			return True
 		else:
-		    return False
-    
+			return False
+	
 	# Returns a list with tournaments
 	def getTopTourneyNew(self):
 
@@ -90,11 +90,11 @@ class tournament:
 
 		ua = UserAgent()
 		headers = {
-		    "User-Agent": ua.random
+			"User-Agent": ua.random
 		}
 
 		proxies = {
-	    	'http': random.choice(proxies_list)
+			'http': random.choice(proxies_list)
 		}
 
 		try:
@@ -166,21 +166,21 @@ class tournament:
 
 				await asyncio.sleep(900)
 			await asyncio.sleep(120)
-            
-    async def fetch_tourney(self):
-        """Fetch tournament data."""
-        url = "{}".format('http://statsroyale.com/tournaments?appjson=1')
+			
+	async def fetch_tourney(self):
+		"""Fetch tournament data."""
+		url = "{}".format('http://statsroyale.com/tournaments?appjson=1')
 
-        try:
-            async with aiohttp.ClientSession() as session:
-                async with session.get(url, timeout=30) as resp:
-                    data = await resp.json()
-        except json.decoder.JSONDecodeError:
-            raise
-        except asyncio.TimeoutError:
-            raise
+		try:
+			async with aiohttp.ClientSession() as session:
+				async with session.get(url, timeout=30) as resp:
+					data = await resp.json()
+		except json.decoder.JSONDecodeError:
+			raise
+		except asyncio.TimeoutError:
+			raise
 
-        return data
+		return data
 
 	@commands.group(pass_context=True, no_pm=True)
 	async def tourney(self, ctx):
@@ -192,19 +192,19 @@ class tournament:
 
 		allowed = await self._is_allowed(author)
 		if not allowed:
-		    await self.bot.say("Error, this command is only available for Legend Members and Guests.")
-		    return
+			await self.bot.say("Error, this command is only available for Legend Members and Guests.")
+			return
 
 		ua = UserAgent()
 		headers = {
-		    "User-Agent": ua.random
+			"User-Agent": ua.random
 		}
 		proxies = {
-	    	'http': random.choice(proxies_list)
+			'http': random.choice(proxies_list)
 		}
-        
-        tourneydata = await self.fetch_tourney()
-        
+	    
+		tourneydata = await self.fetch_tourney()
+		
 		# try:
 			# tourneydata = requests.get('http://statsroyale.com/tournaments?appjson=1', timeout=5, headers=headers, proxies=proxies).json()
 		# except (requests.exceptions.Timeout, json.decoder.JSONDecodeError):
