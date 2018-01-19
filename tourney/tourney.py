@@ -177,8 +177,10 @@ class tournament:
 				async with session.get(url, timeout=30) as resp:
 					data = await resp.json()
 		except json.decoder.JSONDecodeError:
+			print(resp)
 			raise
 		except asyncio.TimeoutError:
+			print(resp)
 			raise
 
 		return data
