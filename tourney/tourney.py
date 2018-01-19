@@ -19,15 +19,23 @@ credits = "Cog by GR8 | Titan"
 
 proxies_list = ['195.162.4.111:3239','94.249.160.49:2179','173.211.31.3:3133','45.43.218.82:3212','45.43.219.185:3315','172.82.173.100:3230','172.82.177.111:5241','64.44.18.31:3161','107.175.43.100:3230','93.127.128.41:3171']
 
-async def fetch(session, url):
-    with async_timeout.timeout(10):
-        async with session.get(url) as response:
-            return response
+async def fetch_tourney():
+    """Fetch tournament data."""
+    url = "{}".format('http://statsroyale.com/tournaments?appjson=1')
 
-async def fetch2(url):			
-	async with aiohttp.ClientSession() as session:
-		html = await fetch(session, url)
-		return html
+    try:
+        async with aiohttp.ClientSession() as session:
+            async with session.get(url, timeout=30) as resp:
+                data = await resp.json()
+    except json.decoder.JSONDecodeError:
+        raise
+    except asyncio.TimeoutError:
+        raise
+
+    return data
+
+def getAuth():
+    return {"auth" : 'token'}
 		
 # Returns a list with tournaments
 def getTopTourneyNew():
@@ -162,7 +170,8 @@ class tournament:
 		author = ctx.message.author
 
 		self.bot.type()
-
+        
+        tourneydata = fetch_tourney()
 		# allowed = await self._is_allowed(author)
 		# if not allowed:
 		    # await self.bot.say("Error, this command is only available for Legend Members and Guests.")
@@ -175,12 +184,8 @@ class tournament:
 		# print(future.result())
 		# tourneydata= future.result()
 		# loop.close()
+        
 		
-		tourneydata = await fetch2('http://statsroyale.com/tournaments?appjson=1')
-		
-		print(tourneydata)
-		tourneydata = await tourneydata.json()
-		loop.close()
 		
 		# ua = UserAgent()
 		# ua.update()
