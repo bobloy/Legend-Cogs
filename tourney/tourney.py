@@ -197,7 +197,7 @@ class tournament:
 		"""Displays current cache pagified"""
 
 		for page in pagify(
-			self.tourneyCache, shorten_by=50):
+			str(self.tourneyCache), shorten_by=50):
 			
 			await self.bot.say(page)
 
