@@ -76,6 +76,10 @@ class tournament:
 		self.tourneyCache = dataIO.load_json(self.cachepath)
 		self.auth = dataIO.load_json('cogs/auth.json')
 		self.cacheUpdated = False
+		self.session = aiohttp.ClientSession()
+	
+	def __unload(self):
+		self.session.close()
 		
 	def save_data(self):
 		"""Saves the json"""
@@ -99,18 +103,31 @@ class tournament:
 		else:
 			return False
 	
-	async def _fetch(url, proxy_url):
+	async def _fetchjson(url, proxy_url):
 		resp = None
 		try:
-			async with aiohttp.ClientSession() as session:
-				async with session.get(url, timeout=30, proxy=proxy_url) as resp:
-					data = await resp.json()
+			async with self.session.get(url, timeout=30, proxy=proxy_url) as resp:
+				data = await resp.json()
 		except (aiohttp.errors.ClientOSError, aiohttp.errors.ClientResponseError,
 				aiohttp.errors.ServerDisconnectedError) as e:
 			print('Error. url: %s; error: %r' % (url, e))
 		except json.decoder.JSONDecodeError:
 			print(resp)
 			raise
+		except asyncio.TimeoutError:
+			print(resp) 
+			raise
+		finally:
+			return (url, data)
+			
+	async def _fetchtext(url, proxy_url):
+		resp = None
+		try:
+			async with self.session.get(url, timeout=30, proxy=proxy_url) as resp:
+				data = await resp.text()
+		except (aiohttp.errors.ClientOSError, aiohttp.errors.ClientResponseError,
+				aiohttp.errors.ServerDisconnectedError) as e:
+			print('Error. url: %s; error: %r' % (url, e))
 		except asyncio.TimeoutError:
 			print(resp) 
 			raise
@@ -131,7 +148,7 @@ class tournament:
 		host, port = "127.0.0.1", 8080
 		
 		proxy = 'http://{}:{}'.format(host, port)
-		urlOut, data = await self._fetch(url, proxy)
+		urlOut, data = await self._fetchjson(url, proxy)
 		
 		return data
 	
@@ -208,8 +225,9 @@ class tournament:
 	@checks.is_owner()
 	async def proxytest(self, ctx):
 		url = 'http://proxy-hunter.blogspot.com/2010/03/18-03-10-speed-l1-hunter-proxies-310.html'
-		async with aiohttp.get(url) as response:
-			tree = BeautifulSoup(await response.text(), "html.parser")
+		data = await self._fetchtext(url, None)
+		
+		tree = BeautifulSoup(data, "html.parser")
 		regex  = re.compile(r'^(\d{3}).(\d{1,3}).(\d{1,3}).(\d{1,3}):(\d{2,4})')
 		proxylist = tree.findAll(attrs = {"class":"Apple-style-span", "style": "color: black;"}, text = regex)
 		data = proxylist[0]
