@@ -179,7 +179,7 @@ class tournament:
 
 	async def _topTourney(self, newdata):
 		now = datetime.utcnow()
-		tourneydata = [t1 for tkey, t1 in self.newdata.iteritems()
+		tourneydata = [t1 for tkey, t1 in newdata.iteritems()
 						if not t1['full'] and time_str(t1['endtime'], False) - now >= timedelta(seconds=600) and t1['maxPlayers']>50]
 		
 		for data in tourneydata:
@@ -200,7 +200,7 @@ class tournament:
 			str(self.tourneyCache), shorten_by=50):
 			
 			await self.bot.say(page)
-
+			
 	@commands.command(pass_context=True, no_pm=True)
 	async def tourney(self, ctx, minPlayers: int=0):
 		"""Check an open tournament in clash royale instantly"""
