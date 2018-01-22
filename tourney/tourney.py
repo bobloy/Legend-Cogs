@@ -163,6 +163,7 @@ class tournament:
 		
 	
 	async def _get_tourney(self, minPlayers):
+		"""tourneyCache is a dict with hashtag as keys"""
 		if not self.cacheUpdated:	
 			if not await self._update_cache(): 
 				await self.bot.send_message(discord.Object(id="390927071553126402"), "Cache update failed")
@@ -178,8 +179,9 @@ class tournament:
 
 
 	async def _topTourney(self, newdata):
+		"""newdata is a list of dicts"""
 		now = datetime.utcnow()
-		tourneydata = [t1 for tkey, t1 in newdata.iteritems()
+		tourneydata = [t1 for t1 in newdata
 						if not t1['full'] and time_str(t1['endtime'], False) - now >= timedelta(seconds=600) and t1['maxPlayers']>50]
 		
 		for data in tourneydata:
