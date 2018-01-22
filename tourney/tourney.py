@@ -58,7 +58,7 @@ def time_str(obj, isobj):
 	if isobj:
 		return obj.strftime(fmt)
 	else:
-		return datetime.datetime.strptime(now_str, fmt)
+		return datetime.strptime(now_str, fmt)
 
 
 class tournament:
