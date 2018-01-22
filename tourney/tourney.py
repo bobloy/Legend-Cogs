@@ -154,6 +154,7 @@ class tournament:
 	async def _expire_cache(self):
 		await asyncio.sleep(900)
 		self.cacheUpdated = False
+		await self.bot.send_message(discord.Object(id="390927071553126402"), "Cache expired")
 	
 	async def _update_cache(self):
 		# try:
