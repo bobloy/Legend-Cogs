@@ -169,7 +169,7 @@ class tournament:
 
 		now = datetime.utcnow()
 		
-		tourneydata = [t1 for t1 in self.tourneyCache 
+		tourneydata = [t1 for tkey, t1 in self.tourneyCache.iteritems()
 						if not t1['full'] and time_str(t1['endtime'], False) - now >= timedelta(seconds=600) and t1['maxPlayers']>=minPlayers]
 		
 		if not tourneydata:
@@ -179,7 +179,7 @@ class tournament:
 
 	async def _topTourney(self, newdata):
 		now = datetime.utcnow()
-		tourneydata = [t1 for t1 in newdata
+		tourneydata = [t1 for tkey, t1 in self.newdata.iteritems()
 						if not t1['full'] and time_str(t1['endtime'], False) - now >= timedelta(seconds=600) and t1['maxPlayers']>50]
 		
 		for data in tourneydata:
