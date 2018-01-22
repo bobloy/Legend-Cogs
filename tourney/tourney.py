@@ -9,6 +9,8 @@ from cogs.utils import checks
 from .utils.dataIO import dataIO
 import os
 from fake_useragent import UserAgent
+from datetime import date, datetime, timedelta
+from proxybroker import Broker
 
 import aiohttp
 
@@ -57,126 +59,67 @@ def sec2tme(sec):
 	else:
 		return "{} hour, {} mins".format(h,m)
 
+def time_str(obj, isobj):
+	"""JSON serializer for datetiem and back"""
+
+	fmt = '%Y%m%d%H%M%S' # ex. 20110104172008 -> Jan. 04, 2011 5:20:08pm 
+
+	# if isinstance(obj, (datetime, date)):
+	if isobj:
+		return obj.strftime(fmt)
+	else:
+		return datetime.datetime.strptime(now_str, fmt)
+
+
 class tournament:
 	"""tournament!"""
 
 	def __init__(self, bot):
 		self.bot = bot
 		self.path = 'data/tourney/settings.json'
-		self.settings = dataIO.load_json(self.path)
+		self.cachepath = 'data/tourney/tourneycache.json'
+		self.settings = dataIO.load_json(self.path)]
+		self.tourneyCache = dataIO.load_json(self.cachepath)
 		self.auth = dataIO.load_json('cogs/auth.json')
+		self.cacheUpdated = False
 		
 	def save_data(self):
 		"""Saves the json"""
 		dataIO.save_json(self.path, self.settings)
+	
+	def save_cache(self):
+		"""Saves the cache json"""
+		dataIO.save_json(self.cachepath, self.tourneyCache)
 
 	def getAuth(self):
 		return {"auth" : self.auth['token']}
 
 	async def _is_allowed(self, member):
 		return True
-		# server = member.server
-		# botcommander_roles = [discord.utils.get(server.roles, name=r) for r in ["Member", "Family Representative", "Clan Manager", "Clan Deputy", "Co-Leader", "Hub Officer", "admin", "Guest"]]
-		# botcommander_roles = set(botcommander_roles)
-		# author_roles = set(member.roles)
-		# if len(author_roles.intersection(botcommander_roles)):
-			# return True
-		# else:
-			# return False
+		server = member.server
+		botcommander_roles = [discord.utils.get(server.roles, name=r) for r in ["Member", "Family Representative", "Clan Manager", "Clan Deputy", "Co-Leader", "Hub Officer", "admin", "Guest"]]
+		botcommander_roles = set(botcommander_roles)
+		author_roles = set(member.roles)
+		if len(author_roles.intersection(botcommander_roles)):
+			return True
+		else:
+			return False
 	
-	# Returns a list with tournaments
-	def getTopTourneyNew(self):
-
-		global lastTag
-		tourney = {}
-
-		ua = UserAgent()
-		headers = {
-			"User-Agent": ua.random
-		}
-
-		proxies = {
-			'http': random.choice(proxies_list)
-		}
-
-		try:
-			tourneydata = requests.get('http://statsroyale.com/tournaments?appjson=1', timeout=5, headers=headers, proxies=proxies).json()
-		except (requests.exceptions.Timeout, json.decoder.JSONDecodeError):
-			return None
-		except requests.exceptions.RequestException as e:
-			return None
-
-		numTourney = len(tourneydata['tournaments'])
-
-		for x in range(0, numTourney):
-
-			hashtag = tourneydata['tournaments'][x]['hashtag']
-			title = tourneydata['tournaments'][x]['title']
-			totalPlayers = tourneydata['tournaments'][x]['totalPlayers']
-			full = tourneydata['tournaments'][x]['full']
-			maxPlayers = tourneydata['tournaments'][x]['maxPlayers']
-			timeLeft = tourneydata['tournaments'][x]['timeLeft']
-			cards = getCards(maxPlayers)
-			coins = getCoins(maxPlayers)
-			time = sec2tme(timeLeft)
-			players = str(totalPlayers) + "/" + str(maxPlayers)
-
-			if (maxPlayers > 50) and (not full) and (timeLeft > 600) and ((totalPlayers + 4) < maxPlayers) and (hashtag != lastTag):
-
-				lastTag = hashtag
-
-				try:
-					tourneydataAPI = requests.get('http://api.cr-api.com/tournaments/{}'.format(hashtag), headers=self.getAuth(), timeout=10).json()
-					totalPlayers = tourneydataAPI['capacity']
-					full = tourneydataAPI['capacity'] == tourneydataAPI['maxCapacity']
-					isClosed = tourneydataAPI['type'] == 'open'
-
-					if (full) or ((totalPlayers + 4) > maxPlayers) or (not isClosed):
-						return None
-				except :
-					pass
-				
-				tourney['tag'] = hashtag
-				tourney['title'] = title
-				tourney['players'] = players
-				tourney['time'] = time
-				tourney['gold'] = coins
-				tourney['cards'] = cards
-
-				return tourney
-
-		return None
-
-	# checks for a tourney every 5 minutes
-	async def checkTourney(self):
-		while self is self.bot.get_cog("tournament"):
-			data = self.getTopTourneyNew()
-			if data is not None:
-				embed=discord.Embed(title="New Tournament", description="We found an open tournament. You can type !tourney to search for more.", color=0x00ffff)
-				embed.set_thumbnail(url='https://statsroyale.com/images/tournament.png')
-				embed.add_field(name="Title", value=data['title'], inline=True)
-				embed.add_field(name="Tag", value=data['tag'], inline=True)
-				embed.add_field(name="Players", value=data['players'], inline=True)
-				embed.add_field(name="Ends In", value=data['time'], inline=True)
-				embed.add_field(name="Top prize", value="<:coin:380832316932489268> " + str(data['gold']) + "     <:tournamentcards:380832770454192140> " +  str(data['cards']), inline=True)
-				embed.set_footer(text=credits, icon_url=creditIcon)
-				
-				for serverid in self.settings.keys():
-					if self.settings[serverid]:
-						await self.bot.send_message(discord.Object(id=self.settings[serverid]), embed=embed) # Family
-				#await self.bot.send_message(discord.Object(id='363728974821457923'), embed=embed) # testing
-
-				await asyncio.sleep(900)
-			await asyncio.sleep(120)
-			
-	async def fetch_tourney(self):
+	def _get_proxy(self):
+		return "http://52.168.49.33"  # For now
+	
+	async def _fetch_tourney(self):
 		"""Fetch tournament data. Run sparingly"""
 		url = "{}".format('http://statsroyale.com/tournaments?appjson=1')
-
+		
+		if proxies_list:
+			randproxy = "http://"+random.choice(proxies_list)
+		else:
+			randproxy = self._get_proxy()
+		
 		try:
 			async with aiohttp.ClientSession() as session:
-				async with session.get(url, timeout=30, proxy="http://52.168.49.33") as resp:
-					print(resp)
+				async with session.get(url, timeout=30, proxy=randproxy) as resp:
 					data = await resp.json()
 		except json.decoder.JSONDecodeError:
 			print(resp)
@@ -184,69 +127,89 @@ class tournament:
 		except asyncio.TimeoutError:
 			print(resp)
 			raise
+		except:
+			print(resp)
+			raise
+		else:
+			return data
+		
+		return None
+	
+	async def _expire_cache(self):
+		await asyncio.sleep(900)
+		self.cacheUpdated = False
+	
+	async def _update_cache(self):
+		try:
+			newdata = await self._fetch_tourney()
+		except:  # On error: Don't retry, but don't mark cache as updated
+			return
+		
+		if not newdata['success']:
+			return # On error: Don't retry, but don't mark cache as updated
+		
+		newdata = newdata['tournaments']
+		
+		for tourney in newdata:
+			if tourney["hashtag"] not in self.tourneyCache:
+				timeLeft = timedelta(seconds=tourney['timeLeft'])
+				endtime = datetime.utcnow() + timeLeft
+				tourney["endtime"] = time_str(endtime, True)
+				self.tourneyCache[tourney["hashtag"]] = tourney
+			else:
+				tourney["endtime"] = self.tourneyCache[tourney["hashtag"]]["endtime"]  # Keep endtime
+				self.tourneyCache[tourney["hashtag"]] = tourney
+		
+		self.save_cache()
+		self.cacheUpdated=True
+		
+		await self._topTourney(newdata)  # Posts all best tourneys
+		
+		
+	
+	async def _get_tourney(self, minPlayers):
+			await self._update_cache()
+		if not self.cacheUpdated:
+		
+		now = datetime.utcnow()
+		
+		tourneydata = [t1 for t1 in self.tourneyCache 
+						if not t1['full'] and time_str(t1['endtime'], False) - now >= timedelta(seconds=600) and t1['maxPlayers']>=minPlayers]
+		
+		return random.choice(tourneydata)
 
-		return data
+
+	async def _topTourney(self, newdata):
+		tourneydata = [t1 for t1 in newdata
+						if not t1['full'] and time_str(t1['endtime'], False) - now >= timedelta(seconds=600) and t1['maxPlayers']>=minPlayers]
+		
+		for data in tourneydata:
+			embed = self._get_embed(data)
+				
+			for serverid in self.settings.keys():
+				if self.settings[serverid]:
+					await self.bot.send_message(discord.Object(id=self.settings[serverid]), embed=embed) # Family
+			#await self.bot.send_message(discord.Object(id='363728974821457923'), embed=embed) # testing
+
 
 	@commands.group(pass_context=True, no_pm=True)
-	async def tourney(self, ctx, players: int=0):
+	async def tourney(self, ctx, minPlayers: int=0):
 		"""Check an open tournament in clash royale instantly"""
 
 		author = ctx.message.author
 
-		self.bot.type()
+		await self.bot.send_typing(ctx.message.channel)
 
 		allowed = await self._is_allowed(author)
 		if not allowed:
 			await self.bot.say("Error, this command is only available for Legend Members and Guests.")
 			return
-
-		ua = UserAgent()
-		headers = {
-			"User-Agent": ua.random
-		}
-		proxies = {
-			'http': random.choice(proxies_list)
-		}
-	    
-		tourneydata = await self.fetch_tourney()
 		
-		# try:
-			# tourneydata = requests.get('http://statsroyale.com/tournaments?appjson=1', timeout=5, headers=headers, proxies=proxies).json()
-		# except (requests.exceptions.Timeout, json.decoder.JSONDecodeError):
-			# await self.bot.say("Error: cannot reach Clash Royale Servers. Please try again later.")
-			# return
-		# except requests.exceptions.RequestException as e:
-			# await self.bot.say(e)
-			# return
+		tourneydata = await self._get_tourney(minPlayers)
 
-		numTourney = list(range(len(tourneydata['tournaments'])))
-		random.shuffle(numTourney)
-
-		for x in numTourney:
-
-			title = tourneydata['tournaments'][x]['title']
-			length = tourneydata['tournaments'][x]['length']
-			totalPlayers = tourneydata['tournaments'][x]['totalPlayers']
-			maxPlayers = tourneydata['tournaments'][x]['maxPlayers']
-			full = tourneydata['tournaments'][x]['full']
-			timeLeft = tourneydata['tournaments'][x]['timeLeft']
-			startTime = tourneydata['tournaments'][x]['startTime']
-			warmup = tourneydata['tournaments'][x]['warmup']
-			hashtag = tourneydata['tournaments'][x]['hashtag']
-			cards = getCards(maxPlayers)
-			coins = getCoins(maxPlayers)
-
-			if not full and timeLeft > 600:
-				embed=discord.Embed(title="Open Tournament", description="Here is a good one I found. You can search again if this is not what you are looking for.", color=0x00ffff)
-				embed.set_thumbnail(url='https://statsroyale.com/images/tournament.png')
-				embed.add_field(name="Title", value=title, inline=True)
-				embed.add_field(name="Tag", value="#"+hashtag, inline=True)
-				embed.add_field(name="Players", value=str(totalPlayers) + "/" + str(maxPlayers), inline=True)
-				embed.add_field(name="Ends In", value=sec2tme(timeLeft), inline=True)
-				embed.add_field(name="Top prize", value="<:coin:380832316932489268> " + str(cards) + "     <:tournamentcards:380832770454192140> " +  str(coins), inline=True)
-				embed.set_footer(text=credits, icon_url=creditIcon)
-				await self.bot.say(embed=embed)
-				return
+		embed = self._get_embed(tourneydata['tournaments'][x])
+		await self.bot.say(embed=embed)
+		return
 
 	@tourney.command(pass_context=True, no_pm=True)
 	@checks.admin_or_permissions(administrator=True)
@@ -259,6 +222,30 @@ class tournament:
 			self.settings[serverid] = channel.id
 			await self.bot.say("Tournament channel for this server set to "+channel.mention)
 		self.save_data()
+		
+	def _get_embed(self, aTourney):
+		title = aTourney['title']
+		length = aTourney['length']
+		totalPlayers = aTourney['totalPlayers']
+		maxPlayers = aTourney['maxPlayers']
+		full = aTourney['full']
+		timeLeft = aTourney['timeLeft']
+		startTime = aTourney['startTime']
+		warmup = aTourney['warmup']
+		hashtag = aTourney['hashtag']
+		cards = getCards(maxPlayers)
+		coins = getCoins(maxPlayers)
+		
+		embed=discord.Embed(title="Open Tournament", color=randint(0, 0xffffff))
+		embed.set_thumbnail(url='https://statsroyale.com/images/tournament.png')
+		embed.add_field(name="Title", value=title, inline=True)
+		embed.add_field(name="Tag", value="#"+hashtag, inline=True)
+		embed.add_field(name="Players", value=str(totalPlayers) + "/" + str(maxPlayers), inline=True)
+		embed.add_field(name="Ends In", value=sec2tme(timeLeft), inline=True)
+		embed.add_field(name="Top prize", value="<:coin:380832316932489268> " + str(cards) + "     <:tournamentcards:380832770454192140> " +  str(coins), inline=True)
+		embed.set_footer(text=credits, icon_url=creditIcon)
+		return embed
+		
 
 def check_folders():
 	if not os.path.exists("data/tourney"):
@@ -269,11 +256,15 @@ def check_files():
 	f = "data/tourney/settings.json"
 	if not dataIO.is_valid_json(f):
 		dataIO.save_json(f, {})
+	
+	f = "data/tourney/tourneycache.json"
+	if not dataIO.is_valid_json(f):
+		dataIO.save_json(f, {})
 
 def setup(bot):
 	check_folders()
 	check_files()
 	n = tournament(bot)
-	# loop = asyncio.get_event_loop()
-	# loop.create_task(n.checkTourney())
+	loop = asyncio.get_event_loop()
+	loop.create_task(n._expire_cache())
 	bot.add_cog(n)
