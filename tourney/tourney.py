@@ -130,10 +130,10 @@ class tournament:
 		self.cacheUpdated = False
 	
 	async def _update_cache(self):
-		try:
-			newdata = await self._fetch_tourney()
-		except:  # On error: Don't retry, but don't mark cache as updated
-			return False
+		# try:
+		newdata = await self._fetch_tourney()
+		# except:  # On error: Don't retry, but don't mark cache as updated
+			# return False
 		
 		if not newdata['success']:
 			return False  # On error: Don't retry, but don't mark cache as updated
@@ -261,6 +261,6 @@ def setup(bot):
 	check_folders()
 	check_files()
 	n = tournament(bot)
-	loop = asyncio.get_event_loop()
-	loop.create_task(n._expire_cache())
+	# loop = asyncio.get_event_loop()
+	# loop.create_task(n._expire_cache())
 	bot.add_cog(n)
