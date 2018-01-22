@@ -143,10 +143,10 @@ class tournament:
 		try:
 			newdata = await self._fetch_tourney()
 		except:  # On error: Don't retry, but don't mark cache as updated
-			return
+			return False
 		
 		if not newdata['success']:
-			return # On error: Don't retry, but don't mark cache as updated
+			return False  # On error: Don't retry, but don't mark cache as updated
 		
 		newdata = newdata['tournaments']
 		
@@ -165,11 +165,13 @@ class tournament:
 		
 		await self._topTourney(newdata)  # Posts all best tourneys
 		
+		return True
 		
 	
 	async def _get_tourney(self, minPlayers):
 		if not self.cacheUpdated:	
-			await self._update_cache()
+			if not await self._update_cache(): 
+				await self.bot.send_message(discord.Object(id="390927071553126402"), "Cache update failed")
 
 		now = datetime.utcnow()
 		
