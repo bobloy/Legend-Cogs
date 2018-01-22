@@ -186,7 +186,19 @@ class tournament:
 					await self.bot.send_message(discord.Object(id=self.settings[serverid]), embed=embed) # Family
 			#await self.bot.send_message(discord.Object(id='363728974821457923'), embed=embed) # testing
 
+	
+	@commands.command(pass_context=True, no_pm=True)
+	@checks.is_owner()
+	async def showcache(self, ctx):
+		"""Displays current cache pagified"""
 
+		for page in pagify(
+			self.tourneyCache, shorten_by=50):
+			
+			await self.bot.say(page)
+
+		
+	
 	@commands.command(pass_context=True, no_pm=True)
 	async def tourney(self, ctx, minPlayers: int=0):
 		"""Check an open tournament in clash royale instantly"""
