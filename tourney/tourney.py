@@ -107,9 +107,12 @@ class tournament:
 		else:
 			randproxy = self._get_proxy()
 		
+		
+		conn = aiohttp.ProxyConnector(proxy=randproxy)
+		
 		try:
-			async with aiohttp.ClientSession() as session:
-				async with session.get(url, timeout=30, proxy=randproxy) as resp:
+			async with aiohttp.ClientSession(connector=conn) as session:
+				async with session.get(url, timeout=30) as resp:
 					data = await resp.json()
 		except json.decoder.JSONDecodeError:
 			print(resp)
