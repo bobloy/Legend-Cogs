@@ -103,7 +103,7 @@ class tournament:
 		else:
 			return False
 	
-	async def _fetchjson(url, proxy_url):
+	async def _fetchjson(self, url, proxy_url):
 		resp = None
 		try:
 			async with self.session.get(url, timeout=30, proxy=proxy_url) as resp:
@@ -120,7 +120,7 @@ class tournament:
 		finally:
 			return (url, data)
 			
-	async def _fetchtext(url, proxy_url):
+	async def _fetchtext(self, url, proxy_url):
 		resp = None
 		try:
 			async with self.session.get(url, timeout=30, proxy=proxy_url) as resp:
