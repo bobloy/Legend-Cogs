@@ -187,7 +187,7 @@ class tournament:
 			#await self.bot.send_message(discord.Object(id='363728974821457923'), embed=embed) # testing
 
 
-	@commands.group(pass_context=True, no_pm=True)
+	@commands.command(pass_context=True, no_pm=True)
 	async def tourney(self, ctx, minPlayers: int=0):
 		"""Check an open tournament in clash royale instantly"""
 
@@ -208,9 +208,9 @@ class tournament:
 		else:
 			await self.bot.say("No tourney found")
 
-	@tourney.command(pass_context=True, no_pm=True)
+	@commands.command(pass_context=True, no_pm=True)
 	@checks.admin_or_permissions(administrator=True)
-	async def channel(self, ctx, channel: discord.Channel=None):
+	async def tourneychannel(self, ctx, channel: discord.Channel=None):
 		serverid = ctx.message.server.id
 		if not channel:
 			self.settings[serverid] = None
