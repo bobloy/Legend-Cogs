@@ -228,7 +228,7 @@ class tournament:
 	async def proxytest(self, ctx):
 		url = 'http://proxy-hunter.blogspot.com/2010/03/18-03-10-speed-l1-hunter-proxies-310.html'
 		data = await self._fetchread(url, None)
-		
+		print(data)
 		tree = BeautifulSoup(data, "html.parser")
 		regex  = re.compile(r'^(\d{3}).(\d{1,3}).(\d{1,3}).(\d{1,3}):(\d{2,4})')
 		proxylist = tree.findAll(attrs = {"class":"Apple-style-span", "style": "color: black;"}, text = regex)
