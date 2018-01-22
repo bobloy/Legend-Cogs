@@ -14,6 +14,8 @@ from fake_useragent import UserAgent
 from datetime import date, datetime, timedelta
 from proxybroker import Broker
 
+from bs4 import BeautifulSoup
+
 import aiohttp
 
 from cogs.utils.chat_formatting import pagify
