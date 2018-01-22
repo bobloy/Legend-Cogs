@@ -67,14 +67,7 @@ def time_str(obj, isobj):
 
 class tournament:
 	"""tournament!"""
-	host, port = '127.0.0.1', 8080  # Default proxy
-	codes = [200, 301, 302]
-	broker = Broker(max_tries=1)
-	broker.serve(host=host, port=port, types=['HTTP'], limit=10, max_tries=3,
-			 prefer_connect=True, min_req_proxy=5, max_error_rate=0.5,
-			 max_resp_time=8, http_allowed_codes=codes, backlog=100)
-			 
-			 
+
 	def __init__(self, bot):
 		self.bot = bot
 		self.path = 'data/tourney/settings.json'
@@ -83,7 +76,6 @@ class tournament:
 		self.tourneyCache = dataIO.load_json(self.cachepath)
 		self.auth = dataIO.load_json('cogs/auth.json')
 		self.cacheUpdated = False
-		
 		
 	def save_data(self):
 		"""Saves the json"""
@@ -136,9 +128,18 @@ class tournament:
 		return await self._gather_proxy(url)
 	
 	async def _gather_proxy(self, url):
-		proxy = 'http://{}:{}'.format(self.host, self.port)
+		host, port = '67.63.33.7', 80  # Default proxy
+		codes = [200, 301, 302]
+		broker = Broker(max_tries=1)
+		await broker.serve(host=host, port=port, types=['HTTP'], limit=10, max_tries=3,
+                 prefer_connect=True, min_req_proxy=5, max_error_rate=0.5,
+                 max_resp_time=8, http_allowed_codes=codes, backlog=100)
+		
+		proxy = 'http://{}:{}'.format(host, port)
 		urlOut, data = await self._fetch(url, proxy)
-
+		
+		broker.stop()
+		
 		return data
 	
 	async def _expire_cache(self):
