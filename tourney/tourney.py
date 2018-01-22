@@ -96,7 +96,7 @@ class tournament:
 			return False
 	
 	def _get_proxy(self):
-		return "http://52.168.49.33"  # For now
+		return "http://67.63.33.7"  # For now
 	
 	async def _fetch_tourney(self):
 		"""Fetch tournament data. Run sparingly"""
@@ -107,12 +107,9 @@ class tournament:
 		else:
 			randproxy = self._get_proxy()
 		
-		
-		conn = aiohttp.ProxyConnector(proxy=randproxy)
-		
 		try:
-			async with aiohttp.ClientSession(connector=conn) as session:
-				async with session.get(url, timeout=30) as resp:
+			async with aiohttp.ClientSession() as session:
+				async with session.get(url, timeout=30, proxy=randproxy) as resp:
 					data = await resp.json()
 		except json.decoder.JSONDecodeError:
 			print(resp)
