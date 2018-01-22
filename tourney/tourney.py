@@ -7,12 +7,16 @@ import random
 import json
 from cogs.utils import checks
 from .utils.dataIO import dataIO
+
 import os
+
 from fake_useragent import UserAgent
 from datetime import date, datetime, timedelta
 from proxybroker import Broker
 
 import aiohttp
+
+from cogs.utils.chat_formatting import pagify
 
 lastTag = '0'
 creditIcon = "https://i.imgur.com/TP8GXZb.png"
