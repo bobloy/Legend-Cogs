@@ -163,7 +163,7 @@ class tournament:
 		
 	
 	async def _get_tourney(self, minPlayers):
-		"""tourneyCache is a dict with hashtag as keys"""
+		"""tourneyCache is dict of tourneys with hashtag as key"""
 		if not self.cacheUpdated:	
 			if not await self._update_cache(): 
 				await self.bot.send_message(discord.Object(id="390927071553126402"), "Cache update failed")
@@ -179,7 +179,7 @@ class tournament:
 
 
 	async def _topTourney(self, newdata):
-		"""newdata is a list of dicts"""
+		"""newdata is a list of tourneys"""
 		now = datetime.utcnow()
 		tourneydata = [t1 for t1 in newdata
 						if not t1['full'] and time_str(t1['endtime'], False) - now >= timedelta(seconds=600) and t1['maxPlayers']>50]
@@ -216,10 +216,10 @@ class tournament:
 			await self.bot.say("Error, this command is only available for Legend Members and Guests.")
 			return
 		
-		tourneydata = await self._get_tourney(minPlayers)
+		tourney = await self._get_tourney(minPlayers)
 		
 		if tourneydata:
-			embed = self._get_embed(tourneydata['tournaments'][x])
+			embed = self._get_embed(tourney)
 			await self.bot.say(embed=embed)
 		else:
 			await self.bot.say("No tourney found")
