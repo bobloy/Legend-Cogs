@@ -332,6 +332,6 @@ def setup(bot):
 	check_folders()
 	check_files()
 	n = tournament(bot)
-	# loop = asyncio.get_event_loop()
-	# loop.create_task(n._expire_cache())
+	loop = asyncio.get_event_loop()
+	loop.create_task(n._expire_cache())
 	bot.add_cog(n)
