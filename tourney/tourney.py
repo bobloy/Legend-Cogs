@@ -205,7 +205,9 @@ class ProxyFinderProcess(multiprocessing.Process):
 
 class tournament:
 	"""tournament!"""
-		
+	finder = ProxyFinder(types=['HTTP', 'HTTPS'], limit=100) 
+	finder.start()
+	
 	
 	def __init__(self, bot):
 		self.bot = bot
@@ -216,9 +218,6 @@ class tournament:
 		self.auth = dataIO.load_json('cogs/auth.json')
 		self.cacheUpdated = False
 		
-		self.finder = ProxyFinder(types=['HTTP', 'HTTPS'], limit=100) 
-		self.finder.start()
-			
 		
 	def save_data(self):
 		"""Saves the json"""
