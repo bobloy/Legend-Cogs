@@ -122,11 +122,11 @@ class tournament:
 		finally:
 			return (url, data)
 			
-	async def _fetchtext(self, url, proxy_url):
+	async def _fetchread(self, url, proxy_url):
 		resp = None
 		try:
 			async with self.session.get(url, timeout=30, proxy=proxy_url) as resp:
-				data = await resp.text()
+				data = await resp.read()
 		except (aiohttp.errors.ClientOSError, aiohttp.errors.ClientResponseError,
 				aiohttp.errors.ServerDisconnectedError) as e:
 			print('Error. url: %s; error: %r' % (url, e))
@@ -227,7 +227,7 @@ class tournament:
 	@checks.is_owner()
 	async def proxytest(self, ctx):
 		url = 'http://proxy-hunter.blogspot.com/2010/03/18-03-10-speed-l1-hunter-proxies-310.html'
-		data = await self._fetchtext(url, None)
+		data = await self._fetchread(url, None)
 		
 		tree = BeautifulSoup(data, "html.parser")
 		regex  = re.compile(r'^(\d{3}).(\d{1,3}).(\d{1,3}).(\d{1,3}):(\d{2,4})')
