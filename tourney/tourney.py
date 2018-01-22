@@ -130,7 +130,7 @@ class tournament:
 	async def _gather_proxy(self, url):
 		host, port = '67.63.33.7', 80  # Default proxy
 		codes = [200, 301, 302]
-		broker = Broker(max_tries=1, loop=loop)
+		broker = Broker(max_tries=1)
 		broker.serve(host=host, port=port, types=['HTTP'], limit=10, max_tries=3,
                  prefer_connect=True, min_req_proxy=5, max_error_rate=0.5,
                  max_resp_time=8, http_allowed_codes=codes, backlog=100)
