@@ -270,8 +270,8 @@ class tournament:
 		return await self._gather_proxy(url)
 	
 	async def _gather_proxy(self, url):
-		finder.update_proxies()
-		print(finder.proxies)
+		self.finder.update_proxies()
+		print(self.finder.proxies)
 		proxy = 'http://{}:{}'.format(self.host, self.port)
 		urlOut, data = await self._fetch(url, proxy)
 
