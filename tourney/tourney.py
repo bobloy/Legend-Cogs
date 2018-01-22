@@ -218,7 +218,7 @@ class tournament:
 		
 		tourney = await self._get_tourney(minPlayers)
 		
-		if tourneydata:
+		if tourney:
 			embed = self._get_embed(tourney)
 			await self.bot.say(embed=embed)
 		else:
