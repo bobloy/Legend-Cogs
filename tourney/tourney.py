@@ -170,7 +170,7 @@ class tournament:
 
 		now = datetime.utcnow()
 		
-		tourneydata = [t1 for tkey, t1 in self.tourneyCache.iteritems()
+		tourneydata = [t1 for tkey, t1 in self.tourneyCache.items()
 						if not t1['full'] and time_str(t1['endtime'], False) - now >= timedelta(seconds=600) and t1['maxPlayers']>=minPlayers]
 		
 		if not tourneydata:
