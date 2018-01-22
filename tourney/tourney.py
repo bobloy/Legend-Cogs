@@ -168,9 +168,9 @@ class tournament:
 		
 	
 	async def _get_tourney(self, minPlayers):
+		if not self.cacheUpdated:	
 			await self._update_cache()
-		if not self.cacheUpdated:
-		
+
 		now = datetime.utcnow()
 		
 		tourneydata = [t1 for t1 in self.tourneyCache 
