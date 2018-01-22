@@ -197,8 +197,6 @@ class tournament:
 			
 			await self.bot.say(page)
 
-		
-	
 	@commands.command(pass_context=True, no_pm=True)
 	async def tourney(self, ctx, minPlayers: int=0):
 		"""Check an open tournament in clash royale instantly"""
