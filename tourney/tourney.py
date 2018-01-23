@@ -304,6 +304,8 @@ class tournament:
 		
 		embedtitle = "Open Tournament"
 		
+		print(bTourney)
+		
 		if bTourney:
 			title = bTourney['name']
 			totalPlayers = bTourney['capacity']
