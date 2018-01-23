@@ -139,11 +139,13 @@ class tournament:
 	async def _fetch_tourney(self):
 		"""Fetch tournament data. Run sparingly"""
 		url = "{}".format('http://statsroyale.com/tournaments?appjson=1')
+		print(url)
 		return await self._gather_proxy(url)
 		
 	async def _API_tourney(self, hashtag):
 		"""Fetch API tourney from hashtag"""
 		url = "{}{}".format('http://api.cr-api.com/tournaments/',hashtag)
+		print(url)
 		return await self._gather_proxy(url)
 	
 	async def _gather_proxy(self, url):
