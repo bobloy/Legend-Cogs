@@ -12,7 +12,6 @@ import os
 
 from fake_useragent import UserAgent
 from datetime import date, datetime, timedelta
-from proxybroker import Broker
 
 from bs4 import BeautifulSoup
 
@@ -105,11 +104,12 @@ class tournament:
 		else:
 			return False
 	
-	async def _fetchjson(self, url, proxy_url):
+	async def _fetch(url, proxy_url, headers):
 		resp = None
 		try:
-			async with self.session.get(url, timeout=30, proxy=proxy_url) as resp:
-				data = await resp.json()
+			async with aiohttp.ClientSession() as session:
+				async with session.get(url, timeout=30, proxy=proxy_url, headers=headers) as resp:
+					data = await resp.json()
 		except (aiohttp.errors.ClientOSError, aiohttp.errors.ClientResponseError,
 				aiohttp.errors.ServerDisconnectedError) as e:
 			print('Error. url: %s; error: %r' % (url, e))
@@ -120,7 +120,7 @@ class tournament:
 			print(resp) 
 			raise
 		finally:
-			return (url, data)
+			return data
 			
 	async def _fetchread(self, url, proxy_url):
 		resp = None
@@ -139,22 +139,26 @@ class tournament:
 	async def _fetch_tourney(self):
 		"""Fetch tournament data. Run sparingly"""
 		url = "{}".format('http://statsroyale.com/tournaments?appjson=1')
-		print(url)
-		return await self._gather_proxy(url)
+		proxy = await self._get_proxy()
+		data = await self._fetch(url, proxy, {})
+		
+		return data
 		
 	async def _API_tourney(self, hashtag):
 		"""Fetch API tourney from hashtag"""
 		url = "{}{}".format('http://api.cr-api.com/tournaments/',hashtag)
-		print(url)
-		return await self._gather_proxy(url)
-	
-	async def _gather_proxy(self, url):
-		host, port = "67.63.33.7", 80
-		
-		proxy = 'http://{}:{}'.format(host, port)
-		urlOut, data = await self._fetchjson(url, proxy)
+		proxy = await self._get_proxy()
+		data = await self._fetch(url, proxy, self.getAuth())
 		
 		return data
+	
+	async def _get_proxy(self):
+		host = random.choice(proxies_list)
+		port = 80
+		proxy = 'http://{}:{}'.format(host, port)
+		
+		return proxy
+		
 	
 	async def _expire_cache(self):
 		await asyncio.sleep(900)
