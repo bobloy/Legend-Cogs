@@ -24,6 +24,7 @@ creditIcon = "https://i.imgur.com/TP8GXZb.png"
 credits = "Cog by GR8 | Titan"
 
 proxies_list = [
+"67.63.33.7"
 ]
 
 
