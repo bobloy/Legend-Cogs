@@ -292,8 +292,9 @@ class tournament:
 		"""Builds embed for tourney
 		Uses cr-api.com if available"""
 		
+		hashlesstag = aTourney['hashtag'].lstrip('# ')
 		try:
-			bTourney = await self._API_tourney(aTourney['hashtag'])
+			bTourney = await self._API_tourney(hashlesstag)
 		except:
 			bTourney = None
 			
