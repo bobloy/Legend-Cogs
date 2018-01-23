@@ -147,7 +147,7 @@ class tournament:
 		return await self._gather_proxy(url)
 	
 	async def _gather_proxy(self, url):
-		host, port = "127.0.0.1", 8080
+		host, port = "67.63.33.7", 80
 		
 		proxy = 'http://{}:{}'.format(host, port)
 		urlOut, data = await self._fetchjson(url, proxy)
