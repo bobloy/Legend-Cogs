@@ -105,7 +105,7 @@ class tournament:
 		else:
 			return False
 	
-	async def _fetch(url, proxy_url, headers):
+	async def _fetch(self, url, proxy_url, headers):
 		resp = None
 		try:
 			async with aiohttp.ClientSession() as session:
