@@ -106,6 +106,7 @@ class tournament:
 		return {"auth" : self.auth['token']}
 
 	async def _is_allowed(self, member):
+		return True
 		server = member.server
 		botcommander_roles = [discord.utils.get(server.roles, name=r) for r in ["Member", "Family Representative", "Clan Manager", "Clan Deputy", "Co-Leader", "Hub Officer", "admin", "Guest"]]
 		botcommander_roles = set(botcommander_roles)
