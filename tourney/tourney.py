@@ -114,9 +114,8 @@ class tournament:
 	async def _fetch(self, url, proxy_url, headers):
 		resp = None
 		try:
-			async with aiohttp.ClientSession() as session:
-				async with session.get(url, timeout=30, proxy=proxy_url, headers=headers) as resp:
-					data = await resp.json()
+			async with self.session.get(url, timeout=30, proxy=proxy_url, headers=headers) as resp:
+				data = await resp.json()
 		except (aiohttp.errors.ClientOSError, aiohttp.errors.ClientResponseError,
 				aiohttp.errors.ServerDisconnectedError) as e:
 			print('Error. url: %s; error: %r' % (url, e))
@@ -129,20 +128,7 @@ class tournament:
 		finally:
 			return data
 			
-	async def _fetchread(self, url, proxy_url):
-		resp = None
-		try:
-			async with self.session.get(url, timeout=30, proxy=proxy_url) as resp:
-				data = await resp.read()
-		except (aiohttp.errors.ClientOSError, aiohttp.errors.ClientResponseError,
-				aiohttp.errors.ServerDisconnectedError) as e:
-			print('Error. url: %s; error: %r' % (url, e))
-		except asyncio.TimeoutError:
-			print(resp) 
-			raise
-		finally:
-			return (url, data)
-			
+
 	async def _fetch_tourney(self):
 		"""Fetch tournament data. Run sparingly"""
 		url = "{}".format('http://statsroyale.com/tournaments?appjson=1')
