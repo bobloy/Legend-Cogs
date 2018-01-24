@@ -167,16 +167,20 @@ class tournament:
 			await self._update_cache()  # This will automatically post top tournaments
 	
 	async def _update_cache(self):
-		try:
+		# try:
 			newdata = await self._fetch_tourney()
-		except:  # On error: Don't retry, but don't mark cache as updated
-			return
+		# except:  # On error: Don't retry, but don't mark cache as updated
+			# return
 		
 		if not newdata['success']:
+			await self.bot.send_message(discord.Object(id="363728974821457923"), "Stats-royale denied")
 			return # On error: Don't retry, but don't mark cache as updated
 		
 		newdata = newdata['tournaments']
 		newdata = [tourney for tourney in newdata if not tourney['full']]
+		
+		if not newdata:
+			await self.bot.send_message(discord.Object(id="363728974821457923"), "No non-full tournaments found")
 		
 		for tourney in newdata:
 			if tourney["hashtag"] not in self.tourneyCache:
@@ -350,15 +354,19 @@ class tournament:
 	
 
 	async def _proxyBroker(self):
+		await self.bot.send_message(discord.Object(id="363728974821457923"), "Proxy-Broker find triggered")
 		await self.broker.find(types=['HTTP'], limit=10)
 		await asyncio.sleep(120)
 	
 	async def _brokerResult(self):
 		await asyncio.sleep(120)
 		while True:
+			await self.bot.send_message(discord.Object(id="363728974821457923"), "Waiting on results")
 			proxy = await self.queue.get()
+			await self.bot.send_message(discord.Object(id="363728974821457923"), "Proxy attempt: {}".format(proxy))
 			if proxy is None: break
 			self.proxylist.append(proxy)
+			
 		
 		
 
