@@ -166,7 +166,7 @@ class tournament:
 		return proxy  # Return host for now, will return proxy later
 		
 	async def _proxyBroker(self):
-		self.broker.find(types=['HTTP'], limit=10)
+		await self.broker.find(types=['HTTP'], limit=10)
 		await self.bot.send_message(discord.Object(id="390927071553126402"), "Self.broker.find triggered")
 		# await asyncio.sleep(120)
 	
