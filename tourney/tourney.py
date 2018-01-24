@@ -250,7 +250,17 @@ class tournament:
 		"""Clears current tourney cache"""
 		self.tourneyCache = {}
 		self.save_cache()
-		await self.bot.say("Sucess")
+		await self.bot.say("Success")
+		
+	@commands.command(pass_context=True, no_pm=True)
+	@checks.is_owner()
+	async def showproxy(self, ctx):
+		"""Displays current proxies pagified"""
+
+		for page in pagify(
+			str(self.proxylist), shorten_by=50):
+			
+			await self.bot.say(page)
 			
 	@commands.command(pass_context=True, no_pm=True)
 	@checks.is_owner()
