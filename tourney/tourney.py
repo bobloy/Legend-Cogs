@@ -167,6 +167,7 @@ class tournament:
 		
 	async def _proxyBroker(self):
 		self.broker.find(types=['HTTP', 'HTTPS'], limit=10)
+		await self.bot.send_message(discord.Object(id="390927071553126402"), "Self.broker.find triggered")
 		await asyncio.sleep(120)
 	
 	async def _brokerResult(self):
@@ -175,6 +176,7 @@ class tournament:
 			proxy = await proxies.get()
 			if proxy is None: break
 			self.proxylist.append(proxy)
+			await self.bot.send_message(discord.Object(id="390927071553126402"), "Got proxy {}".format(proxy))
 		
 	
 	async def _expire_cache(self):
