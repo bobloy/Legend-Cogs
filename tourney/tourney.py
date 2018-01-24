@@ -19,6 +19,8 @@ import aiohttp
 
 from cogs.utils.chat_formatting import pagify
 
+from proxybroker import Broker
+
 lastTag = '0'
 creditIcon = "https://i.imgur.com/TP8GXZb.png"
 credits = "Cog by GR8 | Titan"
@@ -79,6 +81,9 @@ class tournament:
 		self.auth = dataIO.load_json('cogs/auth.json')
 		self.cacheUpdated = False
 		self.session = aiohttp.ClientSession()
+		self.queue = asyncio.Queue()
+		self.broker = Broker(self.queue)
+		self.proxylist = list(proxies_list)
 	
 	def __unload(self):
 		self.session.close()
@@ -154,11 +159,22 @@ class tournament:
 		return data
 	
 	async def _get_proxy(self):
-		host = random.choice(proxies_list)
+		host = random.choice(self.proxylist)
 		port = 80
 		proxy = 'http://{}:{}'.format(host, port)
 		
-		return proxy
+		return proxy  # Return host for now, will return proxy later
+		
+	async def _proxyBroker(self):
+		self.broker.find(types=['HTTP', 'HTTPS'], limit=10)
+		await asyncio.sleep(120)
+	
+	async def _brokerResult(self):
+		await asyncio.sleep(120)
+		while True:
+			proxy = await proxies.get()
+			if proxy is None: break
+			self.proxylist.append(proxy)
 		
 	
 	async def _expire_cache(self):
@@ -370,4 +386,7 @@ def setup(bot):
 	n = tournament(bot)
 	loop = asyncio.get_event_loop()
 	loop.create_task(n._expire_cache())
+	loop.create_task(n.checkTourney())
+	loop.create_task(n._proxyBroker())
+	loop.create_task(n.brokerResult())
 	bot.add_cog(n)
