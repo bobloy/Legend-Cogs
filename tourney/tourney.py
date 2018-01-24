@@ -215,7 +215,7 @@ class tournament:
 			
 			tourneydata = [t1 for tkey, t1 in self.tourneyCache.items()
 							if not t1['full'] and t1['maxPlayers']>=minPlayers
-							and tkey != self.lastTag]
+							and tkey != self.lasttag]
 
 			if not tourneydata:
 				return None
@@ -230,7 +230,7 @@ class tournament:
 					self.tourneyCache.pop(aChoice['hashtag'])
 					# Loop and try again
 				else:
-					self.lastTag = aChoice['hashtag']
+					self.lasttag = aChoice['hashtag']
 					return aChoice, bTourney
 		
 		return None  # Failed to get a tourney after 10 tries
