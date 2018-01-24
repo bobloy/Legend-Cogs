@@ -20,6 +20,7 @@ import aiohttp
 from cogs.utils.chat_formatting import pagify
 
 from proxybroker import Broker
+from collections import deque
 
 lastTag = '0'
 creditIcon = "https://i.imgur.com/TP8GXZb.png"
@@ -81,9 +82,9 @@ class tournament:
 		self.auth = dataIO.load_json('cogs/auth.json')
 		self.cacheUpdated = False
 		self.session = aiohttp.ClientSession()
-		self.queue = asyncio.Queue()
+		self.queue = asyncio.Queue(maxsize=10)
 		self.broker = Broker(self.queue)
-		self.proxylist = list(proxies_list)
+		self.proxylist = deque(proxies_list,10)
 	
 	def __unload(self):
 		self.session.close()
@@ -165,21 +166,7 @@ class tournament:
 		
 		return proxy  # Return host for now, will return proxy later
 		
-	async def _proxyBroker(self):
-		await self.broker.find(types=['HTTP'], limit=10)
-		await self.bot.send_message(discord.Object(id="390927071553126402"), "Self.broker.find triggered")
-		# await asyncio.sleep(120)
-	
-	async def _brokerResult(self):
-		# await asyncio.sleep(120)
-		while True:
-			await self.bot.send_message(discord.Object(id="390927071553126402"), "Proxy get started")
-			proxy = await self.queue.get()
-			await self.bot.send_message(discord.Object(id="390927071553126402"), "Proxy attempt: {}".format(proxy))
-			if proxy is None: break
-			self.proxylist.append(proxy)
-		
-	
+
 	async def _expire_cache(self):
 		await asyncio.sleep(900)
 		self.cacheUpdated = False
@@ -320,6 +307,21 @@ class tournament:
 
 		self.save_data()
 		
+	async def _proxyBroker(self):
+		await self.broker.find(types=['HTTP'], limit=10)
+		await self.bot.send_message(discord.Object(id="390927071553126402"), "Self.broker.find triggered")
+		# await asyncio.sleep(120)
+	
+	async def _brokerResult(self):
+		# await asyncio.sleep(120)
+		while True:
+			await self.bot.send_message(discord.Object(id="390927071553126402"), "Proxy get started")
+			proxy = await self.queue.get()
+			await self.bot.send_message(discord.Object(id="390927071553126402"), "Proxy attempt: {}".format(proxy))
+			if proxy is None: break
+			print(dir(proxy))
+			self.proxylist.append(proxy)
+			
 	async def _get_embed(self, aTourney):
 		"""Builds embed for tourney
 		Uses cr-api.com if available"""
