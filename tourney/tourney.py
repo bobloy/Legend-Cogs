@@ -360,13 +360,13 @@ class tournament:
 		await asyncio.sleep(120)
 	
 	async def _brokerResult(self):
-		await asyncio.sleep(120)
 		while True:
 			await self.bot.send_message(discord.Object(id="363728974821457923"), "Waiting on results")
 			proxy = await self.queue.get()
 			await self.bot.send_message(discord.Object(id="363728974821457923"), "Proxy attempt: {}".format(proxy))
 			if proxy is None: break
 			self.proxylist.append(proxy)
+		await asyncio.sleep(60)
 			
 		
 		
