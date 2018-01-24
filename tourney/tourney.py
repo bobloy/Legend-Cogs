@@ -173,6 +173,7 @@ class tournament:
 	async def _brokerResult(self):
 		await asyncio.sleep(120)
 		while True:
+			await self.bot.send_message(discord.Object(id="390927071553126402"), "Proxy get started")
 			proxy = await self.queue.get()
 			await self.bot.send_message(discord.Object(id="390927071553126402"), "Proxy attempt: {}".format(proxy))
 			if proxy is None: break
