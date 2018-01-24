@@ -339,7 +339,7 @@ class tournament:
 		cards = getCards(maxPlayers)
 		coins = getCoins(maxPlayers)
 		
-		embed=discord.Embed(title="Open Tournament", color=randint(0, 0xffffff))
+		embed=discord.Embed(title="Open Tournament", color=0xFAA61A)
 		embed.set_thumbnail(url='https://statsroyale.com/images/tournament.png')
 		embed.add_field(name="Title", value=title, inline=True)
 		embed.add_field(name="Tag", value="#"+hashtag, inline=True)
