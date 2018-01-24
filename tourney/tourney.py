@@ -173,7 +173,7 @@ class tournament:
 	async def _brokerResult(self):
 		await asyncio.sleep(120)
 		while True:
-			proxy = await proxies.get()
+			proxy = await self.queue.get()
 			if proxy is None: break
 			self.proxylist.append(proxy)
 			await self.bot.send_message(discord.Object(id="390927071553126402"), "Got proxy {}".format(proxy))
@@ -195,13 +195,15 @@ class tournament:
 		
 		newdata = newdata['tournaments']
 		
+		newdata = [tourney for tourney in newdata if not tourney['full']]  # Only keep not-full tourneys
+		
 		for tourney in newdata:
-			if tourney["hashtag"] not in self.tourneyCache:
+			if tourney["hashtag"] not in self.tourneyCache:  # Tourney the cache hasn't seen before
 				timeLeft = timedelta(seconds=tourney['timeLeft'])
 				endtime = datetime.utcnow() + timeLeft
 				tourney["endtime"] = time_str(endtime, True)
 				self.tourneyCache[tourney["hashtag"]] = tourney
-			else:
+			else:  # Already cached, update everything except endtime
 				tourney["endtime"] = self.tourneyCache[tourney["hashtag"]]["endtime"]  # Keep endtime
 				self.tourneyCache[tourney["hashtag"]] = tourney
 		
@@ -214,7 +216,7 @@ class tournament:
 		
 	
 	async def _get_tourney(self, minPlayers):
-		"""tourneyCache is dict of tourneys with hashtag as key"""
+		"""self.tourneyCache is dict of tourneys with hashtag as key"""
 		if not self.cacheUpdated:	
 			if not await self._update_cache(): 
 				await self.bot.send_message(discord.Object(id="390927071553126402"), "Cache update failed")
@@ -331,8 +333,6 @@ class tournament:
 		
 		embedtitle = "Open Tournament"
 		
-		print(bTourney)
-		
 		if bTourney:
 			title = bTourney['name']
 			totalPlayers = bTourney['capacity']
@@ -352,7 +352,7 @@ class tournament:
 			full = aTourney['full']
 			
 		timeLeft = time_str(aTourney['endtime'], False) - now
-		timeLeft = timeLeft.seconds
+		timeLeft = timeLeft.total_seconds()
 		if timeLeft < 0:
 			timeLeft = 0
 			embedtitle = "Ended Tournament"
