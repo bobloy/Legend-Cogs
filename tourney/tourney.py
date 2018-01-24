@@ -13,23 +13,28 @@ import os
 from fake_useragent import UserAgent
 from datetime import date, datetime, timedelta
 
-from bs4 import BeautifulSoup
-
-import aiohttp
-
-from cogs.utils.chat_formatting import pagify
-
 from proxybroker import Broker
 from collections import deque
+
+import aiohttp
 
 lastTag = '0'
 creditIcon = "https://i.imgur.com/TP8GXZb.png"
 credits = "Cog by GR8 | Titan"
 
 proxies_list = [
-"67.63.33.7"
 ]
-
+	# '94.249.160.49:6998',
+	# '93.127.128.41:7341',
+	# '107.175.43.100:6858',
+	# '64.44.18.31:3691',
+	# '172.82.173.100:5218',
+	# '172.82.177.111:3432',
+	# '45.43.219.185:2461',
+	# '45.43.218.82:3577',
+	# '173.211.31.3:8053',
+	# '195.162.4.111:4762'
+# ]
 
 # Converts maxPlayers to Cards
 def getCards(maxPlayers):
@@ -81,14 +86,14 @@ class tournament:
 		self.tourneyCache = dataIO.load_json(self.cachepath)
 		self.auth = dataIO.load_json('cogs/auth.json')
 		self.cacheUpdated = False
-		self.session = aiohttp.ClientSession()
 		self.queue = asyncio.Queue(maxsize=10)
 		self.broker = Broker(self.queue)
 		self.proxylist = deque(proxies_list,10)
-	
-	def __unload(self):
-		self.session.close()
+		self.session = aiohttp.ClientSession()
 		
+	def __unload(self):
+		self.session.close()	
+	
 	def save_data(self):
 		"""Saves the json"""
 		dataIO.save_json(self.path, self.settings)
@@ -101,7 +106,6 @@ class tournament:
 		return {"auth" : self.auth['token']}
 
 	async def _is_allowed(self, member):
-		return True
 		server = member.server
 		botcommander_roles = [discord.utils.get(server.roles, name=r) for r in ["Member", "Family Representative", "Clan Manager", "Clan Deputy", "Co-Leader", "Hub Officer", "admin", "Guest"]]
 		botcommander_roles = set(botcommander_roles)
@@ -128,7 +132,6 @@ class tournament:
 		finally:
 			return data
 			
-
 	async def _fetch_tourney(self):
 		"""Fetch tournament data. Run sparingly"""
 		url = "{}".format('http://statsroyale.com/tournaments?appjson=1')
@@ -146,38 +149,37 @@ class tournament:
 		return data
 	
 	async def _get_proxy(self):
-		host = random.choice(self.proxylist)
-		port = 80
-		proxy = 'http://{}:{}'.format(host, port)
+		proxy = random.choice(self.proxylist)
+		host = proxy.host
+		port = proxy.port
+		proxystr = '{}:{}'.format(host, port)
 		
-		return proxy  # Return host for now, will return proxy later
+		return proxystr
 		
-
+	
 	async def _expire_cache(self):
 		await asyncio.sleep(900)
 		self.cacheUpdated = False
-		await self.bot.send_message(discord.Object(id="390927071553126402"), "Cache expired")
 	
 	async def _update_cache(self):
-		# try:
-		newdata = await self._fetch_tourney()
-		# except:  # On error: Don't retry, but don't mark cache as updated
-			# return False
+		try:
+			newdata = await self._fetch_tourney()
+		except:  # On error: Don't retry, but don't mark cache as updated
+			return
 		
 		if not newdata['success']:
-			return False  # On error: Don't retry, but don't mark cache as updated
+			return # On error: Don't retry, but don't mark cache as updated
 		
 		newdata = newdata['tournaments']
-		
-		newdata = [tourney for tourney in newdata if not tourney['full']]  # Only keep not-full tourneys
+		newdata = [tourney for tourney in newdata if not tourney['full']]
 		
 		for tourney in newdata:
-			if tourney["hashtag"] not in self.tourneyCache:  # Tourney the cache hasn't seen before
+			if tourney["hashtag"] not in self.tourneyCache:
 				timeLeft = timedelta(seconds=tourney['timeLeft'])
 				endtime = datetime.utcnow() + timeLeft
 				tourney["endtime"] = time_str(endtime, True)
 				self.tourneyCache[tourney["hashtag"]] = tourney
-			else:  # Already cached, update everything except endtime
+			else:
 				tourney["endtime"] = self.tourneyCache[tourney["hashtag"]]["endtime"]  # Keep endtime
 				self.tourneyCache[tourney["hashtag"]] = tourney
 		
@@ -186,14 +188,12 @@ class tournament:
 		
 		await self._topTourney(newdata)  # Posts all best tourneys when cache is updated
 		
-		return True
 		
 	
 	async def _get_tourney(self, minPlayers):
-		"""self.tourneyCache is dict of tourneys with hashtag as key"""
+		"""tourneyCache is dict of tourneys with hashtag as key"""
 		if not self.cacheUpdated:	
-			if not await self._update_cache(): 
-				await self.bot.send_message(discord.Object(id="390927071553126402"), "Cache update failed")
+			await self._update_cache()
 
 		now = datetime.utcnow()
 		
@@ -223,15 +223,6 @@ class tournament:
 					await self.bot.send_message(channel, embed=embed) # Family
 					
 			#await self.bot.send_message(discord.Object(id='363728974821457923'), embed=embed) # testing
-
-	@commands.command(pass_context=True, no_pm=True)
-	@checks.is_owner()
-	async def proxytest(self, ctx):
-		for page in pagify(
-			str(self.proxylist), shorten_by=50):
-			
-			await self.bot.say(page)
-		
 		
 	@commands.command(pass_context=True, no_pm=True)
 	@checks.is_owner()
@@ -242,14 +233,6 @@ class tournament:
 			str(self.tourneyCache), shorten_by=50):
 			
 			await self.bot.say(page)
-	
-	@commands.command(pass_context=True, no_pm=True)
-	@checks.is_owner()
-	async def clearcache(self, ctx):
-		"""Clears all tourneys in cache"""
-
-		self.tourneyCache = {}
-		self.save_cache()
 			
 	@commands.command(pass_context=True, no_pm=True)
 	async def tourney(self, ctx, minPlayers: int=0):
@@ -293,28 +276,12 @@ class tournament:
 
 		self.save_data()
 		
-	async def _proxyBroker(self):
-		await self.broker.find(types=['HTTP'], limit=10)
-		await self.bot.send_message(discord.Object(id="390927071553126402"), "Self.broker.find triggered")
-		# await asyncio.sleep(120)
-	
-	async def _brokerResult(self):
-		# await asyncio.sleep(120)
-		while True:
-			await self.bot.send_message(discord.Object(id="390927071553126402"), "Proxy get started")
-			proxy = await self.queue.get()
-			await self.bot.send_message(discord.Object(id="390927071553126402"), "Proxy attempt: {}".format(proxy))
-			if proxy is None: break
-			print(dir(proxy))
-			self.proxylist.append(proxy)
-			
 	async def _get_embed(self, aTourney):
 		"""Builds embed for tourney
 		Uses cr-api.com if available"""
 		
-		hashlesstag = aTourney['hashtag'].lstrip('# ')
 		try:
-			bTourney = await self._API_tourney(hashlesstag)
+			bTourney = await self._API_tourney(aTourney['hashtag'])
 		except:
 			bTourney = None
 			
@@ -341,7 +308,7 @@ class tournament:
 			full = aTourney['full']
 			
 		timeLeft = time_str(aTourney['endtime'], False) - now
-		timeLeft = timeLeft.total_seconds()
+		timeLeft = int(timeLeft.total_seconds()))
 		if timeLeft < 0:
 			timeLeft = 0
 			embedtitle = "Ended Tournament"
@@ -359,6 +326,19 @@ class tournament:
 		embed.add_field(name="Top prize", value="<:coin:380832316932489268> " + str(cards) + "     <:tournamentcards:380832770454192140> " +  str(coins), inline=True)
 		embed.set_footer(text=credits, icon_url=creditIcon)
 		return embed
+	
+
+	async def _proxyBroker(self):
+		await self.broker.find(types=['HTTP'], limit=10)
+		await asyncio.sleep(120)
+	
+	async def _brokerResult(self):
+		await asyncio.sleep(120)
+		while True:
+			proxy = await self.queue.get()
+			if proxy is None: break
+			self.proxylist.append(proxy)
+		
 		
 
 def check_folders():
