@@ -155,7 +155,7 @@ class tournament:
 		proxy = random.choice(self.proxylist)
 		host = proxy.host
 		port = proxy.port
-		proxystr = '{}:{}'.format(host, port)
+		proxystr = 'http://{}:{}'.format(host, port)
 		
 		return proxystr
 		
@@ -239,6 +239,14 @@ class tournament:
 			
 			await self.bot.say(page)
 	
+	@commands.command(pass_context=True, no_pm=True)
+	@checks.is_owner()
+	async def clearcache(self, ctx):
+		"""Clears current tourney cache"""
+		self.tourneyCache = {}
+		self.save_cache()
+		await self.bot.say("Sucess")
+			
 	@commands.command(pass_context=True, no_pm=True)
 	@checks.is_owner()
 	async def clearcache(self, ctx):
