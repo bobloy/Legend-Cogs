@@ -251,15 +251,11 @@ class tournament:
 	@commands.command(pass_context=True, no_pm=True)
 	@checks.is_owner()
 	async def proxytest(self, ctx):
-		url = 'http://proxy-hunter.blogspot.com/2010/03/18-03-10-speed-l1-hunter-proxies-310.html'
-		data = await self._fetchread(url, None)
-		print(data)
-		tree = BeautifulSoup(data, "html.parser")
-		regex  = re.compile(r'^(\d{3}).(\d{1,3}).(\d{1,3}).(\d{1,3}):(\d{2,4})')
-		proxylist = tree.findAll(attrs = {"class":"Apple-style-span", "style": "color: black;"}, text = regex)
-		data = proxylist[0]
-		for x in data.split('\n'):
-			print(x)
+		for page in pagify(
+			str(self.proxylist), shorten_by=50):
+			
+			await self.bot.say(page)
+		
 		
 	@commands.command(pass_context=True, no_pm=True)
 	@checks.is_owner()
@@ -270,6 +266,14 @@ class tournament:
 			str(self.tourneyCache), shorten_by=50):
 			
 			await self.bot.say(page)
+	
+	@commands.command(pass_context=True, no_pm=True)
+	@checks.is_owner()
+	async def clearcache(self, ctx):
+		"""Clears all tourneys in cache"""
+
+		self.tourneyCache = {}
+		self.save_cache()
 			
 	@commands.command(pass_context=True, no_pm=True)
 	async def tourney(self, ctx, minPlayers: int=0):
