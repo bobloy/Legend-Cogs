@@ -174,9 +174,9 @@ class tournament:
 		await asyncio.sleep(120)
 		while True:
 			proxy = await self.queue.get()
+			await self.bot.send_message(discord.Object(id="390927071553126402"), "Proxy attempt: {}".format(proxy))
 			if proxy is None: break
 			self.proxylist.append(proxy)
-			await self.bot.send_message(discord.Object(id="390927071553126402"), "Got proxy {}".format(proxy))
 		
 	
 	async def _expire_cache(self):
