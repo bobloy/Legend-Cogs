@@ -168,7 +168,7 @@ class tournament:
 	
 	async def _update_cache(self):
 		# try:
-			newdata = await self._fetch_tourney()
+		newdata = await self._fetch_tourney()
 		# except:  # On error: Don't retry, but don't mark cache as updated
 			# return
 		
