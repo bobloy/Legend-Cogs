@@ -386,7 +386,6 @@ def setup(bot):
 	n = tournament(bot)
 	loop = asyncio.get_event_loop()
 	loop.create_task(n._expire_cache())
-	loop.create_task(n.checkTourney())
 	loop.create_task(n._proxyBroker())
 	loop.create_task(n.brokerResult())
 	bot.add_cog(n)
