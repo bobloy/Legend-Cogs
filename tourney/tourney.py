@@ -429,7 +429,6 @@ class tournament:
 		await asyncio.sleep(60)
 		
 		
->>>>>>> proxy-cache-master-merge
 
 def check_folders():
 	if not os.path.exists("data/tourney"):
