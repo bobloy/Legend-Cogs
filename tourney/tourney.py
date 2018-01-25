@@ -419,7 +419,6 @@ class tournament:
 		anyfound = False
 		await self.bot.send_message(discord.Object(id="363728974821457923"), "Waiting on results from Proxy-Broker")
 		while True:
-			await self.bot.send_message(discord.Object(id="363728974821457923"), "Waiting on results from Proxy-Broker")
 			proxy = await self.queue.get()
 			if proxy is None: break
 			self.proxylist.append(proxy)
