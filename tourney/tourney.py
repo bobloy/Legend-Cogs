@@ -110,7 +110,6 @@ class tournament:
 		return {"auth" : self.auth['token']}
 
 	async def _is_allowed(self, member):
-		return True
 		server = member.server
 		botcommander_roles = [discord.utils.get(server.roles, name=r) for r in ["Member", "Family Representative", "Clan Manager", "Clan Deputy", "Co-Leader", "Hub Officer", "admin", "Guest"]]
 		botcommander_roles = set(botcommander_roles)
@@ -275,24 +274,6 @@ class tournament:
 			str(self.tourneyCache), shorten_by=50):
 			
 			await self.bot.say(page)
-	
-	@commands.command(pass_context=True, no_pm=True)
-	@checks.is_owner()
-	async def clearcache(self, ctx):
-		"""Clears current tourney cache"""
-		self.tourneyCache = {}
-		self.save_cache()
-		await self.bot.say("Success")
-		
-	@commands.command(pass_context=True, no_pm=True)
-	@checks.is_owner()
-	async def showproxy(self, ctx):
-		"""Displays current proxies pagified"""
-
-		for page in pagify(
-			str(self.proxylist), shorten_by=50):
-			
-			await self.bot.say(page)
 			
 	@commands.command(pass_context=True, no_pm=True)
 	@checks.is_owner()
@@ -408,10 +389,9 @@ class tournament:
 	
 
 	async def _proxyBroker(self):
-		await self.bot.send_message(discord.Object(id="363728974821457923"), "Proxy-Broker find triggered")
-		types = ['HTTP']
-		countries = ['US', 'DE', 'FR']
-		
+	types = ['HTTP']
+	countries = ['US', 'DE', 'FR']
+	
 		await self.broker.find(types=types, limit=50)
 		await asyncio.sleep(120)
 	
