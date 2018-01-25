@@ -211,8 +211,10 @@ class tournament:
 		"""tourneyCache is dict of tourneys with hashtag as key"""
 		if not self.cacheUpdated:	
 			await self._update_cache()
-
 		
+		if not self.tourneyCache:
+			return None, None
+			
 		for x in range(10):  # Try 10 times or until tourney is found
 			now = datetime.utcnow()
 			
@@ -221,7 +223,7 @@ class tournament:
 							and tkey != self.lastTag]
 
 			if not tourneydata:
-				return None
+				return None, None
 
 			aChoice = random.choice(tourneydata)
 			if time_str(aChoice['endtime'], False) - now < timedelta(seconds=600):
