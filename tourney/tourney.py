@@ -127,12 +127,15 @@ class tournament:
 			async with self.session.get(url, timeout=30, proxy=proxy_url, headers=headers) as resp:
 				data = await resp.json()
 		except json.decoder.JSONDecodeError:
+			print("JSON Decode Error")
 			print(resp)
 			raise
 		except asyncio.TimeoutError:
+			print("Timeout Error")
 			print(resp) 
 			raise
 		except:
+			print("Unhand led Error")
 			print(resp)
 			raise
 		else:
