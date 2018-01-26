@@ -404,7 +404,7 @@ class tournament:
 		codes = [200, 301, 302]
 		countries = ['US', 'DE', 'FR']
 		
-		await self.broker.server(types=types,limit=50,http_allowed_codes=codes)
+		await self.broker.serve(types=types,limit=50,http_allowed_codes=codes)
 	
 	async def _proxyBroker(self):
 		types = ['HTTP']
