@@ -127,18 +127,18 @@ class tournament:
 				data = await resp.json()
 		except json.decoder.JSONDecodeError:
 			print("JSON Decode Error")
-			print(resp)
-			print(str(resp.url))
+			print("Response: "+str(resp))
+			print("URL: "+str(resp.url))
 			raise
 		except asyncio.TimeoutError:
 			print("Timeout Error")
-			print(resp)
-			print(str(resp.url))
+			print("Response: "+str(resp))
+			print("URL: "+str(resp.url))
 			raise
 		except:
 			print("Unhandled Error")
-			print(resp)
-			print(str(resp.url))
+			print("Response: "+str(resp))
+			print("URL: "+str(resp.url))
 			raise
 		else:
 			return data
