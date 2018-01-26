@@ -140,7 +140,7 @@ class tournament:
 		
 		return tourneydata
 
-	async def _fetch(self, url, proxyhost, proxyport, headers=None):
+	async def _fetch(self, url, proxyhost, proxyport, headers={}):
 		return await self._fetch2(url, proxyhost, proxyport, headers)
 		proxy_url = 'http://{}:{}'.format(proxyhost, proxyport)
 		resp = None
