@@ -162,9 +162,11 @@ class tournament:
 		return data
 	
 	async def _get_proxy(self):
-		proxy = random.choice(self.proxylist)
-		host = proxy.host
-		port = proxy.port
+		# proxy = random.choice(self.proxylist)
+		# host = proxy.host
+		# port = proxy.port
+		host = "127.0.0.1"
+		port = 8888
 		proxystr = 'http://{}:{}'.format(host, port)
 		
 		return proxystr
@@ -397,7 +399,13 @@ class tournament:
 		embed.set_footer(text=credits, icon_url=creditIcon)
 		return embed
 	
-
+	async def _proxyServer(self):
+		types = ['HTTP']
+		codes = [200, 301, 302]
+		countries = ['US', 'DE', 'FR']
+		
+		await self.broker.server(types=types,limit=50,http_allowed_codes=codes)
+	
 	async def _proxyBroker(self):
 		types = ['HTTP']
 		countries = ['US', 'DE', 'FR']
@@ -439,6 +447,7 @@ def setup(bot):
 	n = tournament(bot)
 	loop = asyncio.get_event_loop()
 	loop.create_task(n._expire_cache())
-	loop.create_task(n._proxyBroker())
-	loop.create_task(n._brokerResult())
+	loop.create_task(n._proxyServer())
+	# loop.create_task(n._proxyBroker())
+	# loop.create_task(n._brokerResult())
 	bot.add_cog(n)
