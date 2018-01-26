@@ -124,7 +124,7 @@ class tournament:
 	async def _fetch(self, url, proxy_url, headers):
 		resp = None
 		try:
-			async with self.session.get(url, timeout=30, proxy=proxy_url, headers=headers) as resp:
+			async with self.session.get(url, timeout=60, proxy=proxy_url, headers=headers) as resp:
 				data = await resp.json()
 		except json.decoder.JSONDecodeError:
 			print("JSON Decode Error")
