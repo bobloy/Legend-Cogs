@@ -119,11 +119,16 @@ class tournament:
 		else:
 			return False
 	
-	async def _fetch(self, url, proxy_url, headers):
+	async def _fetch(self, url, proxy_url, headers=None):
 		resp = None
 		try:
-			async with self.session.get(url, timeout=60, proxy=proxy_url, headers=headers) as resp:
-				data = await resp.json()
+			if headers:
+				async with self.session.get(url, timeout=60, proxy=proxy_url, headers=headers) as resp:
+					data = await resp.json()
+			else:
+				async with self.session.get(url, timeout=60, proxy=proxy_url) as resp:
+					data = await resp.json()
+
 		except json.decoder.JSONDecodeError:
 			print("JSON Decode Error")
 			print("Response: "+str(resp))
@@ -148,7 +153,7 @@ class tournament:
 		"""Fetch tournament data. Run sparingly"""
 		url = "{}".format('http://statsroyale.com/tournaments?appjson=1')
 		proxy = self._get_proxy()
-		data = await self._fetch(url, proxy, {})
+		data = await self._fetch(url, proxy)
 		
 		return data
 		
