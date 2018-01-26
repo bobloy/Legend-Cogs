@@ -120,7 +120,7 @@ class tournament:
 		else:
 			return False
 	
-	async def _fetch2(self, url, proxyhost, proxyport, headers=None):
+	async def _fetch2(self, url, proxyhost, proxyport, headers={}):
 		proxies = {
 	    	'http': '{}:{}'.format(proxyhost, proxyport)
 		}
