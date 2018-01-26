@@ -126,7 +126,8 @@ class tournament:
 		}
 		ua = UserAgent() 
 		
-		headers["User-Agent"] = ua.random
+		if not headers:
+			headers["User-Agent"] = ua.random
 		
 		try:
 			tourneydata = requests.get('http://statsroyale.com/tournaments?appjson=1', timeout=15, headers=headers, proxies=proxies).json()
@@ -280,6 +281,11 @@ class tournament:
 		except:
 			return None
 		
+		print("cr-api tourney: "+str(bTourney))
+		
+		if not bTourney:
+			return None
+			
 		if bTourney['capacity'] == bTourney['maxCapacity']:
 			return None
 		else:
