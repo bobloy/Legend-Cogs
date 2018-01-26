@@ -16,7 +16,7 @@ import socket
 import urllib.request  as urllib2
 import time
 
-BOTCOMMANDER_ROLES =  ["Family Representative", "Clan Manager", "Clan Deputy", "Co-Leader", "Hub Officer", "admin", "Leader", "Bot Commander"];
+BOTCOMMANDER_ROLES =  ["Family Representative", "Clan Manager", "Clan Deputy", "Co-Leader", "Hub Officer", "admin", "Leader", "Bot Commander"]
 creditIcon = "https://i.imgur.com/TP8GXZb.png"
 credits = "Cog by GR8 | Titan"
 

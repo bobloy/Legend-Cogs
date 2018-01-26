@@ -128,14 +128,17 @@ class tournament:
 		except json.decoder.JSONDecodeError:
 			print("JSON Decode Error")
 			print(resp)
+			print(str(resp.url))
 			raise
 		except asyncio.TimeoutError:
 			print("Timeout Error")
-			print(resp) 
+			print(resp)
+			print(str(resp.url))
 			raise
 		except:
 			print("Unhandled Error")
 			print(resp)
+			print(str(resp.url))
 			raise
 		else:
 			return data
@@ -174,10 +177,10 @@ class tournament:
 			await self._update_cache()  # This will automatically post top tournaments
 	
 	async def _update_cache(self):
-		try:
-			newdata = await self._fetch_tourney()
-		except:  # On error: Don't retry, but don't mark cache as updated
-			return None
+		# try:
+		newdata = await self._fetch_tourney()
+		# except:  # On error: Don't retry, but don't mark cache as updated
+			# return None
 		
 		if not newdata:
 			await self.bot.send_message(discord.Object(id="363728974821457923"), "StatsRoyale Failed")
