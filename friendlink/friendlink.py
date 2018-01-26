@@ -9,7 +9,7 @@ import requests
 import json
 
 creditIcon = "https://i.imgur.com/TP8GXZb.png"
-credits = "Bot by GR8 | Titan"
+credits = "Cog by GR8 | Titan"
 
 class friendlink:
     """friendlink!"""
