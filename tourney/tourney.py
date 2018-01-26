@@ -123,8 +123,15 @@ class tournament:
 		proxies = {
 	    	'http': '{}:{}'.format(proxyhost, proxyport)
 		}
-
-		tourneydata = requests.get('http://statsroyale.com/tournaments?appjson=1', timeout=5, headers=headers, proxies=proxies).json()
+		try:
+			tourneydata = requests.get('http://statsroyale.com/tournaments?appjson=1', timeout=5, headers=headers, proxies=proxies).json()
+		except requests.exceptions.Timeout:
+			return None
+		except json.decoder.JSONDecodeError:
+			print(requests.get('http://statsroyale.com/tournaments?appjson=1', timeout=5, headers=headers, proxies=proxies).text())
+			return None
+		except requests.exceptions.RequestException as e:
+			return None
 		
 		return tourneydata
 
