@@ -119,18 +119,18 @@ class tournament:
 		else:
 			return False
 	
-	async def _fetch2(self, url, proxy_url, headers=None):
+	async def _fetch2(self, url, proxyhost, proxyport, headers=None):
 		proxies = {
-	    	'http': '127.0.0.1:8888'
+	    	'http': '{}:{}'.format(proxyhost, proxyport)
 		}
 
 		tourneydata = requests.get('http://statsroyale.com/tournaments?appjson=1', timeout=5, headers=headers, proxies=proxies).json()
 		
 		return tourneydata
 
-	async def _fetch(self, url, proxy_url, headers=None):
-		return await self._fetch2(url, proxy_url, headers)
-		
+	async def _fetch(self, url, proxyhost, proxyport, headers=None):
+		return await self._fetch2(url, proxyhost, proxyport, headers)
+		proxy_url = 'http://{}:{}'.format(proxyhost, proxyport)
 		resp = None
 		try:
 			if headers:
@@ -163,28 +163,28 @@ class tournament:
 	async def _fetch_tourney(self):
 		"""Fetch tournament data. Run sparingly"""
 		url = "{}".format('http://statsroyale.com/tournaments?appjson=1')
-		proxy = self._get_proxy()
-		data = await self._fetch(url, proxy)
+		proxyhost, proxyport = self._get_proxy()
+		data = await self._fetch(url, proxyhost, proxyport)
 		
 		return data
 		
 	async def _API_tourney(self, hashtag):
 		"""Fetch API tourney from hashtag"""
 		url = "{}{}".format('http://api.cr-api.com/tournaments/',hashtag)
-		proxy = self._get_proxy()
-		data = await self._fetch(url, proxy, self.getAuth())
+		proxyhost, proxyport = self._get_proxy()
+		data = await self._fetch(url, proxyhost, proxyport, self.getAuth())
 		
 		return data
 	
 	def _get_proxy(self):
-		# proxy = random.choice(self.proxylist)
-		# host = proxy.host
-		# port = proxy.port
-		host = "127.0.0.1"
-		port = 8888
+		proxy = random.choice(self.proxylist)
+		host = proxy.host
+		port = proxy.port
+		# host = "127.0.0.1"
+		# port = 8888
 		proxystr = 'http://{0}:{1}'.format(host, port)
 		
-		return proxystr
+		return host, port
 		
 
 	async def _expire_cache(self):
@@ -462,7 +462,7 @@ def setup(bot):
 	n = tournament(bot)
 	loop = asyncio.get_event_loop()
 	loop.create_task(n._expire_cache())
-	loop.create_task(n._proxyServer())
-	# loop.create_task(n._proxyBroker())
-	# loop.create_task(n._brokerResult())
+	# loop.create_task(n._proxyServer())
+	loop.create_task(n._proxyBroker())
+	loop.create_task(n._brokerResult())
 	bot.add_cog(n)
