@@ -3,6 +3,7 @@ from discord.ext import commands
 from random import randint
 import requests
 import asyncio
+from fake_useragent import UserAgent
 import random
 import json
 from cogs.utils import checks
@@ -123,6 +124,10 @@ class tournament:
 		proxies = {
 	    	'http': '{}:{}'.format(proxyhost, proxyport)
 		}
+		ua = UserAgent() 
+		
+		headers["User-Agent"] = ua.random
+		
 		try:
 			tourneydata = requests.get('http://statsroyale.com/tournaments?appjson=1', timeout=15, headers=headers, proxies=proxies).json()
 		except requests.exceptions.Timeout:
