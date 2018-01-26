@@ -134,7 +134,7 @@ class tournament:
 		except requests.exceptions.Timeout:
 			return None
 		except json.decoder.JSONDecodeError:
-			print(requests.get('http://statsroyale.com/tournaments?appjson=1', timeout=15, headers=headers, proxies=proxies).text())
+			print(str(requests.get('http://statsroyale.com/tournaments?appjson=1', timeout=15, headers=headers, proxies=proxies).text()))
 			return None
 		except requests.exceptions.RequestException as e:
 			return None
