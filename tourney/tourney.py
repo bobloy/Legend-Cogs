@@ -10,7 +10,6 @@ from .utils.dataIO import dataIO
 
 import os
 
-from fake_useragent import UserAgent
 from datetime import date, datetime, timedelta
 
 from proxybroker import Broker, Proxy
