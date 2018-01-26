@@ -119,7 +119,18 @@ class tournament:
 		else:
 			return False
 	
+	async def _fetch2(self, url, proxy_url, headers=None):
+		proxies = {
+	    	'http': '127.0.0.1:8888'
+		}
+
+		tourneydata = requests.get('http://statsroyale.com/tournaments?appjson=1', timeout=5, headers=headers, proxies=proxies).json()
+		
+		return tourneydata
+
 	async def _fetch(self, url, proxy_url, headers=None):
+		return await self._fetch2(url, proxy_url, headers)
+		
 		resp = None
 		try:
 			if headers:
