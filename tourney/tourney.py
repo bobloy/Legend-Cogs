@@ -147,7 +147,7 @@ class tournament:
 	async def _fetch_tourney(self):
 		"""Fetch tournament data. Run sparingly"""
 		url = "{}".format('http://statsroyale.com/tournaments?appjson=1')
-		proxy = await self._get_proxy()
+		proxy = self._get_proxy()
 		data = await self._fetch(url, proxy, {})
 		
 		return data
@@ -155,18 +155,18 @@ class tournament:
 	async def _API_tourney(self, hashtag):
 		"""Fetch API tourney from hashtag"""
 		url = "{}{}".format('http://api.cr-api.com/tournaments/',hashtag)
-		proxy = await self._get_proxy()
+		proxy = self._get_proxy()
 		data = await self._fetch(url, proxy, self.getAuth())
 		
 		return data
 	
-	async def _get_proxy(self):
+	def _get_proxy(self):
 		# proxy = random.choice(self.proxylist)
 		# host = proxy.host
 		# port = proxy.port
 		host = "127.0.0.1"
 		port = 8888
-		proxystr = 'http://{}:{}'.format(host, port)
+		proxystr = 'http://{0}:{1}'.format(host, port)
 		
 		return proxystr
 		
