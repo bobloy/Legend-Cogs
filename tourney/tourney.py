@@ -173,7 +173,7 @@ class tournament:
 			await asyncio.sleep(120)
 
 	@commands.group(pass_context=True, no_pm=True)
-	async def tourney(self, ctx): 
+	async def tourney(self, ctx):
 		"""Check an open tournament in clash royale instantly"""
 
 		author = ctx.message.author
