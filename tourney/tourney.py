@@ -3,40 +3,29 @@ from discord.ext import commands
 from random import randint
 import requests
 import asyncio
-from fake_useragent import UserAgent
 import random
 import json
 from cogs.utils import checks
 from .utils.dataIO import dataIO
-
 import os
+from fake_useragent import UserAgent
 
-from datetime import date, datetime, timedelta
-
-from proxybroker import Broker, Proxy
-from collections import deque
-
-import aiohttp
-
-from cogs.utils.chat_formatting import pagify
-
-
+lastTag = '0'
 creditIcon = "https://i.imgur.com/TP8GXZb.png"
 credits = "Cog by GR8 | Titan"
 
-proxies_list = []
-	# Proxy(host="94.249.160.49", port=6998),
-	# Proxy(host="93.127.128.41", port=7341),
-	# Proxy(host="107.175.43.100", port=6858),
-	# Proxy(host="64.44.18.31", port=3691),
-	# Proxy(host="172.82.173.100", port=5218),
-	# Proxy(host="172.82.177.111", port=3432),
-	# Proxy(host="45.43.219.185", port=2461),
-	# Proxy(host="45.43.218.82", port=3577),
-	# Proxy(host="195.162.4.111", port=4762),
-	# Proxy(host="173.211.31.3", port=8053)
-# ]
-
+proxies_list = [
+	'94.249.160.49:6998',
+	'93.127.128.41:7341',
+	'107.175.43.100:6858',
+	'64.44.18.31:3691',
+	'172.82.173.100:5218',
+	'172.82.177.111:3432',
+	'45.43.219.185:2461',
+	'45.43.218.82:3577',
+	'173.211.31.3:8053',
+	'195.162.4.111:4762'
+]
 
 # Converts maxPlayers to Cards
 def getCards(maxPlayers):
@@ -65,46 +54,18 @@ def sec2tme(sec):
 	else:
 		return "{} hour, {} mins".format(h,m)
 
-def time_str(obj, isobj):
-	"""JSON serializer for datetiem and back"""
-
-	fmt = '%Y%m%d%H%M%S' # ex. 20110104172008 -> Jan. 04, 2011 5:20:08pm 
-
-	# if isinstance(obj, (datetime, date)):
-	if isobj:
-		return obj.strftime(fmt)
-	else:
-		return datetime.strptime(obj, fmt)
-
-
 class tournament:
 	"""tournament!"""
 
 	def __init__(self, bot):
 		self.bot = bot
 		self.path = 'data/tourney/settings.json'
-		self.cachepath = 'data/tourney/tourneycache.json'
 		self.settings = dataIO.load_json(self.path)
-		self.tourneyCache = dataIO.load_json(self.cachepath)
 		self.auth = dataIO.load_json('cogs/auth.json')
-		self.cacheUpdated = False
-		self.queue = asyncio.Queue()
-		self.broker = Broker(self.queue)
-		self.proxylist = deque(proxies_list,10)
-		self.session = aiohttp.ClientSession()
-		self.lastTag = '0'
 		
-	def __unload(self):
-		self.session.close()	
-		self.broker.stop()
-	
 	def save_data(self):
 		"""Saves the json"""
 		dataIO.save_json(self.path, self.settings)
-	
-	def save_cache(self):
-		"""Saves the cache json"""
-		dataIO.save_json(self.cachepath, self.tourneyCache)
 
 	def getAuth(self):
 		return {"auth" : self.auth['token']}
@@ -116,252 +77,157 @@ class tournament:
 		botcommander_roles = set(botcommander_roles)
 		author_roles = set(member.roles)
 		if len(author_roles.intersection(botcommander_roles)):
-			return True
+		    return True
 		else:
-			return False
-	
-	async def _fetch2(self, url, proxyhost, proxyport, headers={}):
-		proxies = {
-	    	'http': '{}:{}'.format(proxyhost, proxyport)
+		    return False
+
+	# Returns a list with tournaments
+	def getTopTourneyNew(self):
+
+		global lastTag
+		tourney = {}
+
+		ua = UserAgent()
+		headers = {
+		    "User-Agent": ua.random
 		}
-		ua = UserAgent() 
-		
-		if not headers:
-			headers["User-Agent"] = ua.random
-		
+
+		proxies = {
+	    	'http': random.choice(proxies_list)
+		}
+
 		try:
-			tourneydata = requests.get('http://statsroyale.com/tournaments?appjson=1', timeout=15, headers=headers, proxies=proxies).json()
-		except requests.exceptions.Timeout:
-			return None
-		except json.decoder.JSONDecodeError:
-			print(str(requests.get('http://statsroyale.com/tournaments?appjson=1', timeout=15, headers=headers, proxies=proxies).text()))
+			tourneydata = requests.get('http://statsroyale.com/tournaments?appjson=1', timeout=5, headers=headers, proxies=proxies).json()
+		except (requests.exceptions.Timeout, json.decoder.JSONDecodeError):
 			return None
 		except requests.exceptions.RequestException as e:
 			return None
-		
-		return tourneydata
 
-	async def _fetch(self, url, proxyhost, proxyport, headers={}):
-		return await self._fetch2(url, proxyhost, proxyport, headers)
-		proxy_url = 'http://{}:{}'.format(proxyhost, proxyport)
-		resp = None
-		try:
-			if headers:
-				async with self.session.get(url, timeout=60, proxy=proxy_url, headers=headers) as resp:
-					data = await resp.json()
-			else:
-				async with self.session.get(url, timeout=60, proxy=proxy_url) as resp:
-					data = await resp.json()
+		numTourney = len(tourneydata['tournaments'])
 
-		except json.decoder.JSONDecodeError:
-			print("JSON Decode Error")
-			print("Response: "+str(resp))
-			print("URL: "+str(resp.url))
-			raise
-		except asyncio.TimeoutError:
-			print("Timeout Error")
-			print("Response: "+str(resp))
-			print("URL: "+str(resp.url))
-			raise
-		except:
-			print("Unhandled Error")
-			print("Response: "+str(resp))
-			print("URL: "+str(resp.url))
-			raise
-		else:
-			return data
-		finally:
-			return None
-			
-	async def _fetch_tourney(self):
-		"""Fetch tournament data. Run sparingly"""
-		url = "{}".format('http://statsroyale.com/tournaments?appjson=1')
-		proxyhost, proxyport = self._get_proxy()
-		data = await self._fetch(url, proxyhost, proxyport)
-		
-		return data
-		
-	async def _API_tourney(self, hashtag):
-		"""Fetch API tourney from hashtag"""
-		url = "{}{}".format('http://api.cr-api.com/tournaments/',hashtag)
-		proxyhost, proxyport = self._get_proxy()
-		data = await self._fetch(url, proxyhost, proxyport, self.getAuth())
-		
-		return data
-	
-	def _get_proxy(self):
-		proxy = random.choice(self.proxylist)
-		host = proxy.host
-		port = proxy.port
-		# host = "127.0.0.1"
-		# port = 8888
-		proxystr = 'http://{0}:{1}'.format(host, port)
-		
-		return host, port
-		
+		for x in range(0, numTourney):
 
-	async def _expire_cache(self):
-		await asyncio.sleep(180)
-		self.cacheUpdated = False
-		if not self.cacheUpdated:
-			await self._update_cache()  # This will automatically post top tournaments
-	
-	async def _update_cache(self):
-		# try:
-		newdata = await self._fetch_tourney()
-		# except:  # On error: Don't retry, but don't mark cache as updated
-			# return None
-		
-		if not newdata:
-			await self.bot.send_message(discord.Object(id="363728974821457923"), "StatsRoyale Failed")
-			return None 
-			
-		if not newdata['success']:
-			await self.bot.send_message(discord.Object(id="363728974821457923"), "StatsRoyale denied")
-			return None # On error: Don't retry, but don't mark cache as updated
-		
-		newdata = newdata['tournaments']
-		newdata = [tourney for tourney in newdata if not tourney['full']]
-		
-		if not newdata:
-			await self.bot.send_message(discord.Object(id="363728974821457923"), "No non-full tournaments found")
+			hashtag = tourneydata['tournaments'][x]['hashtag']
+			title = tourneydata['tournaments'][x]['title']
+			totalPlayers = tourneydata['tournaments'][x]['totalPlayers']
+			full = tourneydata['tournaments'][x]['full']
+			maxPlayers = tourneydata['tournaments'][x]['maxPlayers']
+			timeLeft = tourneydata['tournaments'][x]['timeLeft']
+			cards = getCards(maxPlayers)
+			coins = getCoins(maxPlayers)
+			time = sec2tme(timeLeft)
+			players = str(totalPlayers) + "/" + str(maxPlayers)
 
-		for tourney in newdata:
-			if tourney["hashtag"] not in self.tourneyCache:
-				timeLeft = timedelta(seconds=tourney['timeLeft'])
-				endtime = datetime.utcnow() + timeLeft
-				tourney["endtime"] = time_str(endtime, True)
-				self.tourneyCache[tourney["hashtag"]] = tourney
-			else:
-				tourney["endtime"] = self.tourneyCache[tourney["hashtag"]]["endtime"]  # Keep endtime
-				self.tourneyCache[tourney["hashtag"]] = tourney
-		
-		self.save_cache()
-		self.cacheUpdated=True
-		
-		await self._topTourney(newdata)  # Posts all best tourneys when cache is updated
+			if (maxPlayers > 50) and (not full) and (timeLeft > 600) and ((totalPlayers + 4) < maxPlayers) and (hashtag != lastTag):
 
+				lastTag = hashtag
 
-	async def _get_tourney(self, minPlayers):
-		"""tourneyCache is dict of tourneys with hashtag as key"""
-		if not self.cacheUpdated:	
-			await self._update_cache()
-		
-		if not self.tourneyCache:
-			return None, None
-			
-		for x in range(10):  # Try 10 times or until tourney is found
-			now = datetime.utcnow()
-			
-			tourneydata = [t1 for tkey, t1 in self.tourneyCache.items()
-							if not t1['full'] and t1['maxPlayers']>=minPlayers
-							and tkey != self.lastTag]
+				try:
+					tourneydataAPI = requests.get('http://api.cr-api.com/tournaments/{}'.format(hashtag), headers=self.getAuth(), timeout=10).json()
+					totalPlayers = tourneydataAPI['capacity']
+					full = tourneydataAPI['capacity'] == tourneydataAPI['maxCapacity']
+					isClosed = tourneydataAPI['type'] == 'open'
 
-			if not tourneydata:
-				return None, None
-
-			aChoice = random.choice(tourneydata)
-			if time_str(aChoice['endtime'], False) - now < timedelta(seconds=600):
-				self.tourneyCache.pop(aChoice['hashtag'])
-				# Now it loops While and can't pick same tourney again
-			else:
-				bTourney = await self._checkFull(aChoice)
-				if not bTourney:
-					self.tourneyCache.pop(aChoice['hashtag'])
-					# Loop and try again
-				else:
-					self.lastTag = aChoice['hashtag']
-					return aChoice, bTourney
-		
-		return None  # Failed to get a tourney after 10 tries
-	
-	async def _checkFull(self, aTourney):
-		try:
-			bTourney = await self._API_tourney(aTourney['hashtag'])
-		except:
-			return None
-		
-		print("cr-api tourney: "+str(bTourney))
-		
-		if not bTourney:
-			return None
-			
-		if bTourney['capacity'] == bTourney['maxCapacity']:
-			return None
-		else:
-			return bTourney
-
-	async def _topTourney(self, newdata):
-		"""newdata is a list of tourneys"""
-		now = datetime.utcnow()
-		tourneydata = [t1 for t1 in newdata
-						if not t1['full'] and time_str(t1['endtime'], False) - now >= timedelta(seconds=600) and t1['maxPlayers']>50]
-						
-		# Adjust parameters for what qualifies as a "top" tourney here ^^^^
-		
-		for data in tourneydata:
-			embed = await self._get_embed(data)
+					if (full) or ((totalPlayers + 4) > maxPlayers) or (not isClosed):
+						return None
+				except :
+					pass
 				
-			for serverid in self.settings.keys():
-				if self.settings[serverid]:
-					server = self.bot.get_server(serverid)
-					channel = server.get_channel(self.settings[serverid])
-					await self.bot.send_message(channel, embed=embed) # Family
-					
-			#await self.bot.send_message(discord.Object(id='363728974821457923'), embed=embed) # testing
-		
-	@commands.command(pass_context=True, no_pm=True)
-	@checks.is_owner()
-	async def showcache(self, ctx):
-		"""Displays current cache pagified"""
+				tourney['tag'] = hashtag
+				tourney['title'] = title
+				tourney['players'] = players
+				tourney['time'] = time
+				tourney['gold'] = coins
+				tourney['cards'] = cards
 
-		for page in pagify(
-			str(self.tourneyCache), shorten_by=50):
-			
-			await self.bot.say(page)
-			
-	@commands.command(pass_context=True, no_pm=True)
-	@checks.is_owner()
-	async def clearcache(self, ctx):
-		"""Clears current tourney cache"""
-		self.tourneyCache = {}
-		self.save_cache()
-		await self.bot.say("Success")
-		
-	@commands.command(pass_context=True, no_pm=True)
-	@checks.is_owner()
-	async def showproxy(self, ctx):
-		"""Displays current proxies pagified"""
+				return tourney
 
-		for page in pagify(
-			str(self.proxylist), shorten_by=50):
-			
-			await self.bot.say(page)
-			
-	@commands.command(pass_context=True, no_pm=True)
-	async def tourney(self, ctx, minPlayers: int=0):
+		return None
+
+	# checks for a tourney every 5 minutes
+	async def checkTourney(self):
+		while self is self.bot.get_cog("tournament"):
+			data = self.getTopTourneyNew()
+			if data is not None:
+				embed=discord.Embed(title="New Tournament", description="We found an open tournament. You can type !tourney to search for more.", color=0x00ffff)
+				embed.set_thumbnail(url='https://statsroyale.com/images/tournament.png')
+				embed.add_field(name="Title", value=data['title'], inline=True)
+				embed.add_field(name="Tag", value=data['tag'], inline=True)
+				embed.add_field(name="Players", value=data['players'], inline=True)
+				embed.add_field(name="Ends In", value=data['time'], inline=True)
+				embed.add_field(name="Top prize", value="<:coin:380832316932489268> " + str(data['gold']) + "     <:tournamentcards:380832770454192140> " +  str(data['cards']), inline=True)
+				embed.set_footer(text=credits, icon_url=creditIcon)
+				
+				for serverid in self.settings.keys():
+					if self.settings[serverid]:
+						await self.bot.send_message(discord.Object(id=self.settings[serverid]), embed=embed) # Family
+				#await self.bot.send_message(discord.Object(id='363728974821457923'), embed=embed) # testing
+
+				await asyncio.sleep(900)
+			await asyncio.sleep(120)
+
+	@commands.group(pass_context=True, no_pm=True)
+	async def tourney(self, ctx):
 		"""Check an open tournament in clash royale instantly"""
 
 		author = ctx.message.author
 
-		await self.bot.send_typing(ctx.message.channel)
+		self.bot.type()
 
 		allowed = await self._is_allowed(author)
 		if not allowed:
-			await self.bot.say("Error, this command is only available for Legend Members and Guests.")
-			return
-		
-		tourney, apitourney = await self._get_tourney(minPlayers)
-		
-		if tourney:
-			embed = await self._get_embed(tourney, apitourney)
-			await self.bot.say(embed=embed)
-		else:
-			await self.bot.say("No tourney found")
+		    await self.bot.say("Error, this command is only available for Legend Members and Guests.")
+		    return
 
-	@commands.command(pass_context=True, no_pm=True)
+		ua = UserAgent()
+		headers = {
+		    "User-Agent": ua.random
+		}
+		proxies = {
+	    	'http': random.choice(proxies_list)
+		}
+
+		try:
+			tourneydata = requests.get('http://statsroyale.com/tournaments?appjson=1', timeout=5, headers=headers, proxies=proxies).json()
+		except (requests.exceptions.Timeout, json.decoder.JSONDecodeError):
+			await self.bot.say("Error: cannot reach Clash Royale Servers. Please try again later.")
+			return
+		except requests.exceptions.RequestException as e:
+			await self.bot.say(e)
+			return
+
+		numTourney = list(range(len(tourneydata['tournaments'])))
+		random.shuffle(numTourney)
+
+		for x in numTourney:
+
+			title = tourneydata['tournaments'][x]['title']
+			length = tourneydata['tournaments'][x]['length']
+			totalPlayers = tourneydata['tournaments'][x]['totalPlayers']
+			maxPlayers = tourneydata['tournaments'][x]['maxPlayers']
+			full = tourneydata['tournaments'][x]['full']
+			timeLeft = tourneydata['tournaments'][x]['timeLeft']
+			startTime = tourneydata['tournaments'][x]['startTime']
+			warmup = tourneydata['tournaments'][x]['warmup']
+			hashtag = tourneydata['tournaments'][x]['hashtag']
+			cards = getCards(maxPlayers)
+			coins = getCoins(maxPlayers)
+
+			if not full and timeLeft > 600:
+				embed=discord.Embed(title="Open Tournament", description="Here is a good one I found. You can search again if this is not what you are looking for.", color=0x00ffff)
+				embed.set_thumbnail(url='https://statsroyale.com/images/tournament.png')
+				embed.add_field(name="Title", value=title, inline=True)
+				embed.add_field(name="Tag", value="#"+hashtag, inline=True)
+				embed.add_field(name="Players", value=str(totalPlayers) + "/" + str(maxPlayers), inline=True)
+				embed.add_field(name="Ends In", value=sec2tme(timeLeft), inline=True)
+				embed.add_field(name="Top prize", value="<:coin:380832316932489268> " + str(cards) + "     <:tournamentcards:380832770454192140> " +  str(coins), inline=True)
+				embed.set_footer(text=credits, icon_url=creditIcon)
+				await self.bot.say(embed=embed)
+				return
+
+	@tourney.command(pass_context=True, no_pm=True)
 	@checks.admin_or_permissions(administrator=True)
-	async def tourneychannel(self, ctx, channel: discord.Channel=None):
+	async def channel(self, ctx, channel: discord.Channel=None):
 		serverid = ctx.message.server.id
 		if not channel:
 			self.settings[serverid] = None
@@ -370,95 +236,6 @@ class tournament:
 			self.settings[serverid] = channel.id
 			await self.bot.say("Tournament channel for this server set to "+channel.mention)
 		self.save_data()
-		
-	@commands.command(pass_context=True, no_pm=True)
-	@checks.admin_or_permissions(administrator=True)
-	async def tourneywipe(self, ctx, channel: discord.Channel=None):
-		
-		self.settings = {}
-		await self.bot.say("Tournament channel for all servers cleared")
-
-		self.save_data()
-		
-	async def _get_embed(self, aTourney, bTourney=None):
-		"""Builds embed for tourney
-		Uses cr-api.com if available"""
-		
-		if not bTourney:
-			try:
-				bTourney = await self._API_tourney(aTourney['hashtag'])
-			except:
-				bTourney = None
-			
-		now = datetime.utcnow()
-		
-		embedtitle = "Open Tournament"
-		
-		if bTourney:
-			title = bTourney['name']
-			totalPlayers = bTourney['capacity']
-			maxPlayers = bTourney['maxCapacity']
-			full = bTourney['capacity'] >= bTourney['maxCapacity']
-			
-			if bTourney['type'] == "passwordProtected":
-				embedtitle = "Locked Tournament"
-			
-			if bTourney['status'] == "ended":
-				embedtitle = "Ended Tournament"
-			
-		else:
-			title = aTourney['title']
-			totalPlayers = aTourney['totalPlayers']
-			maxPlayers = aTourney['maxPlayers']
-			full = aTourney['full']
-			
-		timeLeft = time_str(aTourney['endtime'], False) - now
-		timeLeft = int(timeLeft.total_seconds())
-		if timeLeft < 0:
-			timeLeft = 0
-			embedtitle = "Ended Tournament"
-			
-		hashtag = aTourney['hashtag']
-		cards = getCards(maxPlayers)
-		coins = getCoins(maxPlayers)
-		
-		embed=discord.Embed(title="Open Tournament", color=0xFAA61A)
-		embed.set_thumbnail(url='https://statsroyale.com/images/tournament.png')
-		embed.add_field(name="Title", value=title, inline=True)
-		embed.add_field(name="Tag", value="#"+hashtag, inline=True)
-		embed.add_field(name="Players", value=str(totalPlayers) + "/" + str(maxPlayers), inline=True)
-		embed.add_field(name="Ends In", value=sec2tme(timeLeft), inline=True)
-		embed.add_field(name="Top prize", value="<:coin:380832316932489268> " + str(cards) + "     <:tournamentcards:380832770454192140> " +  str(coins), inline=True)
-		embed.set_footer(text=credits, icon_url=creditIcon)
-		return embed
-	
-	async def _proxyServer(self):
-		types = ['HTTP']
-		codes = [200, 301, 302]
-		countries = ['US', 'DE', 'FR']
-		
-		await self.broker.serve(types=types,limit=50,http_allowed_codes=codes)
-	
-	async def _proxyBroker(self):
-		types = ['HTTP']
-		countries = ['US', 'DE', 'FR']
-	
-		await self.broker.find(types=types, limit=50)
-		await asyncio.sleep(120)
-	
-	async def _brokerResult(self):
-		anyfound = False
-		await self.bot.send_message(discord.Object(id="363728974821457923"), "Waiting on results from Proxy-Broker")
-		while True:
-			proxy = await self.queue.get()
-			if proxy is None: break
-			self.proxylist.append(proxy)
-			if not anyfound:
-				await self.bot.send_message(discord.Object(id="363728974821457923"), "Proxies are being found: {}".format(proxy))
-				anyfound = True
-		await asyncio.sleep(60)
-		
-		
 
 def check_folders():
 	if not os.path.exists("data/tourney"):
@@ -469,18 +246,11 @@ def check_files():
 	f = "data/tourney/settings.json"
 	if not dataIO.is_valid_json(f):
 		dataIO.save_json(f, {})
-	
-	f = "data/tourney/tourneycache.json"
-	if not dataIO.is_valid_json(f):
-		dataIO.save_json(f, {})
 
 def setup(bot):
 	check_folders()
 	check_files()
 	n = tournament(bot)
 	loop = asyncio.get_event_loop()
-	loop.create_task(n._expire_cache())
-	# loop.create_task(n._proxyServer())
-	loop.create_task(n._proxyBroker())
-	loop.create_task(n._brokerResult())
+	loop.create_task(n.checkTourney())
 	bot.add_cog(n)

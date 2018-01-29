@@ -10,6 +10,7 @@ import random
 from random import choice as rand_choice
 import string
 import datetime
+from collections import OrderedDict
 
 creditIcon = "https://i.imgur.com/TP8GXZb.png"
 credits = "Cog by GR8 | Titan"
@@ -321,8 +322,9 @@ class legend:
                 profiledata = requests.get('http://api.cr-api.com/player/{}?exclude=games,currentDeck,cards,battles,achievements'.format(profiletag), headers=self.getAuth(), timeout=10).json()
                 trophies = profiledata['trophies']
                 maxtrophies = profiledata['stats']['maxTrophies']
+                ign = profiledata['name']
                 maxmembers = 50
-                await self.bot.say("Hello {}, these are all the clans you are allowed to join, based on your statistics. \nYour Trophies: {}\nYour Personal Best: {}".format(member.mention, str(trophies), str(maxtrophies)))
+                await self.bot.say("Hello {}, these are all the clans you are allowed to join, based on your statistics. \nYour Trophies: {}\nYour Personal Best: {}".format(ign, str(trophies), str(maxtrophies)))
             except (requests.exceptions.Timeout, json.decoder.JSONDecodeError):
                 await self.bot.say("Error: cannot reach Clash Royale Servers. Please try again later.")
                 return
@@ -495,7 +497,10 @@ class legend:
 
                 await self.bot.say("Okay, I will retry this command in 2 minutes.")
                 await asyncio.sleep(120)
-                await self.approve(member, clankey)
+
+                message = ctx.message
+                message.content = ctx.prefix + "approve {} {}".format(member.mention, clankey)
+                await self.bot.process_commands(message)
                 return
 
             if len(self.c[clankey]['waiting']) > 0:
@@ -503,13 +508,13 @@ class legend:
 
                     canWait = (50 - clandata['memberCount']) -1
 
-                    for x in range(0, canWait):
+                    for x in range(0, len(self.c[clankey]['waiting'])):
                         if member.id != self.c[clankey]['waiting'][x]:
                             if x >= canWait:
                                 await self.bot.say("Approval failed, you are not first in queue for the waiting list on this server.")
                                 return
                     
-                    self.c[savekey]['waiting'].remove(member.id)
+                    self.c[clankey]['waiting'].remove(member.id)
                     dataIO.save_json('cogs/clans.json', self.c)
                     
                     role = discord.utils.get(server.roles, name="Waiting")
@@ -689,7 +694,9 @@ class legend:
 
             await self.bot.say("Okay, I will retry this command in 2 minutes.")
             await asyncio.sleep(120)
-            await self.newmember(member)
+            message = ctx.message
+            message.content = ctx.prefix + "newmember {}".format(member.mention)
+            await self.bot.process_commands(message)
 
     @commands.command(pass_context=True, no_pm=True)
     async def waiting(self, ctx, member: discord.Member, clankey):
@@ -917,6 +924,7 @@ class legend:
             clan_tag = self.c[clankey]['tag']
             clan_role = self.c[clankey]['role'] 
             clan_name = self.c[clankey]['name'] 
+            clan_nickname = self.c[clankey]['nickname'] 
             clan_role_id = self.c[clankey]['role_id']
         except KeyError:
             await self.bot.say("Please use a valid clanname : "+", ".join(key for key in self.c.keys()))
@@ -955,6 +963,8 @@ class legend:
         d_members_with_no_player_tag = []
         d_members_not_in_clan = []
         d_members_without_role = []
+        d_members_without_name = []
+        cr_clanSettings = []
 
         for d_member in d_members:
             try:
@@ -978,6 +988,10 @@ class legend:
 
                 if role not in dc_member.roles:
                     d_members_without_role.append(dc_member.display_name)
+
+                d_name = "{} | {}".format(cr_members_name[index], clan_nickname)
+                if dc_member.display_name != d_name:
+                    d_members_without_name.append(dc_member.display_name)
             except AttributeError:
                 cr_members_with_no_player_tag.append(cr_members_name[index])
                 continue
@@ -987,7 +1001,6 @@ class legend:
             if player_trophy < clanReq:
                 cr_members_with_less_trophies.append(cr_members_name[index])
 
-        cr_clanSettings = []
         cr_clanSettings.append(clandata['badge']['id'] == 16000002)
         cr_clanSettings.append(clandata['location']['name'] == "International")
         cr_clanSettings.append("LeGeND Family🔥14 Clans🔥LegendClans.com🔥Daily Tourneys🔥Weekly Clanwar🔥discord.me/legendfamily🔥" in clandata['description'])
@@ -1025,6 +1038,11 @@ class legend:
             message += "\n• ".join(d_members_without_role)
             message += "```"
 
+        if d_members_without_name:
+            message += "\n\n:warning: **("+str(len(d_members_without_name))+")** Players in **" + clan_name + "**, but have an **INCORRECT** nickname: ```• "
+            message += "\n• ".join(d_members_without_name)
+            message += "```"
+
         if cr_members_with_less_trophies:
             message += "\n\n:warning: **("+str(len(cr_members_with_less_trophies))+")** Players in **" + clan_name + "**, but **DO NOT** meet the trophy requirements: ```• "
             message += "\n• ".join(cr_members_with_less_trophies)
@@ -1052,7 +1070,7 @@ class legend:
         
         message = "```py\n"
         for x in range(0, number):
-            message += str(x + 1).zfill(2) + ".  [" + str(players['data'][x]['score']) + "]  " + players['data'][x]['name'] + " (" + players['data'][x]['clan_name'] + ") " + "\n"
+            message += str(x + 1).ljust(4) + ".  [" + str(players['data'][x]['score']) + "]  " + players['data'][x]['name'] + " (" + players['data'][x]['clan_name'] + ") " + "\n"
             if (x+1) % 40 == 0:
                 message += "```"
                 await self.bot.say(message)
@@ -1061,6 +1079,27 @@ class legend:
         message += "```"
 
         await self.bot.say(message)
+        
+    @commands.command()
+    async def topclans(self):
+        """Show top 10 international clans"""
+        
+        await self.bot.type()
+        try:
+            topclans = requests.get("http://api.cr-api.com/top/clans/_int", headers = self.getAuth(), timeout = 10).json()
+            msg = "```python\n"
+        
+            for x in range(10):
+                msg += ((str(topclans[x]["rank"]) + ".").ljust(4) + topclans[x]["name"] + "\n")
+            for i in range(11, len(topclans)):
+                for j in self.c:
+                    if topclans[i]["tag"] == self.c[j]["tag"]:
+                        msg += ((str(topclans[i]["rank"]) + ".").ljust(4) + topclans[i]["name"] + "\n")    
+            msg += "```"
+        
+            await self.bot.say("**Top clans in Local International Leaderboard**" + msg)
+        except:
+            await self.bot.say("Error: cannot reach Clash Royale Servers. Please try again later.")
 
     @commands.command(pass_context=True, no_pm=True)
     async def guest(self, ctx, member: discord.Member):
@@ -1201,7 +1240,56 @@ class legend:
         else:
             await self.bot.say("You are not even in any of our clans, what are you doing here?")
 
+    @commands.command(pass_context=True, no_pm=True)
+    async def cwstats(self, ctx, tag):
+        """Tournament/Clanwar Statistics generator"""
 
+        server = ctx.message.server
+        author = ctx.message.author
+        
+        await self.updateClash()
+        await self.bot.type()
+
+        tag = tag.strip('#').upper().replace('O', '0')
+        check = ['P', 'Y', 'L', 'Q', 'G', 'R', 'J', 'C', 'U', 'V', '0', '2', '8', '9']
+
+        if any(i not in check for i in tag):
+            await self.bot.say("The ID you provided has invalid characters. Please try again.")
+            return
+
+        try:
+            tourney = requests.get('http://api.cr-api.com/tournaments/'+tag, headers=self.getAuth(), timeout=10).json()
+        except (requests.exceptions.Timeout, json.decoder.JSONDecodeError):
+            await self.bot.say("Error: cannot reach Clash Royale Servers. Please try again later.")
+            return
+        except requests.exceptions.RequestException as e:
+            await self.bot.say(e)
+            return
+
+        clanwar_dict = {}
+        
+        for y in range(0, len(tourney['members'])):
+
+            tourney_tag = tourney['members'][y]['tag']
+            tourney_score = tourney['members'][y]['score']
+            tourney_clan = tourney['members'][y]['clan']['name']
+
+            if tourney_clan not in clanwar_dict:
+                clanwar_dict[tourney_clan] = {}
+                clanwar_dict[tourney_clan]['score'] = 0
+                clanwar_dict[tourney_clan]['participants'] = 0
+
+            clanwar_dict[tourney_clan]['score'] += tourney_score
+            clanwar_dict[tourney_clan]['participants'] += 1
+
+        message =  "\n**{}**```{}\t{}\t{}\n".format(tourney['name'], "CLAN".ljust(17), "SCORE".ljust(9), "PARTICIPANTS")
+        clanwar_dict = OrderedDict(sorted(clanwar_dict.items(), key=lambda x: x[1]['score'], reverse=True))
+        for x in clanwar_dict:
+            message += "{}\t{}\t{}\n".format(x.ljust(17), str(clanwar_dict[x]['score']).ljust(9), clanwar_dict[x]['participants'])
+        message += "```"   
+        await self.bot.say(message)
+
+            
 def check_folders():
     if not os.path.exists("data/legend"):
         print("Creating data/legend folder...")
