@@ -262,19 +262,6 @@ class legend:
         self.save_data()
         await self.bot.say("Success")
         
-    # @clans.command(pass_context=True, name="emoji")
-    # @checks.mod_or_permissions(administrator=True)
-    # async def clans_emoji(self, ctx, clankey, emoji: discord.Emoji):
-        # """Add emoji"""
-        # try:
-            # self.c[clankey]['emoji'] = discordinv
-        # except KeyError:
-            # await self.bot.say("Please use a valid clanname : "+",".join(key for key in self.c.keys()))
-            # return 
-        
-        # self.save_data()
-        # await self.bot.say("Success")
-        
     @clans.command(pass_context=True, name="family")
     @checks.mod_or_permissions(administrator=True)
     async def clans_family(self, ctx, url, *FamilyName):
@@ -1059,8 +1046,11 @@ class legend:
         if number > 100:
             await self.bot.say("Sorry! the number must be below 100.")
             return
-
-        await self.bot.say("**LeGeND Family Top Players**")
+        
+        if "family" in self.settings:
+            await self.bot.say("**{} Top Players**".format(self.settings['family']))
+        else:
+            await self.bot.say("**LeGeND Family Top Players**")
         await self.bot.type()
         
         if "url" in self.settings:
