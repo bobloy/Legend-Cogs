@@ -66,7 +66,7 @@ class tournament:
 		self.auth = dataIO.load_json('cogs/auth.json')
 		self.queue = asyncio.Queue()
 		self.broker = Broker(self.queue)
-		self.proxylist = deque(proxies_list,25)
+		self.proxylist = deque(proxies_list,40)
 		self.lastTag = '0'
 		
 	def __unload(self):
@@ -295,7 +295,7 @@ class tournament:
 			if not anyfound:
 				await self.bot.send_message(discord.Object(id="363728974821457923"), "Proxies are being found: {}".format(proxy))
 				anyfound = True
-		await asyncio.sleep(60)
+		await asyncio.sleep(100)
 		
 		
 
