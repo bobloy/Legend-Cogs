@@ -198,13 +198,14 @@ class tournament:
 
 		author = ctx.message.author
 
-		self.bot.type()
 
 		allowed = await self._is_allowed(author)
 		if not allowed:
 		    await self.bot.say("Error, this command is only available for Legend Members and Guests.")
 		    return
-
+		
+		self.bot.type()
+		
 		try:
 			tourneydata = await self._fetchTourney()
 		except (requests.exceptions.Timeout, json.decoder.JSONDecodeError):
