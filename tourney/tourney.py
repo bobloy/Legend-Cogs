@@ -10,7 +10,7 @@ from .utils.dataIO import dataIO
 import os
 from fake_useragent import UserAgent
 
-from proxybroker import Broker
+from proxybroker import Broker, Proxy
 from collections import deque
 
 lastTag = '0'
@@ -260,7 +260,6 @@ class tournament:
 		await asyncio.sleep(120)
 	
 	async def _brokerResult(self):
-		await asyncio.sleep(120)
 		while True:
 			proxy = await self.queue.get()
 			if proxy is None: break
