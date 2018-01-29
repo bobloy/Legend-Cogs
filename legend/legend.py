@@ -352,7 +352,6 @@ class legend:
             embed.set_author(name=self.settings['family'], url=self.settings['url'], icon_url="https://i.imgur.com/dtSMITE.jpg")
         else:
             embed.set_author(name="LeGeND Family Clans", url="http://cr-api.com/clan/family/legend", icon_url="https://i.imgur.com/dtSMITE.jpg")
-            
         embed.set_footer(text=credits, icon_url=creditIcon)
 
         foundClan = False
@@ -1063,8 +1062,12 @@ class legend:
 
         await self.bot.say("**LeGeND Family Top Players**")
         await self.bot.type()
-
-        allplayers = requests.get('http://cr-api.com/clan/family/legend/members/datatable', timeout=15).json()
+        
+        if "url" in self.settings:
+            familyurl = '{}/members/datatable'.format(self.settings['url'])
+            allplayers = requests.get(familyurl, timeout=15).json()
+        else:
+            allplayers = requests.get('http://cr-api.com/clan/family/legend/members/datatable', timeout=15).json()
         players = dict(allplayers)
         players['data'] = sorted(allplayers['data'], key=lambda x: x["family_rank_score"])
         
