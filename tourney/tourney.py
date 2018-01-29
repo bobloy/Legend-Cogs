@@ -88,7 +88,7 @@ class tournament:
 		    return False
 
 	# Returns a list with tournaments
-	def getTopTourneyNew(self):
+	async def getTopTourneyNew(self):
 
 		global lastTag
 		tourney = {}
@@ -155,7 +155,7 @@ class tournament:
 	# checks for a tourney every 5 minutes
 	async def checkTourney(self):
 		while self is self.bot.get_cog("tournament"):
-			data = self.getTopTourneyNew()
+			data = await self.getTopTourneyNew()
 			if data is not None:
 				embed=discord.Embed(title="New Tournament", description="We found an open tournament. You can type !tourney to search for more.", color=0xFAA61A)
 				embed.set_thumbnail(url='https://statsroyale.com/images/tournament.png')
