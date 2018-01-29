@@ -103,6 +103,7 @@ class tournament:
 		}
 		
 		aProxy = await self._get_proxy()
+		if not aProxy: return None
 		
 		proxies = {
 	    	'http': aProxy
@@ -191,6 +192,9 @@ class tournament:
 		    await self.bot.say("Error, this command is only available for Legend Members and Guests.")
 		    return
 		aProxy = await self._get_proxy()
+		if not aProxy:
+			await self.bot.say("Error, cog hasn't fully loaded yet. Please wait a bit then try again")
+			return
 		
 		ua = UserAgent()
 		headers = {
@@ -252,6 +256,7 @@ class tournament:
 		
 	
 	async def _get_proxy(self):
+		if not self.proxylist: return None
 		proxy = random.choice(self.proxylist)
 		host = proxy.host
 		port = proxy.port
