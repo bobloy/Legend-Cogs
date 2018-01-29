@@ -97,9 +97,11 @@ class tournament:
 		headers = {
 		    "User-Agent": ua.random
 		}
-
+		
+		aProxy = await self._get_proxy()
+		
 		proxies = {
-	    	'http': await self._get_proxy()
+	    	'http': aProxy
 		}
 
 		try:
@@ -184,13 +186,14 @@ class tournament:
 		if not allowed:
 		    await self.bot.say("Error, this command is only available for Legend Members and Guests.")
 		    return
-
+		aProxy = await self._get_proxy()
+		
 		ua = UserAgent()
 		headers = {
 		    "User-Agent": ua.random
 		}
 		proxies = {
-	    	'http': await self._get_proxy()
+	    	'http': aProxy
 		}
 
 		try:
