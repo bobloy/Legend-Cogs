@@ -69,6 +69,10 @@ class tournament:
 		self.queue = asyncio.Queue(maxsize=10)
 		self.broker = Broker(self.queue)
 		self.proxylist = deque(proxies_list,10)
+
+	def __unload(self):
+		self.session.close()	
+		self.broker.stop()
 		
 	def save_data(self):
 		"""Saves the json"""
