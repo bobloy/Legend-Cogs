@@ -194,7 +194,7 @@ class tournament:
 			await asyncio.sleep(120)
 
 	@commands.command(pass_context=True, no_pm=True)
-	async def tourney(self, ctx):
+	async def tourney(self, ctx, minPlayers: int=0):
 		"""Check an open tournament in clash royale instantly"""
 
 		author = ctx.message.author
@@ -236,7 +236,7 @@ class tournament:
 			cards = getCards(maxPlayers)
 			coins = getCoins(maxPlayers)
 
-			if not full and timeLeft > 600:
+			if not full and timeLeft > 600 and maxPlayers>=minPlayers:
 				embed=discord.Embed(title="Open Tournament", description="Here is a good one I found. You can search again if this is not what you are looking for.", color=0x00FFFF)
 				embed.set_thumbnail(url='https://statsroyale.com/images/tournament.png')
 				embed.add_field(name="Title", value=title, inline=True)
