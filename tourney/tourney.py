@@ -284,8 +284,8 @@ class tournament:
 			countries = ['US', 'DE', 'FR']
 		
 			await self.broker.find(types=types, limit=25)
-			self.broker.stop()
 			await asyncio.sleep(120)
+            self.broker.stop()
 	
 	async def _brokerResult(self):
 		while self is self.bot.get_cog("tournament"):
