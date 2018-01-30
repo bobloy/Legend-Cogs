@@ -247,6 +247,8 @@ class tournament:
 				embed.set_footer(text=credits, icon_url=creditIcon)
 				await self.bot.say(embed=embed)
 				return
+		
+		await self.bot.say("No tournament found")
 
 	@commands.command(pass_context=True, no_pm=True)
 	@checks.admin_or_permissions(administrator=True)
