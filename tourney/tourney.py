@@ -298,6 +298,7 @@ class tournament:
 				if not anyfound:
 					await self.bot.send_message(discord.Object(id="363728974821457923"), "Proxies are being found: {}".format(proxy))
 					anyfound = True
+			await self.bot.send_message(discord.Object(id="363728974821457923"), "No more proxies to be found")
 			self.broker.stop()
 			await asyncio.sleep(100)
 		
