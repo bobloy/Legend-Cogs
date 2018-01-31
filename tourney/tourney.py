@@ -62,7 +62,7 @@ class tournament:
 	def __init__(self, bot):
 		self.bot = bot
 		self.proxypath = 'data/tourney/proxyfile.txt'
-		self.goodproxy=[]
+		self.goodproxy = []
 		with open(self.proxypath, 'r') as f:
 			for line in f:
 				asplit = line.split(':')
@@ -74,7 +74,7 @@ class tournament:
 		self.queue = asyncio.Queue()
 		self.broker = Broker(self.queue)
 		self.proxylist = deque(self.goodproxy)
-		self.goodproxy=[] #Proxies get saved once, then have to earn the right to stay again
+		self.goodproxy = []  # Proxies get saved once, then have to earn the right to stay again
 		self.lastTag = '0'
 		
 	def __unload(self):
