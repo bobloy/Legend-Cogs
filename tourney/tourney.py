@@ -107,11 +107,11 @@ class tournament:
 				"User-Agent": ua.random
 			}
 			
-			aProxy = self._get_proxy()
-			if not aProxy: return None
+			strProxy, Proxy = self._get_proxy()
+			if not strProxy: return None
 			
 			proxies = {
-				'http': aProxy
+				'http': strProxy
 			}
 			
 			tourneydata={}
@@ -120,7 +120,7 @@ class tournament:
 			except (requests.exceptions.Timeout, json.decoder.JSONDecodeError):
 				continue
 			else:
-				self._add_proxy(aProxy) #Reward working proxies by reusing them
+				self._add_proxy(Proxy) #Reward working proxies by reusing them
 				return tourneydata
 		
 		return None
@@ -281,13 +281,13 @@ class tournament:
 	
 	def _get_proxy(self):
 		"""Grab and pop the oldest proxy"""
-		if not self.proxylist: return None
+		if not self.proxylist: return None, None
 		proxy = self.proxylist.popleft()
 		host = proxy.host
 		port = proxy.port
 		proxystr = '{}:{}'.format(host, port)
 		
-		return proxystr
+		return proxystr, proxy
 	
 	def _add_proxy(self, proxy):
 		"""If a proxy worked, reward it by adding it back to the deque"""
