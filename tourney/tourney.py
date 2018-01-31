@@ -61,16 +61,27 @@ class tournament:
 
 	def __init__(self, bot):
 		self.bot = bot
+		self.proxypath = 'data/tourney/proxyfile.txt'
+		self.goodproxy=[]
+		with open(self.proxypath, 'r') as f:
+			for line in f:
+				asplit = line.split(':')
+				self.goodproxy.append(Proxy(host=asplit[0], port=asplit[1]))
+		print("{} proxies were loaded".format(len(self.goodproxy)))
 		self.path = 'data/tourney/settings.json'
 		self.settings = dataIO.load_json(self.path)
 		self.auth = dataIO.load_json('cogs/auth.json')
 		self.queue = asyncio.Queue()
 		self.broker = Broker(self.queue)
-		self.proxylist = deque(proxies_list)
+		self.proxylist = deque(self.goodproxy)
+		self.goodproxy=[] #Proxies get saved once, then have to earn the right to stay again
 		self.lastTag = '0'
 		
 	def __unload(self):
 		self.broker.stop()
+		with open(self.proxypath, 'w') as f:
+			for proxy in self.goodproxy:
+				f.write('{}:{}\n'.format(proxy.host, proxy.port))
 	
 	def save_data(self):
 		"""Saves the json"""
@@ -146,9 +157,9 @@ class tournament:
 			players = str(totalPlayers) + "/" + str(maxPlayers)
 
 			if (maxPlayers > 50) and (not full) and (timeLeft > 600) and ((totalPlayers + 4) < maxPlayers) and (hashtag != self.lastTag):
-
+				
 				self.lastTag = hashtag
-
+				
 				try:
 					tourneydataAPI = requests.get('http://api.cr-api.com/tournaments/{}'.format(hashtag), headers=self.getAuth(), timeout=10).json()
 					totalPlayers = tourneydataAPI['capacity']
@@ -280,15 +291,16 @@ class tournament:
 	def _add_proxy(self, proxy):
 		"""If a proxy worked, reward it by adding it back to the deque"""
 		self.proxylist.append(proxy)
+		self.goodproxy.append(proxy)
 		
 	async def _proxyBroker(self):
 		while self is self.bot.get_cog("tournament"):
 			types = ['HTTP']
 			countries = ['US', 'DE', 'FR']
 			self.broker.stop()
-			await self.bot.send_message(discord.Object(id="363728974821457923"), "Proxy-Broker Find triggered")
+			print("Proxy-Broker Find triggered")
 			await self.broker.find(types=types, limit=100)
-			await self.bot.send_message(discord.Object(id="363728974821457923"), "Proxy-Broker Find completed")
+			print("Proxy-Broker Find completed")
 			await asyncio.sleep(240)
 			
 	
@@ -296,19 +308,19 @@ class tournament:
 		while self is self.bot.get_cog("tournament"):
 			anyfound = False
 			await asyncio.sleep(8)
-			await self.bot.send_message(discord.Object(id="363728974821457923"), "Waiting on results from Proxy-Broker")
+			print("Waiting on results from Proxy-Broker")
 			while True:
 				proxy = await self.queue.get()
 				if proxy is None: break
 				if type(proxy) is not Proxy: continue
 				self.proxylist.append(proxy)
 				if not anyfound:
-					await self.bot.send_message(discord.Object(id="363728974821457923"), "Proxies are being found: {}".format(proxy))
+					print("Proxies are being found: {}".format(proxy))
 					anyfound = True
 			if anyfound:
-				await self.bot.send_message(discord.Object(id="363728974821457923"), "No more proxies to be found")
+				print("No more proxies to be found")
 			else:
-				await self.bot.send_message(discord.Object(id="363728974821457923"), "No proxies were found, trying in two minutes")
+				print("No proxies were found, trying in two minutes")
 			
 			await asyncio.sleep(220)
 		
