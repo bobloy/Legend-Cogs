@@ -334,6 +334,14 @@ def check_files():
 	f = "data/tourney/settings.json"
 	if not dataIO.is_valid_json(f):
 		dataIO.save_json(f, {})
+		
+	f = 'data/tourney/proxyfile.txt'
+	try:
+		file = open(f, 'r')
+	except IOError:
+		file = open(f, 'w')
+	file.close()
+
 
 def setup(bot):
 	check_folders()
