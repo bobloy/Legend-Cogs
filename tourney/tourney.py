@@ -79,9 +79,6 @@ class tournament:
 		
 	def __unload(self):
 		self.broker.stop()
-		with open(self.proxypath, 'w') as f:
-			for proxy in self.goodproxy:
-				f.write('{}:{}\n'.format(proxy.host, proxy.port))
 	
 	def save_data(self):
 		"""Saves the json"""
@@ -295,7 +292,9 @@ class tournament:
 	def _add_proxy(self, proxy):
 		"""If a proxy worked, reward it by adding it back to the deque"""
 		self.proxylist.append(proxy)
-		self.goodproxy.append(proxy)
+		with open(self.proxypath, 'w') as f:
+			f.write('{}:{}\n'.format(proxy.host, proxy.port))
+		
 		
 	async def _proxyBroker(self):
 		while self is self.bot.get_cog("tournament"):
