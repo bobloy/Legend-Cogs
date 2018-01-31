@@ -212,7 +212,8 @@ class tournament:
 			await self.bot.say("Error: Cannot reach Clash Royale Servers. Please try again later.")
 			return
 		except requests.exceptions.RequestException as e:
-			await self.bot.say(e)
+			print(e)
+			await self.bot.say("Unexpected error while attempting to get tournaments.\nPlease wait a bit then try again")
 			return
 			
 		if not tourneydata:
