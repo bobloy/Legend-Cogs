@@ -285,7 +285,6 @@ class tournament:
 			types = ['HTTP']
 			countries = ['US', 'DE', 'FR']
 			self.broker.stop()
-			await asyncio.sleep(5)
 			await self.bot.send_message(discord.Object(id="363728974821457923"), "Proxy-Broker Find triggered")
 			await self.broker.find(types=types, limit=100)
 			await self.bot.send_message(discord.Object(id="363728974821457923"), "Proxy-Broker Find completed")
