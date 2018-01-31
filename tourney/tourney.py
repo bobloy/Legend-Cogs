@@ -136,6 +136,7 @@ class tournament:
 		except (requests.exceptions.Timeout, json.decoder.JSONDecodeError):
 			return None
 		except requests.exceptions.RequestException as e:
+			print(e)
 			return None
 
 		if not tourneydata:
@@ -158,18 +159,21 @@ class tournament:
 
 			if (maxPlayers > 50) and (not full) and (timeLeft > 600) and ((totalPlayers + 4) < maxPlayers) and (hashtag != self.lastTag):
 				
-				self.lastTag = hashtag
+				
 				
 				try:
 					tourneydataAPI = requests.get('http://api.cr-api.com/tournaments/{}'.format(hashtag), headers=self.getAuth(), timeout=10).json()
 					totalPlayers = tourneydataAPI['capacity']
-					full = tourneydataAPI['capacity'] == tourneydataAPI['maxCapacity']
-					isClosed = tourneydataAPI['type'] == 'open'
-
-					if (full) or ((totalPlayers + 4) > maxPlayers) or (not isClosed):
-						return None
 				except :
 					pass
+				
+				full = tourneydataAPI['capacity'] == tourneydataAPI['maxCapacity']
+				isClosed = tourneydataAPI['type'] == 'open'
+
+				if (full) or ((totalPlayers + 4) > maxPlayers) or (not isClosed):
+					continue
+				
+				self.lastTag = hashtag
 				
 				tourney['tag'] = hashtag
 				tourney['title'] = title
