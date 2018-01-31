@@ -284,6 +284,8 @@ class tournament:
 		while self is self.bot.get_cog("tournament"):
 			types = ['HTTP']
 			countries = ['US', 'DE', 'FR']
+			self.broker.stop()
+			await asyncio.sleep(5)
 			await self.broker.find(types=types, limit=25)
 			await asyncio.sleep(120)
 			
@@ -291,6 +293,7 @@ class tournament:
 	async def _brokerResult(self):
 		while self is self.bot.get_cog("tournament"):
 			anyfound = False
+			await asyncio.sleep(8)
 			await self.bot.send_message(discord.Object(id="363728974821457923"), "Waiting on results from Proxy-Broker")
 			while True:
 				proxy = await self.queue.get()
@@ -301,7 +304,6 @@ class tournament:
 					await self.bot.send_message(discord.Object(id="363728974821457923"), "Proxies are being found: {}".format(proxy))
 					anyfound = True
 			await self.bot.send_message(discord.Object(id="363728974821457923"), "No more proxies to be found")
-			self.broker.stop()
 			await asyncio.sleep(100)
 		
 		
