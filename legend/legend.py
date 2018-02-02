@@ -336,7 +336,7 @@ class legend:
        
         embed=discord.Embed(color=0xFAA61A)
         if "url" in self.settings and "family" in self.settings:
-            embed.set_author(name=self.settings['family'], url=self.settings['url'], icon_url="https://i.imgur.com/dtSMITE.jpg")
+            embed.set_author(name=self.settings['family'], url=self.settings['url'], icon_url="http://i.imgur.com/biiTaJh.png")
         else:
             embed.set_author(name="LeGeND Family Clans", url="http://cr-api.com/clan/family/legend", icon_url="https://i.imgur.com/dtSMITE.jpg")
         embed.set_footer(text=credits, icon_url=creditIcon)
