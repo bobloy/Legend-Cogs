@@ -14,20 +14,20 @@ from proxybroker import Broker, Proxy
 from collections import deque
 
 creditIcon = "https://i.imgur.com/TP8GXZb.png"
-credits = "Cog by GR8 | Titan"
+credits = "Bot by GR8 | Titan"
 
-proxies_list = []
-	# Proxy(host="94.249.160.49", port=6998),
-	# Proxy(host="93.127.128.41", port=7341),
-	# Proxy(host="107.175.43.100", port=6858),
-	# Proxy(host="64.44.18.31", port=3691),
-	# Proxy(host="172.82.173.100", port=5218),
-	# Proxy(host="172.82.177.111", port=3432),
-	# Proxy(host="45.43.219.185", port=2461),
-	# Proxy(host="45.43.218.82", port=3577),
-	# Proxy(host="195.162.4.111", port=4762),
-	# Proxy(host="173.211.31.3", port=8053)
-# ]
+proxies_list = [
+	Proxy(host="94.249.160.49", port=6998),
+	Proxy(host="93.127.128.41", port=7341),
+	Proxy(host="107.175.43.100", port=6858),
+	Proxy(host="64.44.18.31", port=3691),
+	Proxy(host="172.82.173.100", port=5218),
+	Proxy(host="172.82.177.111", port=3432),
+	Proxy(host="45.43.219.185", port=2461),
+	Proxy(host="45.43.218.82", port=3577),
+	Proxy(host="195.162.4.111", port=4762),
+	Proxy(host="173.211.31.3", port=8053)
+]
 
 # Converts maxPlayers to Cards
 def getCards(maxPlayers):
@@ -62,7 +62,7 @@ class tournament:
 	def __init__(self, bot):
 		self.bot = bot
 		self.proxypath = 'data/tourney/proxyfile.txt'
-		self.goodproxy = []
+		self.goodproxy = []+proxies_list
 		with open(self.proxypath, 'r') as f:
 			for line in f:
 				asplit = line.split(':')
@@ -155,9 +155,6 @@ class tournament:
 			players = str(totalPlayers) + "/" + str(maxPlayers)
 
 			if (maxPlayers > 50) and (not full) and (timeLeft > 600) and ((totalPlayers + 4) < maxPlayers) and (hashtag != self.lastTag):
-				
-				
-				
 				try:
 					tourneydataAPI = requests.get('http://api.cr-api.com/tournaments/{}'.format(hashtag), headers=self.getAuth(), timeout=10).json()
 					totalPlayers = tourneydataAPI['capacity']
@@ -171,7 +168,6 @@ class tournament:
 					continue
 				
 				self.lastTag = hashtag
-				
 				tourney['tag'] = hashtag
 				tourney['title'] = title
 				tourney['players'] = players
@@ -260,7 +256,6 @@ class tournament:
 				embed.set_footer(text=credits, icon_url=creditIcon)
 				await self.bot.say(embed=embed)
 				return
-		
 		await self.bot.say("No tournament found")
 
 	@commands.command(pass_context=True, no_pm=True)
@@ -295,17 +290,17 @@ class tournament:
 		with open(self.proxypath, 'w') as f:
 			f.write('{}:{}\n'.format(proxy.host, proxy.port))
 		
-		
+  
 	async def _proxyBroker(self):
 		while self is self.bot.get_cog("tournament"):
 			types = ['HTTP']
 			countries = ['US', 'DE', 'FR']
 			self.broker.stop()
 			print("Proxy-Broker Find triggered")
-			await self.broker.find(types=types, limit=100)
+			await self.broker.find(types=types, limit=15)
 			print("Proxy-Broker Find completed")
-			await asyncio.sleep(240)
-			
+			await asyncio.sleep(120)
+   
 	
 	async def _brokerResult(self):
 		while self is self.bot.get_cog("tournament"):
@@ -325,7 +320,8 @@ class tournament:
 			else:
 				print("No proxies were found, trying in two minutes")
 			
-			await asyncio.sleep(220)
+			await asyncio.sleep(120)
+		
 		
 
 def check_folders():
