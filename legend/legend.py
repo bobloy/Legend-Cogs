@@ -494,11 +494,9 @@ class legend:
 
                     canWait = (50 - clandata['memberCount']) -1
 
-                    for x in range(0, len(self.c[clankey]['waiting'])):
-                        if member.id != self.c[clankey]['waiting'][x]:
-                            if x >= canWait:
-                                await self.bot.say("Approval failed, you are not first in queue for the waiting list on this server.")
-                                return
+                    if self.c[clankey]['waiting'].index(member.id) > canWait:
+                        await self.bot.say("Approval failed, you are not first in queue for the waiting list on this server.")
+                        return
                     
                     self.c[clankey]['waiting'].remove(member.id)
                     dataIO.save_json('cogs/clans.json', self.c)
@@ -1059,7 +1057,7 @@ class legend:
         else:
             familyname = "LeGeND Family"
 
-        if role not in ["leader","coleader","elder", None]:
+        if role not in ["leader","coleader","elder", "member", None]:
             await self.bot.say("Invalid role!")
             return
         if role != None:
@@ -1088,7 +1086,7 @@ class legend:
                 for i in self.c:
                     if clantag == self.c[i]['tag']:
                         clanname = self.c[i]['nickname']
-                message += (str(x + 1) + ".").ljust(4) + " [" + str(players['data'][x]['score']) + "]  " + players['data'][x]['name'] + " (" + clanname + ") " + "\n"
+                message += (str(x + 1) + ".").ljust(4) + " [" + str(players['data'][x]['trophies']) + "]  " + players['data'][x]['name'] + " (" + clanname + ") " + "\n"
                 if (x+1) % 40 == 0:
                     message += "```"
                     await self.bot.say(message)
@@ -1099,14 +1097,14 @@ class legend:
             message = "```\n"
             amount = 0
             for x in range(0, len(players['data'])):
-                clanrole = players['data'][x]['role_name'].replace("-", "").lower()
+                clanrole = players['data'][x]['role'].replace("-", "").lower()
                 clantag = players['data'][x]['clan_tag']
                 for i in self.c:
                     if clantag == self.c[i]['tag']:
                         clanname = self.c[i]['nickname']
                             
                 if role == clanrole:
-                    message += (str(amount + 1) + ".").ljust(4) + " [" + str(players['data'][x]['score']) + "]  " + players['data'][x]['name'] + " (" + clanname + ") " +  "\n"
+                    message += (str(amount + 1) + ".").ljust(4) + " [" + str(players['data'][x]['trophies']) + "]  " + players['data'][x]['name'] + " (" + clanname + ") " +  "\n"
                     amount += 1
                     if amount == number:
                         break
@@ -1130,7 +1128,7 @@ class legend:
         else:
             familyname = "LeGeND Family"
 
-        if role not in ["leader","coleader","elder", None]:
+        if role not in ["leader","coleader","elder", "member", None]:
             await self.bot.say("Invalid role!")
             return
         if role != None:
@@ -1168,7 +1166,7 @@ class legend:
             message = "```\n"
             amount = 0
             for x in range(0, len(players['data'])):
-                clanrole = players['data'][x]['role_name'].replace("-", "").lower()
+                clanrole = players['data'][x]['role'].replace("-", "").lower()
                 clantag = players['data'][x]['clan_tag']
                 for i in self.c:
                     if clantag == self.c[i]['tag']:
@@ -1194,7 +1192,7 @@ class legend:
             await self.bot.say("Sorry! the number must be below 100.")
             return
         
-        if role not in ["leader","coleader","elder", None]:
+        if role not in ["leader","coleader","elder", "member", None]:
             await self.bot.say("Invalid role!")
             return
         
@@ -1238,7 +1236,7 @@ class legend:
             message = "```\n"
             amount = 0
             for x in range(0, len(players['data'])):
-                clanrole = players['data'][x]['role_name'].replace("-", "").lower()
+                clanrole = players['data'][x]['role'].replace("-", "").lower()
                 clantag = players['data'][x]['clan_tag']
                 for i in self.c:
                     if clantag == self.c[i]['tag']:
