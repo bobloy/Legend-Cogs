@@ -2,10 +2,10 @@ import discord
 from discord.ext import commands
 from .utils.dataIO import dataIO, fileIO
 try: # check if BeautifulSoup4 is installed
-    from bs4 import BeautifulSoup
-    soupAvailable = True
+	from bs4 import BeautifulSoup
+	soupAvailable = True
 except:
-    soupAvailable = False
+	soupAvailable = False
 import json
 from flask import Flask, request
 import requests
@@ -79,7 +79,7 @@ class clashroyale:
 		await self.bot.type()
 
 		try:
-			profiledata = requests.get('http://api.cr-api.com/player/{}?exclude=currentDeck,cards,battles,achievements'.format(profiletag), headers=self.getAuth(), timeout=10).json()
+			profiledata = requests.get('https://api.royaleapi.com/player/{}?exclude=currentDeck,cards,battles,achievements'.format(profiletag), headers=self.getAuth(), timeout=10).json()
 		except:
 			await self.bot.say("Error: cannot reach Clash Royale Servers. Please try again later.")
 			return
@@ -89,9 +89,9 @@ class clashroyale:
 		else:
 			clanurl = profiledata['clan']['badge']['image']
 
-		embed=discord.Embed(title="", color=0xFAA61A)
+		embed=discord.Embed(title="", url="http://royaleapi.com/player/"+profiledata['tag'], color=0xFAA61A)
 		embed.set_author(name=profiledata['name'] + " (#"+profiledata['tag']+")", icon_url=clanurl)
-		embed.set_thumbnail(url="https://cr-api.github.io/cr-api-assets/arenas/{}.png".format(profiledata['arena']['arena'].replace(' ', '').lower()))
+		embed.set_thumbnail(url="https://royaleapi.github.io/cr-api-assets/arenas/{}.png".format(profiledata['arena']['arena'].replace(' ', '').lower()))
 		embed.add_field(name="Trophies", value=profiledata['trophies'], inline=True)
 		embed.add_field(name="Highest Trophies", value=profiledata['stats']['maxTrophies'], inline=True)
 		embed.add_field(name="Level", value=profiledata['stats']['level'], inline=True)
@@ -99,7 +99,7 @@ class clashroyale:
 		if profiledata['clan'] is not None:
 			embed.add_field(name="Clan", value=profiledata['clan']['name'], inline=True)
 			embed.add_field(name="Role", value=profiledata['clan']['role'].capitalize(), inline=True)
-		embed.add_field(name="Cards Found", value=str(profiledata['stats']['cardsFound'])+"/81", inline=True)
+		embed.add_field(name="Cards Found", value=str(profiledata['stats']['cardsFound'])+"/83", inline=True)
 		embed.add_field(name="Favourite Card", value=profiledata['stats']['favoriteCard']['name'], inline=True)
 		embed.add_field(name="Games Played", value=profiledata['games']['total'], inline=True)
 		embed.add_field(name="Tournament Games Played", value=profiledata['games']['tournamentGames'], inline=True)
@@ -112,7 +112,7 @@ class clashroyale:
 		embed.add_field(name="Challenge Cards Won", value=profiledata['stats']['challengeCardsWon'], inline=True)
 		embed.add_field(name="Tournament Cards Won", value=profiledata['stats']['tournamentCardsWon'], inline=True)
 		embed.set_footer(text=credits, icon_url=creditIcon)
-
+		
 		await self.bot.say(embed=embed)
 
 
@@ -133,7 +133,7 @@ class clashroyale:
 		await self.bot.type()
 
 		try:
-			profiledata = requests.get('http://api.cr-api.com/player/{}?exclude=games,currentDeck,cards,battles,achievements'.format(profiletag), headers=self.getAuth(), timeout=10).json()
+			profiledata = requests.get('https://api.royaleapi.com/player/{}?keys=chestCycle,name,tag,clan'.format(profiletag), headers=self.getAuth(), timeout=10).json()
 		except:
 			await self.bot.say("Error: cannot reach Clash Royale Servers. Please try again later.")
 			return
@@ -173,7 +173,7 @@ class clashroyale:
 			await self.bot.type()
 
 			try:
-				profiledata = requests.get('http://api.cr-api.com/player/{}?keys=deckLink'.format(profiletag), headers=self.getAuth(), timeout=10).json()
+				profiledata = requests.get('https://api.royaleapi.com/player/{}?keys=deckLink'.format(profiletag), headers=self.getAuth(), timeout=10).json()
 				deckLink = profiledata['deckLink']
 			except:
 				await self.bot.say("Error: cannot reach Clash Royale Servers. Please try again later.")
@@ -195,9 +195,9 @@ class clashroyale:
 		await self.bot.type()
 
 		try:
-			clandata = requests.get('http://api.cr-api.com/clan/{}'.format(clantag), headers=self.getAuth(), timeout=10).json()
+			clandata = requests.get('https://api.royaleapi.com/clan/{}'.format(clantag), headers=self.getAuth(), timeout=10).json()
 
-			embed=discord.Embed(title=clandata['name'] + " (#" + clandata['tag'] + ")", description=clandata['description'], color=0xFAA61A)
+			embed=discord.Embed(title=clandata['name'] + " (#" + clandata['tag'] + ")", url="http://royaleapi.com/clan/"+clandata['tag'], description=clandata['description'], color=0xFAA61A)
 			embed.set_thumbnail(url=clandata['badge']['image'])
 			embed.add_field(name="Members", value=str(clandata['memberCount'])+"/50", inline=True)
 			embed.add_field(name="Donations", value=str(clandata['donations']), inline=True)
@@ -218,8 +218,15 @@ class clashroyale:
 
 		await self.bot.type()
 
+		tag = tag.strip('#').upper().replace('O', '0')
+		check = ['P', 'Y', 'L', 'Q', 'G', 'R', 'J', 'C', 'U', 'V', '0', '2', '8', '9']
+
+		if any(i not in check for i in tag):
+			await self.bot.say("The ID you provided has invalid characters. Please try again.")
+			return
+
 		try:
-			tourneydata = requests.get('http://api.cr-api.com/tournaments/{}'.format(tag), headers=self.getAuth(), timeout=10).json()
+			tourneydata = requests.get('https://api.royaleapi.com/tournaments/{}'.format(tag), headers=self.getAuth(), timeout=10).json()
 
 			maxCapacity = tourneydata['maxCapacity']
 			cards = self.getCards(maxCapacity)
@@ -230,9 +237,9 @@ class clashroyale:
 			except KeyError:
 				desc = "No description"
 
-			embed=discord.Embed(title=tourneydata['name']+" (#"+tourneydata['tag']+")", description=desc, color=0xFAA61A)
+			embed=discord.Embed(title=tourneydata['name']+" (#"+tourneydata['tag']+")", url="http://royaleapi.com/tournament/"+tourneydata['tag'], description=desc, color=0xFAA61A)
 			embed.set_thumbnail(url='https://statsroyale.com/images/tournament.png')
-			embed.add_field(name="Players", value=str(tourneydata['capacity']) + "/" + str(maxCapacity), inline=True)
+			embed.add_field(name="Players", value=str(tourneydata['playerCount']) + "/" + str(maxCapacity), inline=True)
 			embed.add_field(name="Status", value=tourneydata['status'].title(), inline=True)
 
 			if tourneydata['type'] == "passwordProtected":
@@ -258,7 +265,7 @@ class clashroyale:
 			await self.bot.say(embed=embed)
 
 		except:
-	   		await self.bot.say("Error: Tournament not found. Please try again later!")
+			await self.bot.say("Error: Tournament not found. Please try again later!")
 
 	@commands.group(pass_context=True)
 	async def save(self, ctx):
@@ -319,7 +326,7 @@ class clashroyale:
 			member = ctx.message.author
 
 		try:
-			profiledata = requests.get('http://api.cr-api.com/player/{}'.format(profiletag), headers=self.getAuth(), timeout=10).json()
+			profiledata = requests.get('https://api.royaleapi.com/player/{}'.format(profiletag), headers=self.getAuth(), timeout=10).json()
 
 			for key, value in self.clash.items():
 				if profiletag == self.clash[key]['tag']:
@@ -333,7 +340,10 @@ class clashroyale:
 			self.clash.update({member.id: {'tag': profiletag}})
 			dataIO.save_json('cogs/tags.json', self.clash)
 
-			await self.bot.say('**' +profiledata['name'] + ' (#'+ profiletag + ')** has been successfully saved on ' + member.mention)
+			embed = discord.Embed(color=discord.Color.green())
+			avatar = member.avatar_url if member.avatar else member.default_avatar_url
+			embed.set_author(name='{} (#{}) has been successfully saved.'.format(profiledata['name'], profiletag), icon_url=avatar)
+			await self.bot.say(embed=embed)
 		except:
 			await self.bot.say("We cannot find your ID in our database, please try again.")
 
@@ -413,15 +423,15 @@ def check_files():
 	f = "cogs/tags.json"
 	if not fileIO(f, "check"):
 		print("Creating empty tags.json...")
-		fileIO(f, "save", [])
+		fileIO(f, "save", {"0" : {"tag" : "DONOTREMOVE"}})
 	f = "data/BrawlStats/tags.json"
 	if not fileIO(f, "check"):
 		print("Creating empty tags.json...")
-		fileIO(f, "save", [])
+		fileIO(f, "save", {"0" : {"tag" : "DONOTREMOVE"}})
 	f = "cogs/auth.json"
 	if not fileIO(f, "check"):
-		print("Creating empty auth.json...")
-		dataIO.save_json(f, {})
+		print("enter your RoyaleAPI token in auth.json...")
+		dataIO.save_json(f, "save", {"token" : "enter your RoyaleAPI token here!"})
 
 def check_auth():
 	c = dataIO.load_json('cogs/auth.json')
@@ -430,10 +440,10 @@ def check_auth():
 	dataIO.save_json('cogs/auth.json', c)
 
 def setup(bot):
-    #check_folders()
-    check_files()
-    check_auth()
-    if soupAvailable:
-        bot.add_cog(clashroyale(bot))
-    else:
-        raise RuntimeError("You need to run `pip3 install beautifulsoup4`")
+	#check_folders()
+	check_files()
+	check_auth()
+	if soupAvailable:
+		bot.add_cog(clashroyale(bot))
+	else:
+		raise RuntimeError("You need to run `pip3 install beautifulsoup4`")

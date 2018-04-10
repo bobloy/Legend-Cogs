@@ -83,6 +83,9 @@ class shop:
         else:
             return False
 
+    def clanArray(self):
+        return self.clans.keys()
+
     def numClans(self):
         return len(self.clans.keys())
 
@@ -111,7 +114,7 @@ class shop:
         banks = list(self.banks['374596069989810176'])
 
         try:
-            clans = requests.get('http://api.cr-api.com/clan/'+','.join(self.clans[clan]["tag"] for clan in self.clans), headers=self.getAuth(), timeout=10).json()
+            clans = requests.get('https://api.royaleapi.com/clan/'+','.join(self.clans[clan]["tag"] for clan in self.clans), headers=self.getAuth(), timeout=20).json()
         except (requests.exceptions.Timeout, json.decoder.JSONDecodeError):
             await self.bot.say("Error: cannot reach Clash Royale Servers. Please try again later.")
             return
@@ -161,12 +164,12 @@ class shop:
                                 bank.set_credits(user, pay)
                                 perc = str(math.ceil((BonusMult-1)*100))
 
-                                await self.bot.say(user.display_name + " - Success")
+                                await self.bot.say("{} - ({} donations, {} crowns)".format(user.display_name, clan_donations, clan_clanChestCrowns))
 
                                 if BonusMult > 1:
-                                    await self.bot.send_message(user,"Hello " + user.name + ", take these credits*("+ perc +"% Bonus)* for the **" + str(clan_donations) + "** donations and **" + str(clan_clanChestCrowns) + "** crowns you contributed to your clan this week. (+" + str(amount) + " credits!)")
+                                    await self.bot.send_message(user,"Hello {} , take these credits*({}% Bonus)* for the **{}** donations and **{}** crowns you contributed to your clan this week. (+{} credits!)".format(user.name, perc, str(clan_donations), str(clan_clanChestCrowns), str(amount)))
                                 else:
-                                    await self.bot.send_message(user,"Hello " + user.name + ", take these credits for the **" + str(clan_donations) + "** donations and **" + str(clan_clanChestCrowns) + "** crowns you contributed to your clan this week. (+" + str(amount) + " credits!)")                                    
+                                    await self.bot.send_message(user,"Hello {} , take these credits for the **{}** donations and **{}** crowns you contributed to your clan this week. (+{} credits!)".format(user.name, str(clan_donations), str(clan_clanChestCrowns), str(amount)))
                             except Exception as e:
                                 await self.bot.say(e)
                     except:
@@ -194,7 +197,7 @@ class shop:
             return
 
         try:
-            tourney = requests.get('http://api.cr-api.com/tournaments/'+tag, headers=self.getAuth(), timeout=10).json()
+            tourney = requests.get('https://api.royaleapi.com/tournaments/'+tag, headers=self.getAuth(), timeout=10).json()
         except (requests.exceptions.Timeout, json.decoder.JSONDecodeError):
             await self.bot.say("Error: cannot reach Clash Royale Servers. Please try again later.")
             return
@@ -238,7 +241,7 @@ class shop:
                             bank.set_credits(user, pay)
                             perc = str(math.ceil((BonusMult-1)*100))
 
-                            await self.bot.say(user.name + " - Success")
+                            await self.bot.say("{} - ({} trophies)".format(user.display_name, tourney_score))
 
                             if BonusMult > 1:
                                 await self.bot.send_message(user,"Hello {}, take these credits*({}% Bonus)* for the **{}** trophies you contributed to your clan in **{}**. (+{} credits!)".format(user.name, perc, str(tourney_score), tourney['name'], str(amount) ))
@@ -288,7 +291,7 @@ class shop:
         await self.bot.say("please contact @GR8#7968 or rakerran#7837 to purchase it for you.")
 
     @buy.command(pass_context=True, name="3")
-    async def buy_3(self, ctx):
+    async def buy_3(self, ctx, emoji):
 
         server = ctx.message.server
         author = ctx.message.author
@@ -298,7 +301,60 @@ class shop:
             await self.bot.say("This command can only be executed in the LeGeND Family Server")
             return
 
-        await self.bot.say("please contact @GR8#7968 or rakerran#7837 to purchase it for you.")
+        if emoji[:2] == "<:":
+            await self.bot.say("Error, you can only use default emojis.")
+            return
+
+        if self.bank_check(author, 80000):
+
+            try:
+                await self.updateClash()
+                await self.bot.type()
+                profiletag = self.tags[author.id]['tag']
+                profiledata = requests.get('https://api.royaleapi.com/player/{}?exclude=games,currentDeck,cards,battles,achievements'.format(profiletag), headers=self.getAuth(), timeout=10).json()
+                if profiledata['clan'] is None:
+                    clantag = ""
+                    clanname = ""
+                else: 
+                    clantag = profiledata['clan']['tag']
+                    clanname = profiledata['clan']['name']
+                ign = profiledata['name']
+            except (requests.exceptions.Timeout, json.decoder.JSONDecodeError):
+                await self.bot.say("Error: cannot reach Clash Royale Servers. Please try again later.")
+                return
+            except requests.exceptions.RequestException as e:
+                await self.bot.say(e)
+                return
+            except:
+                await self.bot.say("You must assosiate a tag with this member first using ``!save clash #tag @member``")
+                return
+
+            membership = False
+            for clankey in self.clanArray():
+                if self.clans[clankey]['tag'] == clantag:
+                    membership = True
+                    savekey = clankey
+                    break
+
+            if ign is None:
+                await self.bot.say("Error, Cannot add emoji.")
+            else:
+                try:
+                    if membership:
+                        newclanname = self.clans[savekey]['nickname']
+                        newname = "{} {} | {}".format(ign, emoji, newclanname)
+                    else:
+                        newname = "{} {}".format(ign, emoji)
+                    await self.bot.change_nickname(author, newname)
+                except discord.HTTPException:
+                    await self.bot.say("I don’t have permission to change nick for this user.")
+                else:
+                    await self.bot.say("Nickname changed to ** {} **\n".format(newname))
+
+                    bank = self.bot.get_cog('Economy').bank
+                    bank.withdraw_credits(author, 80000)
+        else:
+            await self.bot.say("You do not have enough credits to buy this item.")
 
     @buy.command(pass_context=True, name="4")
     async def buy_4(self , ctx):
@@ -319,8 +375,7 @@ class shop:
 
         if self.bank_check(author, 160000):
             bank = self.bot.get_cog('Economy').bank
-            pay = bank.get_balance(author) - 160000
-            bank.set_credits(author, pay)
+            bank.withdraw_credits(author, 160000)
             await self._add_roles(author,["Pro Payday"])
             await self.bot.say("Congratulations, now you can get !payday every 10 minutes.")
         else:
@@ -345,10 +400,9 @@ class shop:
             await self.bot.say("You already have a special role.")
             return
 
-        if self.bank_check(author, 100000):
+        if self.bank_check(author, 250000):
             bank = self.bot.get_cog('Economy').bank
-            pay = bank.get_balance(author) - 100000
-            bank.set_credits(author, pay)
+            bank.withdraw_credits(author, 250000)
             await self._add_roles(author,["Rare™"])
             await self.bot.say("Congratulations, you are now a **Rare™**")
         else:
@@ -377,10 +431,9 @@ class shop:
             await self.bot.say("You already have a special role.")
             return
 
-        if self.bank_check(author, 250000):
+        if self.bank_check(author, 750000):
             bank = self.bot.get_cog('Economy').bank
-            pay = bank.get_balance(author) - 250000
-            bank.set_credits(author, pay)
+            bank.withdraw_credits(author, 750000)
             await self._remove_roles(author,["Rare™"])
             await asyncio.sleep(3)
             await self._add_roles(author,["Epic™"])
@@ -412,30 +465,15 @@ class shop:
             await self.bot.say("You are already have a special role.")
             return
 
-        if self.bank_check(author, 750000):
+        if self.bank_check(author, 1000000):
             bank = self.bot.get_cog('Economy').bank
-            pay = bank.get_balance(author) - 750000
-            bank.set_credits(author, pay)
+            bank.withdraw_credits(author, 1000000)
             await self._remove_roles(author,["Epic™"])
             await asyncio.sleep(3)
             await self._add_roles(author,["LeGeNDary™"])
             await self.bot.say("Congratulations, you are now a **LeGeNDary™**")
         else:
             await self.bot.say("You do not have enough credits to buy this role.")
-
-    @buy.command(pass_context=True, name="8")
-    async def buy_8(self, ctx):
-
-
-        server = ctx.message.server
-        author = ctx.message.author
-        legendServer = ["374596069989810176"]
-
-        if server.id not in legendServer:
-            await self.bot.say("This command can only be executed in the LeGeND Family Server")
-            return
-
-        await self.bot.say("please contact @GR8#7968 or rakerran#7837 to purchase it for you.")
 
 def setup(bot):
     bot.add_cog(shop(bot))
