@@ -10,6 +10,8 @@ from .utils.dataIO import dataIO
 import os
 from fake_useragent import UserAgent
 
+import time as sectime
+
 lastTag = '0'
 creditIcon = "https://i.imgur.com/TP8GXZb.png"
 credits = "Bot by GR8 | Titan"
@@ -73,9 +75,9 @@ class tournament:
 		botcommander_roles = set(botcommander_roles)
 		author_roles = set(member.roles)
 		if len(author_roles.intersection(botcommander_roles)):
-		    return True
+			return True
 		else:
-		    return False
+			return False
 
 	# Returns a list with tournaments
 	def getTopTourneyNew(self):
@@ -85,31 +87,31 @@ class tournament:
 
 		ua = UserAgent()
 		headers = {
-		    "User-Agent": ua.random
+			"User-Agent": ua.random
 		}
 
 		proxies = {
-	    	'http': random.choice(proxies_list)
+			'http': random.choice(proxies_list)
 		}
 
 		try:
-			tourneydata = requests.get('http://statsroyale.com/tournaments?appjson=1', timeout=5, headers=headers, proxies=proxies).json()
+			tourneydata = requests.get('https://api.royaleapi.com/tournaments/open', timeout=10, headers=self.getAuth()).json()
 		except (requests.exceptions.Timeout, json.decoder.JSONDecodeError):
 			return None
 		except requests.exceptions.RequestException as e:
 			print(e)
 			return None
 
-		numTourney = len(tourneydata['tournaments'])
+		numTourney = len(tourneydata)
 
 		for x in range(0, numTourney):
 
-			hashtag = tourneydata['tournaments'][x]['hashtag']
-			title = tourneydata['tournaments'][x]['title']
-			totalPlayers = tourneydata['tournaments'][x]['totalPlayers']
-			full = tourneydata['tournaments'][x]['full']
-			maxPlayers = tourneydata['tournaments'][x]['maxPlayers']
-			timeLeft = tourneydata['tournaments'][x]['timeLeft']
+			hashtag = tourneydata[x]['tag']
+			title = tourneydata[x]['name']
+			totalPlayers = tourneydata[x]['playerCount']
+			maxPlayers = tourneydata[x]['maxCapacity']
+			full = (maxPlayers - totalPlayers) < 2
+			timeLeft = int(sectime.time()) - tourneydata[x]['createTime']
 			cards = getCards(maxPlayers)
 			coins = getCoins(maxPlayers)
 			time = sec2tme(timeLeft)
@@ -173,19 +175,19 @@ class tournament:
 
 		allowed = await self._is_allowed(author)
 		if not allowed:
-		    await self.bot.say("Error, this command is only available for Legend Members and Guests.")
-		    return
+			await self.bot.say("Error, this command is only available for Legend Members and Guests.")
+			return
 
 		ua = UserAgent()
 		headers = {
-		    "User-Agent": ua.random
+			"User-Agent": ua.random
 		}
 		proxies = {
-	    	'http': random.choice(proxies_list)
+			'http': random.choice(proxies_list)
 		}
 
 		try:
-			tourneydata = requests.get('http://statsroyale.com/tournaments?appjson=1', timeout=5, headers=headers, proxies=proxies).json()
+			tourneydata = requests.get('https://api.royaleapi.com/tournaments/open', timeout=10, headers=self.getAuth()).json()
 		except (requests.exceptions.Timeout, json.decoder.JSONDecodeError):
 			await self.bot.say("Error: cannot reach Clash Royale Servers. Please try again later.")
 			return
@@ -193,22 +195,21 @@ class tournament:
 			await self.bot.say(e)
 			return
 
-		numTourney = list(range(len(tourneydata['tournaments'])))
+		numTourney = list(range(len(tourneydata)))
 		random.shuffle(numTourney)
 
 		for x in numTourney:
 
-			title = tourneydata['tournaments'][x]['title']
-			length = tourneydata['tournaments'][x]['length']
-			totalPlayers = tourneydata['tournaments'][x]['totalPlayers']
-			maxPlayers = tourneydata['tournaments'][x]['maxPlayers']
-			full = tourneydata['tournaments'][x]['full']
-			timeLeft = tourneydata['tournaments'][x]['timeLeft']
-			startTime = tourneydata['tournaments'][x]['startTime']
-			warmup = tourneydata['tournaments'][x]['warmup']
-			hashtag = tourneydata['tournaments'][x]['hashtag']
+			hashtag = tourneydata[x]['tag']
+			title = tourneydata[x]['name']
+			totalPlayers = tourneydata[x]['playerCount']
+			maxPlayers = tourneydata[x]['maxCapacity']
+			full = (maxPlayers - totalPlayers) < 2
+			timeLeft = int(sectime.time()) - tourneydata[x]['createTime']
 			cards = getCards(maxPlayers)
 			coins = getCoins(maxPlayers)
+			time = sec2tme(timeLeft)
+			players = str(totalPlayers) + "/" + str(maxPlayers)
 
 			if not full and timeLeft > 600:
 				embed=discord.Embed(title="Open Tournament", description="Here is a good one I found. You can search again if this is not what you are looking for.", color=0x00ffff)
