@@ -13,7 +13,7 @@ from datetime import datetime
 
 settings_path = "data/duels/settings.json"
 creditIcon = "https://i.imgur.com/TP8GXZb.png"
-credits = "Bot by GR8 | Titan"
+credits = "Cog by GR8 | Titan"
 
 
 class duels:
