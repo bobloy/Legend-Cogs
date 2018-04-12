@@ -14,7 +14,7 @@ from operator import itemgetter, attrgetter
 
 settings_path = "data/duels/settings.json"
 creditIcon = "https://i.imgur.com/TP8GXZb.png"
-credits = "Bot by GR8 | Titan"
+credits = "Cog by GR8 | Titan"
 
 class duels:
     """Clash Royale 1v1 Duels with bets"""

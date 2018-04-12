@@ -10,7 +10,7 @@ import datetime
 from cogs.utils import checks
 
 creditIcon = "https://i.imgur.com/TP8GXZb.png"
-credits = "Bot by GR8 | Titan"
+credits = "Cog by GR8 | Titan"
 
 class clanchest:
     """clanchest!"""

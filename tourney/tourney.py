@@ -14,7 +14,7 @@ import time as sectime
 
 lastTag = '0'
 creditIcon = "https://i.imgur.com/TP8GXZb.png"
-credits = "Bot by GR8 | Titan"
+credits = "Cog by GR8 | Titan"
 
 proxies_list = [
 	'198.245.68.121:3128',

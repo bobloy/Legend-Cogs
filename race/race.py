@@ -14,7 +14,7 @@ from .utils import checks
 from .utils.dataIO import dataIO
 
 creditIcon = "https://i.imgur.com/TP8GXZb.png"
-credits = "Bot by GR8 | Academy"
+credits = "Cog by GR8 | Academy"
 
 animals = ((':rabbit2:', 'fast'), (':monkey:', 'fast'), (':cat2:', 'fast'), (':mouse2:', 'slow'),
            (':chipmunk:', 'fast'), (':rat:', 'fast'), (':dove:', 'fast'), (':bird:', 'fast'),
