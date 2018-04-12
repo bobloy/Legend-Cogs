@@ -26,6 +26,9 @@ class duels:
         self.auth = dataIO.load_json('cogs/auth.json')
         self.active = False
 
+    async def updateClash(self):
+        self.tags = dataIO.load_json('cogs/tags.json')
+
      # Check if there is an account made.
     def account_check(self, id):
         try:
@@ -92,12 +95,14 @@ class duels:
             await self.bot.say("You need to first open a bank account using ``{}bank register``".format(ctx.prefix))
             return
 
+        await self.updateClash()
+
         if self.account_check(author.id) is False:
 
             if author.id in self.tags:
                 self.settings["USERS"][author.id] = {
                     "WON" : 0,
-                    "DUELID" : None,
+                    "DUELID" : "0",
                     "ID" : author.id,
                     "NAME" : author.display_name,
                     "TAG" : self.tags[author.id]['tag']
