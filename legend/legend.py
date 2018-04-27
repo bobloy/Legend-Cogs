@@ -131,6 +131,7 @@ class legend:
 
     async def updateClash(self):
         self.clash = dataIO.load_json('cogs/tags.json')
+        self.c = dataIO.load_json('cogs/clans.json')
 
     async def updateSeen(self):
         self.seen = dataIO.load_json('data/seen/seen.json')
@@ -502,7 +503,7 @@ class legend:
                         return
                     
                     self.c[clankey]['waiting'].remove(member.id)
-                    dataIO.save_json('cogs/clans.json', self.c)
+                    self.save_data()
                     
                     role = discord.utils.get(server.roles, name="Waiting")
                     try:
@@ -594,7 +595,7 @@ class legend:
 
             if member.id in self.c[savekey]['waiting']:
                 self.c[savekey]['waiting'].remove(member.id)
-                dataIO.save_json('cogs/clans.json', self.c)
+                self.save_data()
 
             mymessage = ""
             if ign is None:
@@ -748,7 +749,7 @@ class legend:
 
         if member.id not in self.c[clankey]['waiting']:
             self.c[clankey]['waiting'].append(member.id)
-            dataIO.save_json('cogs/clans.json', self.c)
+            self.save_data()
         else:
             await self.bot.say("You are already in a waiting list for this clan.")
             return
@@ -785,8 +786,9 @@ class legend:
             return
 
         try:
+            await self.updateClash()
             self.c[clankey]['waiting'].remove(member.id)
-            dataIO.save_json('cogs/clans.json', self.c)
+            self.save_data()
 
             role = discord.utils.get(server.roles, name="Waiting")
             try:
@@ -816,6 +818,7 @@ class legend:
             # return
 
         await self.bot.type()
+        await self.updateClash()
 
         embed=discord.Embed(color=0xFAA61A)
 
@@ -830,7 +833,7 @@ class legend:
                         counterPlayers += 1
                     except AttributeError:
                         self.c[clan]['waiting'].remove(userID)
-                        dataIO.save_json('cogs/clans.json', self.c)
+                        self.save_data()
                         message += str(index+1) + ". " + "*user not found*" + "\n"
                 embed.add_field(name=self.c[clan]["name"], value=message, inline=False)
         
