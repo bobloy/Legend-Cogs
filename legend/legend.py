@@ -397,9 +397,10 @@ class legend:
             if bonustitle is not None:
                 title += bonustitle
 
-                # desc = emoji + " " + showMembers + "     :trophy: " + str(clans[x]['requiredScore']) + "+     :medal: " +str(clans[x]['score'])
-            desc = showMembers + "     :trophy: " + str(clans[x]['requiredScore']) + "+     :medal: " + str(
-                clans[x]['score'])
+            # desc = emoji + " " + showMembers + "     :trophy: " + str(clans[x]['requiredScore']) + "+     :medal: " +str(clans[x]['score'])
+            desc = "{}      :trophy: {}+     :medal:{}   :arrow_upper_right: [Open](https://link.clashroyale.com/?clanInfo?id={})".format(showMembers, str(clans[x]['requiredScore']), str(clans[x]['score']), clans[x]['tag'])
+            # desc = showMembers + "     :trophy: " + str(clans[x]['requiredScore']) + "+     :medal: " + str(
+            #     clans[x]['score']) + ":arrow_upper_right: [Open](https://legendclans.com/clanInfo/{})".format()
 
             if (member is None) or ((clans[x]['requiredScore'] <= trophies) and (maxtrophies > personalbest) and (
                     True or trophies - clans[x]['requiredScore'] < 1500) and (clans[x]['type'] != 'closed')):
@@ -1049,18 +1050,18 @@ class legend:
         #     "LeGeND Family🔥14 Clans🔥LegendClans.com🔥Daily Tourneys🔥Weekly Clanwar🔥discord.me/legendfamily🔥" in
         #     clandata['description'])
         # cr_clanSettings.append(clandata['type'] != "closed")
-        #
-        # message = ""
-        #
-        # if False in cr_clanSettings:
-        #     message += "\n\n:warning: Problems in clan settings for **" + clan_name + "**:```"
-        #
-        #     if cr_clanSettings[0] is False: message += "\n• Clan Badge is incorrect."
-        #     if cr_clanSettings[1] is False: message += "\n• Clan Location is incorrect."
-        #     if cr_clanSettings[2] is False: message += "\n• Clan description is incorrect."
-        #     if cr_clanSettings[3] is False: message += "\n• Clan is closed."
-        #
-        #     message += "```"
+
+        message = ""
+
+        if False in cr_clanSettings:
+            message += "\n\n:warning: Problems in clan settings for **" + clan_name + "**:```"
+
+            if cr_clanSettings[0] is False: message += "\n• Clan Badge is incorrect."
+            if cr_clanSettings[1] is False: message += "\n• Clan Location is incorrect."
+            if cr_clanSettings[2] is False: message += "\n• Clan description is incorrect."
+            if cr_clanSettings[3] is False: message += "\n• Clan is closed."
+
+            message += "```"
 
         if cr_members_with_no_player_tag:
             message += "\n\n:warning: **(" + str(len(
