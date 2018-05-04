@@ -1055,9 +1055,9 @@ class legend:
         if False in cr_clanSettings:
             message += "\n\n:warning: Problems in clan settings for **" + clan_name + "**:```"
 
-            if cr_clanSettings[0] is False: message += "\n• Clan Badge is incorrect."
-            if cr_clanSettings[1] is False: message += "\n• Clan Location is incorrect."
-            if cr_clanSettings[2] is False: message += "\n• Clan description is incorrect."
+            # if cr_clanSettings[0] is False: message += "\n• Clan Badge is incorrect."
+            # if cr_clanSettings[1] is False: message += "\n• Clan Location is incorrect."
+            # if cr_clanSettings[2] is False: message += "\n• Clan description is incorrect."
             if cr_clanSettings[3] is False: message += "\n• Clan is closed."
 
             message += "```"
