@@ -1043,24 +1043,24 @@ class legend:
             if player_trophy < clanReq:
                 cr_members_with_less_trophies.append(cr_members_name[index])
 
-        cr_clanSettings.append(clandata['badge']['id'] == 16000002)
-        cr_clanSettings.append(clandata['location']['name'] == "International")
-        cr_clanSettings.append(
-            "LeGeND Family🔥14 Clans🔥LegendClans.com🔥Daily Tourneys🔥Weekly Clanwar🔥discord.me/legendfamily🔥" in
-            clandata['description'])
-        cr_clanSettings.append(clandata['type'] != "closed")
-
-        message = ""
-
-        if False in cr_clanSettings:
-            message += "\n\n:warning: Problems in clan settings for **" + clan_name + "**:```"
-
-            # if cr_clanSettings[0] is False: message += "\n• Clan Badge is incorrect."
-            # if cr_clanSettings[1] is False: message += "\n• Clan Location is incorrect."
-            # if cr_clanSettings[2] is False: message += "\n• Clan description is incorrect."
-            if cr_clanSettings[3] is False: message += "\n• Clan is closed."
-
-            message += "```"
+        # cr_clanSettings.append(clandata['badge']['id'] == 16000002)
+        # cr_clanSettings.append(clandata['location']['name'] == "International")
+        # cr_clanSettings.append(
+        #     "LeGeND Family🔥14 Clans🔥LegendClans.com🔥Daily Tourneys🔥Weekly Clanwar🔥discord.me/legendfamily🔥" in
+        #     clandata['description'])
+        # cr_clanSettings.append(clandata['type'] != "closed")
+        #
+        # message = ""
+        #
+        # if False in cr_clanSettings:
+        #     message += "\n\n:warning: Problems in clan settings for **" + clan_name + "**:```"
+        #
+        #     if cr_clanSettings[0] is False: message += "\n• Clan Badge is incorrect."
+        #     if cr_clanSettings[1] is False: message += "\n• Clan Location is incorrect."
+        #     if cr_clanSettings[2] is False: message += "\n• Clan description is incorrect."
+        #     if cr_clanSettings[3] is False: message += "\n• Clan is closed."
+        #
+        #     message += "```"
 
         if cr_members_with_no_player_tag:
             message += "\n\n:warning: **(" + str(len(
