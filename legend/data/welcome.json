@@ -1,5 +1,5 @@
 {
-"GREETING" : [
+  "GREETING": [
     "We have unlocked a new card! Welcome {0.mention} to the Arena.",
     "I just saw  {0.mention} come out of the goblin hut. Please find them some pants.",
     "Hey {0.mention}, I would use mirror spell to have a second you, even if it costs one more elixir! Welcome!",
@@ -28,5 +28,5 @@
     "Hi {0.mention}, welcome to The LeGeNDary arena! Get it? LeGeND...ary ! No? Okay sorry :(",
     "Even Ice Wizard's mustache isn't as hot as {0.mention}",
     "Watch out, It's a {0.mention} barrel!"
-]
+  ]
 }
