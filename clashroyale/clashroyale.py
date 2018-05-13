@@ -141,7 +141,7 @@ class clashroyale:
         chest4 = "<:super:380832745305276416> +" + str(profiledata['superMagical'] + 1) + "  "
         chest5 = "<:legend:380832458482122752> +" + str(profiledata['legendary'] + 1) + "  "
 
-        if profiledata['clan'] is None:
+        if 'clan' not in profiledata or profiledata['clan'] is None:
             clanurl = "https://i.imgur.com/4EH5hUn.png"
         else:
             clanurl = profiledata['clan']['badge']['image']
