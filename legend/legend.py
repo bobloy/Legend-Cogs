@@ -378,7 +378,7 @@ class legend:
             if bonustitle is not None:
                 title += bonustitle  
 
-            desc = "{}{}      :trophy: {}+     :medal:{}   :arrow_upper_right: [Open](https://legendclans.com/clanInfo/{})".format(emoji, showMembers, str(clans[x]['requiredScore']), str(clans[x]['score']), clans[x]['tag'])
+            desc = "{} {}      :trophy: {}+     :medal:{}   :arrow_upper_right: [Open](https://legendclans.com/clanInfo/{})".format(emoji, showMembers, str(clans[x]['requiredScore']), str(clans[x]['score']), clans[x]['tag'])
 
             if (member is None) or ((clans[x]['requiredScore'] <= trophies) and (maxtrophies > personalbest) and (trophies - clans[x]['requiredScore'] < 1500) and (clans[x]['type'] != 'closed')):
                 foundClan = True
@@ -515,7 +515,7 @@ class legend:
                     "Congratulations, You have been approved to join **"+ clan_name + " (#" + clan_tag + ")**.\n\n\n" +
                     "Your **RECRUIT CODE** is: ``" + recruitCode + "`` \n"+
                     "Send this code in the join request message.\n\n"+
-                    "Click this link to join the clan : https://link.clashroyale.com/?clanInfo?id="+ clan_tag +"\n\n" +
+                    "Click this link to join the clan: https://legendclans.com/clanInfo/"+ clan_tag +"\n\n" +
                     "That's it! Now wait for your clan leadership to accept you. \n" +
                     "If you do not see a 'request to join' button, make sure you leave your current clan and check the trophy requirements. \n\n" + 
                     "**IMPORTANT**: Once your clan leadership has accepted your request, let a staff member in discord know that you have been accepted. They will then unlock all the member channels for you."
@@ -1008,7 +1008,7 @@ class legend:
 
         cr_clanSettings.append(clandata['badge']['id'] == 16000002)
         cr_clanSettings.append(clandata['location']['name'] == "International")
-        cr_clanSettings.append("LeGeND Family🔥14 Clans🔥LegendClans.com🔥Daily Tourneys🔥Weekly Clanwar🔥discord.me/legendfamily🔥" in clandata['description'])
+        cr_clanSettings.append("LeGeND Family🔥14 Clans🔥LegendClans.com🔥Daily Tourneys🔥Weekly LeGeND War🔥discord.me/legendfamily🔥" in clandata['description'])
         cr_clanSettings.append(clandata['type'] != "closed")
 
         message = ""
@@ -1209,75 +1209,6 @@ class legend:
                         message = "```\n"
             message += "```"  
         await self.bot.say(message)
-
-    @topmembers.command(name="crowns")
-    async def topmembers_crowns(self, role : str = None):
-        """Show Family Clan Chest Crowns LeaderBoard"""
-        number = 10
-        if number > 100:
-            await self.bot.say("Sorry! the number must be below 100.")
-            return
-        
-        if role not in ["leader","coleader","elder", "member", None]:
-            await self.bot.say("Invalid role!")
-            return
-        
-        if "family" in self.settings:
-            familyname = self.settings['family']
-        else:
-            familyname = "LeGeND Family"
-           
-        if role != None:
-            filterroles = True
-            await self.bot.say("**{0} Clan Chest Crowns LeaderBoard** ({1}s)".format(familyname,role))
-        else:
-            await self.bot.say("**{0} Clan Chest Crowns LeaderBoard**".format(familyname))
-        await self.bot.type()
-        try:
-            if "url" in self.settings:
-                familyurl = '{}/members/datatable'.format(self.settings['url'])
-                allplayers = requests.get(familyurl, timeout=15).json()
-            else:
-                allplayers = requests.get('http://royaleapi.com/clan/family/legend/members/datatable', timeout=15).json()
-        except:
-            await self.bot.say("Error: cannot reach Clash Royale Servers. Please try again later.")
-            return
-        players = dict(allplayers)
-        players['data'] = sorted(allplayers['data'], key=lambda x: x['family_rank_crowns'])
-
-        if role == None:
-            message = "```\n"
-            for x in range(0, number):
-                clantag = players['data'][x]['clan_tag']
-                for i in self.c:
-                    if clantag == self.c[i]['tag']:
-                        clanname = self.c[i]['nickname']
-                message += (str(x + 1) + ".").ljust(4) + (" [" + str(players['data'][x]['clan_chest_crowns']) + "]  ").ljust(8) + players['data'][x]['name'] + " (" + clanname + ") " + "\n"
-                if (x+1) % 40 == 0:
-                    message += "```"
-                    await self.bot.say(message)
-                    message = "```\n"
-            message += "```"  
-        else:
-            message = "```\n"
-            amount = 0
-            for x in range(0, len(players['data'])):
-                clanrole = players['data'][x]['role'].replace("-", "").lower()
-                clantag = players['data'][x]['clan_tag']
-                for i in self.c:
-                    if clantag == self.c[i]['tag']:
-                        clanname = self.c[i]['nickname']          
-                if role == clanrole:
-                    message += (str(amount + 1) + ".").ljust(4) + (" [" + str(players['data'][x]['clan_chest_crowns']) + "]  ").ljust(8) + players['data'][x]['name'] + " (" + clanname + ") " +  "\n"
-                    amount += 1
-                    if amount == number:
-                        break
-                    if (amount+1) % 40 == 0:
-                        message += "```"
-                        await self.bot.say(message)
-                        message = "```\n"
-            message += "```" 
-        await self.bot.say(message)
         
     @commands.command()
     async def topclans(self):
@@ -1351,10 +1282,9 @@ class legend:
             rolesToRemove.append(self.c[x]['role'])
 
         await self._remove_roles(member, rolesToRemove)
+        await self.bot.change_nickname(member, None)
 
-        await self.bot.send_message(member, "Hey there, I am sorry to inform you that we have removed you from the clan. We hope to see you back again soon when you are able to follow the clan requirements.")
-
-        await self.bot.say("Member and clan roles removed.")
+        await self.bot.say("Member and clan roles removed.\nNickname has been reset.")
 
     @commands.command()
     async def gmt(self):

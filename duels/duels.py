@@ -174,7 +174,7 @@ class duels:
             if privateDuel is None:
                 await self.bot.say("{} wants to duel one of you in Clash Royale for {} credits, type ``{}duel accept`` the offer.".format(author.mention, str(bet), ctx.prefix))
             else:
-                await self.bot.say("{} wants to duel {} in Clash Royale for {} credits, type ``{}duel accept`` the offer.".format(author.mention, member.mention, str(bet), ctx.prefix))
+                await self.bot.say("{} wants to duel {} in Clash Royale for {} credits, type ``{}duel accept`` to accept the offer.".format(author.mention, member.mention, str(bet), ctx.prefix))
                 
             await self.bot.say(embed=embed)
 
@@ -228,8 +228,11 @@ class duels:
         self.active = False
 
         bank = self.bot.get_cog('Economy').bank
-        pay = bank.get_balance(author) + duelBet
-        bank.set_credits(author, pay)
+
+        for player in duelPlayers:
+            user = discord.utils.get(ctx.message.server.members, id = player)
+            pay = bank.get_balance(user) + duelBet
+            bank.set_credits(user, pay)
 
         await self.bot.say("Duel cancelled!")
 
@@ -326,13 +329,13 @@ class duels:
         await self.bot.type()
 
         try:
-            profiledata = requests.get('https://api.royaleapi.com/player/{}?keys=battles'.format(duelPlayer['TAG']), headers=self.getAuth(), timeout=10).json()
+            profiledata = requests.get('https://api.royaleapi.com/player/{}/battles'.format(duelPlayer['TAG']), headers=self.getAuth(), timeout=10).json()
         except:
             await self.bot.say("Error: cannot reach Clash Royale Servers. Please try again later.")
             return
 
         msg = ""
-        for battle in profiledata["battles"]:
+        for battle in profiledata:
             if (battle["utcTime"] > int(duelID)) and (battle["opponent"][0]["tag"] in playerTags):
                 if battle["winner"] > 0:
 
