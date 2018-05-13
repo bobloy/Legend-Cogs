@@ -9,9 +9,9 @@ from copy import deepcopy
 from time import time as get_time
 import matplotlib.pyplot as plt
 plt.switch_backend('agg')
-import matplotlib.dates as mdates
 from datetime import datetime as dt
 import operator
+import numpy as np
 
 class Clanlog:
     """Clan Log cog for LeGeND family"""
@@ -80,6 +80,8 @@ class Clanlog:
                         embed_left = discord.Embed(title = title, url = "https://royaleapi.com/player/{}".format(member["tag"]), description=desc, color=0xff0000)
                         if old_clans[clankey]["tag"] == "9PJYVVL2" and server.id == "374596069989810176":
                             await self.bot.send_message(discord.Object(id='390506007287169024'),embed = embed_left)
+                        if old_clans[clankey]["tag"] == "2GJYVRYQ" and server.id == "374596069989810176":
+                            await self.bot.send_message(discord.Object(id='437873703288832020'),embed = embed_left)   
                         await self.bot.say(embed = embed_left)
           
             for clankey in self.clans.keys():
@@ -90,6 +92,8 @@ class Clanlog:
                         embed_join = discord.Embed(title = title, url = "https://royaleapi.com/player/{}".format(member["tag"]), description=desc, color=0x00ff40)
                         if old_clans[clankey]["tag"] == "9PJYVVL2" and server.id == "374596069989810176":
                             await self.bot.send_message(discord.Object(id='390506007287169024'),embed = embed_join)
+                        if old_clans[clankey]["tag"] == "2GJYVRYQ" and server.id == "374596069989810176":
+                            await self.bot.send_message(discord.Object(id='437873703288832020'),embed = embed_join)    
                         await self.bot.say(embed = embed_join)
                         
         except(requests.exceptions.Timeout, json.decoder.JSONDecodeError, KeyError):
@@ -114,7 +118,7 @@ class Clanlog:
             
         except(requests.exceptions.Timeout, json.decoder.JSONDecodeError, KeyError):
             await self.bot.say("Cannot reach Clash Royale servers. Try again later!")
-               
+
     @commands.command(pass_context=True, no_pm=True)
     async def history(self, ctx):
         """Graph with member count history"""
@@ -123,28 +127,20 @@ class Clanlog:
             await self.bot.send_typing(channel)
             self.update_member_log()
             
-            dates = []
-            counts = []
-            sorted_times = sorted(self.member_log.items(), key=operator.itemgetter(0))
-            for x in sorted_times:
-                dates.append(x[0])
-                counts.append(x[1])
-                
-            first_day= dt.fromtimestamp(float(dates[0])).strftime("%d. %m. %Y")
-            last_day = dt.fromtimestamp(float(dates[len(dates)-1])).strftime("%d. %m. %Y")
-                
-            for i in range(len(dates)):
-                dates[i] = dt.fromtimestamp(float(dates[i])).strftime("%d/%m/%Y")
-            
-            x = [dt.strptime(d,"%d/%m/%Y").date() for d in dates]
-            
             plt.figure(figsize=(10, 6))
-            plt.plot(x, counts)
-            plt.gca().xaxis.set_major_formatter(mdates.DateFormatter("%d. %m."))
+            x,y = zip(*sorted(self.member_log.items()))
+            plt.plot(x,y)
+
+            dates = []
+            for name in x:
+                dates.append(dt.fromtimestamp(float(name)).strftime("%a, %b %d %Y"))
+
+            plt.gcf().autofmt_xdate()
+            plt.xticks(np.arange(0, len(self.member_log)+1, 20), dates)
+
             plt.title("MEMBER COUNT HISTORY OF LEGEND FAMILY", color = "orange", weight = "bold", size = 19)
             plt.xlabel("DATE", color = "gray")
             plt.ylabel("MEMBERS", color = "gray")
-            fromto = "({}. - {}.)".format(first_day, last_day)
             
             plt.savefig("data/clanlog/history.png")
             await self.bot.send_file(channel, "data/clanlog/history.png", filename=None)

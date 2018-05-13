@@ -1,19 +1,9 @@
 import discord
 from discord.ext import commands
 from .utils.dataIO import dataIO, fileIO
-try: # check if BeautifulSoup4 is installed
-	from bs4 import BeautifulSoup
-	soupAvailable = True
-except:
-	soupAvailable = False
-import json
-from flask import Flask, request
 import requests
 import os
-import aiohttp
 from __main__ import send_cmd_help
-import socket
-import urllib.request  as urllib2
 import time
 
 BOTCOMMANDER_ROLES =  ["Family Representative", "Clan Manager", "Clan Deputy", "Co-Leader", "Hub Officer", "admin", "Leader", "Bot Commander"]
@@ -21,7 +11,6 @@ creditIcon = "https://i.imgur.com/TP8GXZb.png"
 credits = "Cog by GR8 | Titan"
 
 clash = os.path.join("cogs", "tags.json")
-brawl = os.path.join("data", "BrawlStats", "tags.json")
 auth = os.path.join("cogs", "auth.json")
 
 class clashroyale:
@@ -30,7 +19,6 @@ class clashroyale:
 	def __init__(self, bot):
 		self.bot = bot
 		self.clash = dataIO.load_json(clash)
-		self.brawl = dataIO.load_json(brawl)
 		self.auth = dataIO.load_json(auth)
 
 	def getAuth(self):
@@ -112,7 +100,7 @@ class clashroyale:
 		embed.add_field(name="Challenge Cards Won", value=profiledata['stats']['challengeCardsWon'], inline=True)
 		embed.add_field(name="Tournament Cards Won", value=profiledata['stats']['tournamentCardsWon'], inline=True)
 		embed.set_footer(text=credits, icon_url=creditIcon)
-		
+
 		await self.bot.say(embed=embed)
 
 
@@ -124,39 +112,39 @@ class clashroyale:
 
 		if member is None:
 			member = ctx.message.author
-			
+
 		try:
 			profiletag = self.clash[member.id]['tag']
 		except:
 			await self.bot.say("You need to first save your profile using ``!save clash #GAMETAG``")
-			
+
 		await self.bot.type()
 
 		try:
-			profiledata = requests.get('https://api.royaleapi.com/player/{}?keys=chestCycle,name,tag,clan'.format(profiletag), headers=self.getAuth(), timeout=10).json()
+			profiledata = requests.get('https://api.royaleapi.com/player/{}/chests'.format(profiletag), headers=self.getAuth(), timeout=10).json()
 		except:
 			await self.bot.say("Error: cannot reach Clash Royale Servers. Please try again later.")
 			return
 
-		valuechestText = ' '.join(profiledata['chestCycle']['upcoming']).replace('silver', '<:silver:385784583343439882>').replace('gold', '<:gold:385784630227369985>').replace('giant', '<:giant:380832560504373249>').replace('epic', '<:epic:380832620059033610>').replace('super magical', '<:super:380832745305276416>').replace('magical', '<:magic:380832656704798731>').replace('legendary', '<:legend:380832458482122752>')
+		valuechestText = ' '.join(profiledata['upcoming']).replace('silver', '<:silver:385784583343439882>').replace('gold', '<:gold:385784630227369985>').replace('giant', '<:giant:380832560504373249>').replace('epic', '<:epic:380832620059033610>').replace('super magical', '<:super:380832745305276416>').replace('magical', '<:magic:380832656704798731>').replace('legendary', '<:legend:380832458482122752>')
 
-		chest1 = "<:giant:380832560504373249> +" + str(profiledata['chestCycle']['giant']+1) + "  "
-		chest2 = "<:epic:380832620059033610> +" + str(profiledata['chestCycle']['epic']+1) + "  "
-		chest3 = "<:magic:380832656704798731> +" + str(profiledata['chestCycle']['magical']+1) + "  "
-		chest4 = "<:super:380832745305276416> +" + str(profiledata['chestCycle']['superMagical']+1) + "  "
-		chest5 = "<:legend:380832458482122752> +" + str(profiledata['chestCycle']['legendary']+1) + "  "
+        chest1 = "<:giant:380832560504373249> +" + str(profiledata['giant']+1) + "  "
+        chest2 = "<:epic:380832620059033610> +" + str(profiledata['epic']+1) + "  "
+        chest3 = "<:magic:380832656704798731> +" + str(profiledata['magical']+1) + "  "
+        chest4 = "<:super:380832745305276416> +" + str(profiledata['superMagical']+1) + "  "
+        chest5 = "<:legend:380832458482122752> +" + str(profiledata['legendary']+1) + "  "
 
 		if profiledata['clan'] is None:
 			clanurl = "https://i.imgur.com/4EH5hUn.png"
 		else:
 			clanurl = profiledata['clan']['badge']['image']
 
-		embed=discord.Embed(title="", color=0xFAA61A, description="Your Upcoming chests.")
-		embed.set_author(name=profiledata['name'] + " (#"+profiledata['tag']+")", icon_url=clanurl)
-		embed.add_field(name="Upcoming Chests", value=valuechestText, inline=False)
-		embed.add_field(name="Special Chests", value=chest1+chest2+chest3+chest4+chest5, inline=False)
-		embed.set_footer(text=credits, icon_url=creditIcon)
-		await self.bot.say(embed=embed)
+        embed=discord.Embed(title="", color=0xFAA61A, description="Your Upcoming chests.")
+        embed.set_author(name="#"+profiletag)
+        embed.add_field(name="Upcoming Chests", value=valuechestText, inline=False)
+        embed.add_field(name="Special Chests", value=chest1+chest2+chest3+chest4+chest5, inline=False)
+        embed.set_footer(text=credits, icon_url=creditIcon)
+        await self.bot.say(embed=embed)
 
 
 
@@ -186,7 +174,7 @@ class clashroyale:
 
 		except:
 			raise
-			await self.bot.say("You need to first save your profile using ``!save clash #GAMETAG``")
+			await self.bot.say("You need to first save your profile using ``!save #GAMETAG``")
 
 	@commands.command(pass_context=True)
 	async def clan(self, ctx, clantag):
@@ -197,7 +185,7 @@ class clashroyale:
 		try:
 			clandata = requests.get('https://api.royaleapi.com/clan/{}'.format(clantag), headers=self.getAuth(), timeout=10).json()
 
-			embed=discord.Embed(title=clandata['name'] + " (#" + clandata['tag'] + ")", url="http://royaleapi.com/clan/"+clandata['tag'], description=clandata['description'], color=0xFAA61A)
+			embed=discord.Embed(title=clandata['name'] + " (#" + clandata['tag'] + ")", url="https://legendclans.com/clanInfo/{}".format(clandata['tag']), description=clandata['description'], color=0xFAA61A)
 			embed.set_thumbnail(url=clandata['badge']['image'])
 			embed.add_field(name="Members", value=str(clandata['memberCount'])+"/50", inline=True)
 			embed.add_field(name="Donations", value=str(clandata['donations']), inline=True)
@@ -225,6 +213,8 @@ class clashroyale:
 			await self.bot.say("The ID you provided has invalid characters. Please try again.")
 			return
 
+		await self.bot.delete_message(ctx.message)
+
 		try:
 			tourneydata = requests.get('https://api.royaleapi.com/tournaments/{}'.format(tag), headers=self.getAuth(), timeout=10).json()
 
@@ -232,13 +222,11 @@ class clashroyale:
 			cards = self.getCards(maxCapacity)
 			coins = self.getCoins(maxCapacity)
 
-			try:
-				desc = tourneydata['description']
-			except KeyError:
-				desc = "No description"
-
-			embed=discord.Embed(title=tourneydata['name']+" (#"+tourneydata['tag']+")", url="http://royaleapi.com/tournament/"+tourneydata['tag'], description=desc, color=0xFAA61A)
+			embed=discord.Embed(title="Click this link to join the Tournament in Clash Royale!", url="https://legendclans.com/tournaments?id={}&pass={}".format(tag, password), color=0xFAA61A)
 			embed.set_thumbnail(url='https://statsroyale.com/images/tournament.png')
+
+			embed.set_author(name=tourneydata['name']+" (#"+tourneydata['tag']+")")
+
 			embed.add_field(name="Players", value=str(tourneydata['playerCount']) + "/" + str(maxCapacity), inline=True)
 			embed.add_field(name="Status", value=tourneydata['status'].title(), inline=True)
 
@@ -267,29 +255,13 @@ class clashroyale:
 		except:
 			await self.bot.say("Error: Tournament not found. Please try again later!")
 
-	@commands.group(pass_context=True)
-	async def save(self, ctx):
-		"""Save profile tags for Clash Royale and Brawl Stars"""
-		author = ctx.message.author
-		if ctx.invoked_subcommand is None:
-			await send_cmd_help(ctx)
-			msg = "```"
-			if author.id in self.clash: 
-				msg += "CR Profile: {}\n".format(self.clash[author.id]['tag'])
-			if author.id in self.brawl: 
-				msg += "BS Profile: {}\n".format(self.brawl[author.id]['tag'])
-			if author.id in self.brawl: 
-				msg += "BS Clan: {}\n".format(self.brawl[author.id]['band_tag'])
-			msg += "```"
-			await self.bot.say(msg)
-
-	@save.command(pass_context=True, name="clash")
-	async def save_clash(self, ctx, profiletag : str, member: discord.Member = None):
+	@commands.command(pass_context=True)
+	async def save(self, ctx, profiletag : str, member: discord.Member = None):
 		""" save your Clash Royale Profile Tag	
 
 		Example:
-			!save clash #CRRYTPTT @GR8
-			!save clash #CRRYRPCC
+			!save #CRRYTPTT @GR8
+			!save #CRRYRPCC
 
 		Type !contact to ask for help.
 		"""
@@ -347,84 +319,13 @@ class clashroyale:
 		except:
 			await self.bot.say("We cannot find your ID in our database, please try again.")
 
-	@save.command(pass_context=True, name="brawl")
-	async def save_brawl(self, ctx, profiletag : str, member: discord.Member = None):
-		"""save your Brawl Stars Profile Tag
-
-		Example:
-			!save brawl #LJQ2GGR
-			!save brawl #LJQ2GGR @GR8
-
-		Type !contact to ask for help.
-		"""
-		server = ctx.message.server
-		author = ctx.message.author
-
-		profiletag = profiletag.strip('#').upper().replace('O', '0')
-		check = ['P', 'Y', 'L', 'Q', 'G', 'R', 'J', 'C', 'U', 'V', '0', '2', '8', '9']
-
-		if any(i not in check for i in profiletag):
-			await self.bot.say("The ID you provided has invalid characters. Please try again.")
-			return
-
-		allowed = False
-		if member is None:
-			allowed = True
-		elif member.id == author.id:
-			allowed = True
-		else:
-			botcommander_roles = [discord.utils.get(server.roles, name=r) for r in BOTCOMMANDER_ROLES]
-			botcommander_roles = set(botcommander_roles)
-			author_roles = set(author.roles)
-			if len(author_roles.intersection(botcommander_roles)):
-				allowed = True
-
-		if not allowed:
-			await self.bot.say("You dont have enough permissions to set tags for others.")
-			return
-
-		if member is None:
-			member = ctx.message.author
-		
-		url = "https://brawlstats.io/players/" + profiletag
-		refresh = "https://brawlstats.io/players/" + profiletag + "/refresh"
-		requests.get(refresh)
-
-		async with aiohttp.get(url) as response:
-			soupObject = BeautifulSoup(await response.text(), "html.parser")
-		try:
-
-			band = soupObject.find('div', {'class':'band-info'}).get_text()
-
-			if band == 'No Band':
-				band_tag = '#'
-			else:
-				band_link = soupObject.find('div', {'class':'band-info'}).find('a')
-				band_tag = band_link['href'][7:].strip()
-
-			tagUsername = soupObject.find('div', {'class':'player-name brawlstars-font'}).get_text()
-
-			self.brawl.update({member.id: {'tag': profiletag, 'band_tag': band_tag}})
-			dataIO.save_json('data/BrawlStats/tags.json', self.brawl)
-
-			await self.bot.say(tagUsername + ' has been successfully saved. Now you can use ``!brawlProfile`` ``!band``')
-		except:
-			await self.bot.say("We cannot find your ID in our database, please try again.")
-
 def check_folders():
 	if not os.path.exists("data/clashroyale"):
 		print("Creating data/clashroyale folder...")
 		os.makedirs("data/clashroyale")
-	if not os.path.exists("data/BrawlStats"):
-		print("Creating data/BrawlStats folder...")
-		os.makedirs("data/BrawlStats")
 
 def check_files():
 	f = "cogs/tags.json"
-	if not fileIO(f, "check"):
-		print("Creating empty tags.json...")
-		fileIO(f, "save", {"0" : {"tag" : "DONOTREMOVE"}})
-	f = "data/BrawlStats/tags.json"
 	if not fileIO(f, "check"):
 		print("Creating empty tags.json...")
 		fileIO(f, "save", {"0" : {"tag" : "DONOTREMOVE"}})
@@ -443,7 +344,4 @@ def setup(bot):
 	#check_folders()
 	check_files()
 	check_auth()
-	if soupAvailable:
-		bot.add_cog(clashroyale(bot))
-	else:
-		raise RuntimeError("You need to run `pip3 install beautifulsoup4`")
+	bot.add_cog(clashroyale(bot))

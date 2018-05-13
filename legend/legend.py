@@ -60,33 +60,33 @@ info_text = """You will find several channels on our Discord Server\n
 **#bots-spam**: play bot commands, You can mute the channels you don't need in DISCORD settings.
 **#friends-forever**: Post your Clash friend invite link or add others.
 """
-cw_info = """We organize a **clanwar** every weekend, which aims to determine **which clan is the strongest**. 
+cw_info = """We organize **Legend Wars** every weekend, which aims to determine **which clan is the strongest**. 
 
 The **idea** is simple: A private tournament that anyone may join **within LeGeND and the alliance. **
 Score is calculated in a way that allows every participant to contribute to help their clan win.  We sum the earned tournament trophies of the members of each clan to calculate a clan score, clan with highest clan score is declared the **winner**! 
 
 There are 2 factors to win: convince more players to participate within your clan and earn more tournament trophies. Both are **equally important**. We publish tourneys and passwords at same time, so we give equal chances to each clan and player. 
 
-Every Sunday, there will be a **special Gizer clanwar** where various clans outside and inside the family will join a tournament and the top clan will recieve $5 from Gizer. 
+Every Sunday, there will be a **special Gizer Legend War** where various clans outside and inside the family will join a tournament and the top clan will recieve $5 from Gizer. 
 
 Each and every participant will recieve discord credits for getting trophies for their clan. The more trophies you can collect, the more credits you will get. Credits can used in LeGeND shop to buy various items.
 
 **All clans** will be closed/full to avoid any leaks, nobody will be allowed to join.
 
-**3 golden Rules for clanwars:** We respect the Opponent (no BMing if you win), we play to have fun (no obligation to participate), and don't join if you think you cannot play.
+**3 golden Rules for Legend Wars:** We respect the Opponent (no BMing if you win), we play to have fun (no obligation to participate), and don't join if you think you cannot play.
 """
 
 credits_info = """**WHAT ARE CREDITS?**
-Credits are a virtual curency in LeGeND Discord, you earn credits by playing in clanwars, donating, participating in the clan chest and playing mini games in discord. To use your credits, you can buy items using ``!buy``.
+Credits are a virtual currency in LeGeND Discord, you earn credits by playing in Legend Wars, donating, and playing mini games in discord. To use your credits, you can buy items using !buy.
 
-• Every 30 minutes, you can get free credits by typing ``!payday`` in #bot-spam channel.
-• Every Sunday, you recieve something called a "Weekly Payout". Which converts all your week's clan donations and clan chest crowns into credits. So the more active you are in a clan, the more credits you get.
-• We have clanwars every weekend, participating in these clan wars also give you tons of credits according to your tournament trophies.
-• You can also win credits by playing #slots. Bet and win credits with your pure luck.
-• You can play games such as #heist, #race and #four-row to win credits. 
+• Every 30 minutes, you can get free credits by typing !payday in #bot-spam channel.
+• Every Sunday, you receive something called a "Weekly Payout". Which converts all your week's clan donations into credits. So the more active you are in a clan, the more credits you get.
+• We have Legend Wars every weekend, participating in these clan wars also give you tons of credits according to your tournament trophies.
+• You can also win credits by playing #heist and #challenges.
+• You can play Clash Royale #duels to bet on your skills in friend battles.
 • Last but not least, you can get easy credits by just chatting on discord. The more you chat, the more credits you accumulate.
 
-You can type ``!buy`` here to look at different ways you can spend these credits.
+You can type !buy here to look at different ways you can spend these credits.
 """
 
 esports_info = """The LeGeND Esports Team is recruiting all active and aspiring players!
@@ -102,10 +102,9 @@ Please note that if you just lurk in the server and not participate for a long p
 https://discord.gg/CN47Tkx
 """
 
-coc_bs = """We also play **Clash of Clans** and **Brawl Stars**, we would like to invite to you join them if you play either of these supercell games.
+coc_bs = """We also play **Clash of Clans**, and we would like to invite to you join our clans.
 
-• Clash of Clans - **LeGeND Raiders! (#JQJRGVJU)** - https://discord.gg/BG7wMFw
-• Brawl Stars - **LeGeND Bandits! (#L8V8UYC)** - https://discord.gg/brVC4Cz
+• **LeGeND Raiders! (#JQJRGVJU)** - https://discord.gg/BG7wMFw
 
 You can send a request to join with the message "from LEGEND". Join the discord server when you are accepted.
 """
@@ -331,13 +330,12 @@ class legend:
                 await self.bot.say(e)
                 return
             except:
-                await self.bot.say("You must assosiate a tag with this member first using ``!save clash #tag @member``")
+                await self.bot.say("You must assosiate a tag with this member first using ``!save #tag @member``")
                 return
 
         try:
             await self.bot.type()
-            clans = requests.get('https://api.royaleapi.com/clan/' + ','.join(
-                self.c[clan]["tag"] for clan in self.c) + '?exclude=members', headers=self.getAuth(), timeout=20).json()
+            clans = requests.get('https://api.royaleapi.com/clan/'+','.join(self.c[clan]["tag"] for clan in self.c)+'?exclude=members', headers=self.getAuth(), timeout=25).json()
         except (requests.exceptions.Timeout, json.decoder.JSONDecodeError):
             await self.bot.say("Error: cannot reach Clash Royale Servers. Please try again later.")
             return
@@ -397,10 +395,7 @@ class legend:
             if bonustitle is not None:
                 title += bonustitle
 
-            # desc = emoji + " " + showMembers + "     :trophy: " + str(clans[x]['requiredScore']) + "+     :medal: " +str(clans[x]['score'])
-            desc = "{}      :trophy: {}+     :medal:{}   :arrow_upper_right: [Open](https://link.clashroyale.com/?clanInfo?id={})".format(showMembers, str(clans[x]['requiredScore']), str(clans[x]['score']), clans[x]['tag'])
-            # desc = showMembers + "     :trophy: " + str(clans[x]['requiredScore']) + "+     :medal: " + str(
-            #     clans[x]['score']) + ":arrow_upper_right: [Open](https://legendclans.com/clanInfo/{})".format()
+            desc = "{} {}      :trophy: {}+     :medal:{}   :arrow_upper_right: [Open](https://legendclans.com/clanInfo/{})".format(emoji, showMembers, str(clans[x]['requiredScore']), str(clans[x]['score']), clans[x]['tag'])
 
             if (member is None) or ((clans[x]['requiredScore'] <= trophies) and (maxtrophies > personalbest) and (
                     True or trophies - clans[x]['requiredScore'] < 1500) and (clans[x]['type'] != 'closed')):
@@ -472,7 +467,7 @@ class legend:
             await self.bot.say(e)
             return
         except:
-            await self.bot.say("You must assosiate a tag with this member first using ``!save clash #tag @member``")
+            await self.bot.say("You must assosiate a tag with this member first using ``!save #tag @member``")
             return
 
         membership = True
@@ -547,10 +542,11 @@ class legend:
                 recruitCode = ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(6))
 
                 await self.bot.send_message(member,
-                                            "Congratulations, You have been approved to join **" + clan_name + " (#" + clan_tag + ")**. Please follow the instructions below on how to join: \n\n" +
-                                            "Your Recruit Code is: ``" + recruitCode + "`` \n\n" +
-                                            "All you have to do is search the clan name in Clash Royale, request to join and enter your recruit code in the request message.\n\n" +
-                                            "That's it! Now wait for your clan leadership to accept you. \n\n" +
+                                            "Congratulations, You have been approved to join **" + clan_name + " (#" + clan_tag + ")**.\n\n\n" +
+                                            "Your **RECRUIT CODE** is: ``" + recruitCode + "`` \n" +
+                                            "Send this code in the join request message.\n\n"+
+                    "Click this link to join the clan: https://legendclans.com/clanInfo/"+ clan_tag +"\n\n" +
+                                            "That's it! Now wait for your clan leadership to accept you. \n" +
                                             "If you do not see a 'request to join' button, make sure you leave your current clan and check the trophy requirements. \n\n" +
                                             "**IMPORTANT**: Once your clan leadership has accepted your request, let a staff member in discord know that you have been accepted. They will then unlock all the member channels for you."
                                             )
@@ -600,7 +596,7 @@ class legend:
             await self.bot.say(e)
             return
         except:
-            await self.bot.say("You must assosiate a tag with this member first using ``!save clash #tag @member``")
+            await self.bot.say("You must assosiate a tag with this member first using ``!save #tag @member``")
             return
 
         allowed = False
@@ -770,7 +766,7 @@ class legend:
             await self.bot.say(e)
             return
         except:
-            await self.bot.say("You must assosiate a tag with this member first using ``!save clash #tag @member``")
+            await self.bot.say("You must assosiate a tag with this member first using ``!save #tag @member``")
             return
 
         if not offline:
@@ -914,7 +910,7 @@ class legend:
             await self.bot.say(e)
             return
         except:
-            await self.bot.say("You must assosiate a tag with this member first using ``!save clash #tag @member``")
+            await self.bot.say("You must assosiate a tag with this member first using ``!save #tag @member``")
             return
 
         membership = False
@@ -1046,9 +1042,7 @@ class legend:
 
         # cr_clanSettings.append(clandata['badge']['id'] == 16000002)
         # cr_clanSettings.append(clandata['location']['name'] == "International")
-        # cr_clanSettings.append(
-        #     "LeGeND Family🔥14 Clans🔥LegendClans.com🔥Daily Tourneys🔥Weekly Clanwar🔥discord.me/legendfamily🔥" in
-        #     clandata['description'])
+        # cr_clanSettings.append("LeGeND Family🔥14 Clans🔥LegendClans.com🔥Daily Tourneys🔥Weekly LeGeND War🔥discord.me/legendfamily🔥" in clandata['description'])
         # cr_clanSettings.append(clandata['type'] != "closed")
 
         message = ""
@@ -1263,80 +1257,6 @@ class legend:
             message += "```"
         await self.bot.say(message)
 
-    @topmembers.command(name="crowns")
-    async def topmembers_crowns(self, role: str = None):
-        """Show Family Clan Chest Crowns LeaderBoard"""
-        number = 10
-        if number > 100:
-            await self.bot.say("Sorry! the number must be below 100.")
-            return
-
-        if role not in ["leader", "coleader", "elder", "member", None]:
-            await self.bot.say("Invalid role!")
-            return
-
-        if "family" in self.settings:
-            familyname = self.settings['family']
-        else:
-            familyname = "LeGeND Family"
-
-        if role != None:
-            filterroles = True
-            await self.bot.say("**{0} Clan Chest Crowns LeaderBoard** ({1}s)".format(familyname, role))
-        else:
-            await self.bot.say("**{0} Clan Chest Crowns LeaderBoard**".format(familyname))
-        await self.bot.type()
-        try:
-            if "url" in self.settings:
-                familyurl = '{}/members/datatable'.format(self.settings['url'])
-                allplayers = requests.get(familyurl, timeout=15).json()
-            else:
-                allplayers = requests.get('http://royaleapi.com/clan/family/legend/members/datatable',
-                                          timeout=15).json()
-        except:
-            await self.bot.say("Error: cannot reach Clash Royale Servers. Please try again later.")
-            return
-        players = dict(allplayers)
-        players['data'] = sorted(allplayers['data'], key=lambda x: x['family_rank_crowns'])
-
-        if role == None:
-            message = "```\n"
-            for x in range(0, number):
-                clantag = players['data'][x]['clan_tag']
-                for i in self.c:
-                    if clantag == self.c[i]['tag']:
-                        clanname = self.c[i]['nickname']
-                message += (str(x + 1) + ".").ljust(4) + (
-                        " [" + str(players['data'][x]['clan_chest_crowns']) + "]  ").ljust(8) + players['data'][x][
-                               'name'] + " (" + clanname + ") " + "\n"
-                if (x + 1) % 40 == 0:
-                    message += "```"
-                    await self.bot.say(message)
-                    message = "```\n"
-            message += "```"
-        else:
-            message = "```\n"
-            amount = 0
-            for x in range(0, len(players['data'])):
-                clanrole = players['data'][x]['role'].replace("-", "").lower()
-                clantag = players['data'][x]['clan_tag']
-                for i in self.c:
-                    if clantag == self.c[i]['tag']:
-                        clanname = self.c[i]['nickname']
-                if role == clanrole:
-                    message += (str(amount + 1) + ".").ljust(4) + (
-                            " [" + str(players['data'][x]['clan_chest_crowns']) + "]  ").ljust(8) + \
-                               players['data'][x]['name'] + " (" + clanname + ") " + "\n"
-                    amount += 1
-                    if amount == number:
-                        break
-                    if (amount + 1) % 40 == 0:
-                        message += "```"
-                        await self.bot.say(message)
-                        message = "```\n"
-            message += "```"
-        await self.bot.say(message)
-
     @commands.command()
     async def topclans(self):
         """Show top 10 international clans"""
@@ -1405,11 +1325,9 @@ class legend:
             rolesToRemove.append(self.c[x]['role'])
 
         await self._remove_roles(member, rolesToRemove)
+        await self.bot.change_nickname(member, None)
 
-        await self.bot.send_message(member,
-                                    "Hey there, I am sorry to inform you that we have removed you from the clan. We hope to see you back again soon when you are able to follow the clan requirements.")
-
-        await self.bot.say("Member and clan roles removed.")
+        await self.bot.say("Member and clan roles removed.\nNickname has been reset.")
 
     @commands.command()
     async def gmt(self):
@@ -1459,7 +1377,7 @@ class legend:
             await self.bot.say(e)
             return
         except:
-            await self.bot.say("You must assosiate a tag with this member first using ``!save clash #tag @member``")
+            await self.bot.say("You must assosiate a tag with this member first using ``!save #tag @member``")
             return
 
         membership = False
