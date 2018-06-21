@@ -6,7 +6,7 @@ import os
 from __main__ import send_cmd_help
 import time
 
-BOTCOMMANDER_ROLES =  ["Family Representative", "Clan Manager", "Clan Deputy", "Co-Leader", "Hub Officer", "admin"];
+BOTCOMMANDER_ROLES =  ["Family Representative", "Clan Manager", "Clan Deputy", "Co-Leader", "Hub Officer", "admin"]
 creditIcon = "https://i.imgur.com/TP8GXZb.png"
 credits = "Bot by GR8 | Titan"
 
@@ -85,15 +85,17 @@ class clashroyale:
 			if profiledata['clan'] is not None:
 				embed.add_field(name="Clan", value=profiledata['clan']['name'], inline=True)
 				embed.add_field(name="Role", value=profiledata['clan']['role'].capitalize(), inline=True)
-			embed.add_field(name="Cards Found", value=str(profiledata['stats']['cardsFound'])+"/83", inline=True)
+			embed.add_field(name="Cards Found", value=str(profiledata['stats']['cardsFound'])+"/86", inline=True)
 			embed.add_field(name="Favourite Card", value=profiledata['stats']['favoriteCard']['name'], inline=True)
 			embed.add_field(name="Games Played", value=profiledata['games']['total'], inline=True)
 			embed.add_field(name="Tournament Games Played", value=profiledata['games']['tournamentGames'], inline=True)
 			embed.add_field(name="Wins", value=profiledata['games']['wins'], inline=True)
 			embed.add_field(name="Losses", value=profiledata['games']['losses'], inline=True)
 			embed.add_field(name="Draws", value=profiledata['games']['draws'], inline=True)
+			embed.add_field(name="War Day Wins", value=profiledata['games']['warDayWins'], inline=True)	
 			embed.add_field(name="Three Crown Wins", value=profiledata['stats']['threeCrownWins'], inline=True)
 			embed.add_field(name="Total Donations", value=profiledata['stats']['totalDonations'], inline=True)
+			embed.add_field(name="Clan Card Collected", value=profiledata['stats']['clanCardsCollected'], inline=True)
 			embed.add_field(name="Challenge Max Wins", value=profiledata['stats']['challengeMaxWins'], inline=True)
 			embed.add_field(name="Challenge Cards Won", value=profiledata['stats']['challengeCardsWon'], inline=True)
 			embed.add_field(name="Tournament Cards Won", value=profiledata['stats']['tournamentCardsWon'], inline=True)
@@ -210,19 +212,19 @@ class clashroyale:
 		try:
 			tourneydata = requests.get('https://api.royaleapi.com/tournaments/{}'.format(tag), headers=self.getAuth(), timeout=10).json()
 
-			maxCapacity = tourneydata['maxCapacity']
-			cards = self.getCards(maxCapacity)
-			coins = self.getCoins(maxCapacity)
+			maxPlayers = tourneydata['maxPlayers']
+			cards = self.getCards(maxPlayers)
+			coins = self.getCoins(maxPlayers)
 
 			embed=discord.Embed(title="Click this link to join the Tournament in Clash Royale!", url="https://legendclans.com/tournaments?id={}&pass={}".format(tag, password), color=0xFAA61A)
 			embed.set_thumbnail(url='https://statsroyale.com/images/tournament.png')
 
 			embed.set_author(name=tourneydata['name']+" (#"+tourneydata['tag']+")")
 
-			embed.add_field(name="Players", value=str(tourneydata['playerCount']) + "/" + str(maxCapacity), inline=True)
+			embed.add_field(name="Players", value=str(tourneydata['currentPlayers']) + "/" + str(maxPlayers), inline=True)
 			embed.add_field(name="Status", value=tourneydata['status'].title(), inline=True)
 
-			if tourneydata['type'] == "passwordProtected":
+			if tourneydata['open']:
 				if password is not None:
 					embed.add_field(name="Password", value=password, inline=True)
 				else:
@@ -232,10 +234,10 @@ class clashroyale:
 			if tourneydata['status'] != "ended":
 
 				if tourneydata['status'] != "inProgress":
-					startTime = self.sec2tme((tourneydata['createTime'] + tourneydata['preparationDuration']) - int(time.time()))
+					startTime = self.sec2tme((tourneydata['createTime'] + tourneydata['prepTime']) - int(time.time()))
 					embed.add_field(name="Starts In", value=startTime, inline=True)
 
-				endTime = self.sec2tme((tourneydata['createTime'] + tourneydata['preparationDuration'] + tourneydata['duration']) - int(time.time()))
+				endTime = self.sec2tme((tourneydata['createTime'] + tourneydata['prepTime'] + tourneydata['duration']) - int(time.time()))
 				embed.add_field(name="Ends In", value=endTime, inline=True)
 
 
@@ -324,7 +326,7 @@ def check_files():
 	f = "cogs/auth.json"
 	if not fileIO(f, "check"):
 		print("enter your RoyaleAPI token in auth.json...")
-		dataIO.save_json(f, "save", {"token" : "enter your RoyaleAPI token here!"})
+		fileIO(f, "save", {"token" : "enter your RoyaleAPI token here!"})
 
 def check_auth():
 	c = dataIO.load_json('cogs/auth.json')

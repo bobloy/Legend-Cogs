@@ -124,6 +124,7 @@ class duels:
     async def start(self, ctx, bet : int, member: discord.Member = None):
         """Start a duel with bets"""
         author = ctx.message.author
+        server = ctx.message.server
 
         if self.active:
             await self.bot.say("Another duel is already in progress, type ``!duel accept``.")
@@ -163,7 +164,7 @@ class duels:
 
             embed=discord.Embed(color=0x0080ff)
             embed.set_author(name=profiledata['name'] + " (#"+profiledata['tag']+")", icon_url=clanurl)
-            embed.set_thumbnail(url="https://imgur.com/jNDd0ad.png")
+            embed.set_thumbnail(url="https://imgur.com/9DoEq22.jpg")
             embed.add_field(name="Duel Wins", value=str(duelPlayer['WON']), inline=True)
             embed.add_field(name="Trophies", value=profiledata['trophies'], inline=True)
             if profiledata['clan'] is not None:
@@ -172,12 +173,19 @@ class duels:
             embed.set_footer(text=credits, icon_url=creditIcon)
 
             if privateDuel is None:
-                await self.bot.say("{} wants to duel one of you in Clash Royale for {} credits, type ``{}duel accept`` the offer.".format(author.mention, str(bet), ctx.prefix))
-            else:
-                await self.bot.say("{} wants to duel {} in Clash Royale for {} credits, type ``{}duel accept`` to accept the offer.".format(author.mention, member.mention, str(bet), ctx.prefix))
-                
-            await self.bot.say(embed=embed)
 
+                role_name = "Duels"
+                if role_name is not None:
+                    duels_role = discord.utils.get(server.roles, name=role_name)
+                    if duels_role is None:
+                        await self.bot.create_role(server, name=role_name)
+                        duels_role = discord.utils.get(server.roles, name=role_name)
+
+                await self.bot.edit_role(server, duels_role, mentionable=True)
+                await self.bot.say(content="[{}] {} wants to duel one of you in Clash Royale for {} credits, type ``{}duel accept`` the offer.".format(duels_role.mention, author.mention, str(bet), ctx.prefix), embed=embed)
+                await self.bot.edit_role(server, duels_role, mentionable=False)
+            else:
+                await self.bot.say(content="{} wants to duel {} in Clash Royale for {} credits, type ``{}duel accept`` to accept the offer.".format(author.mention, member.mention, str(bet), ctx.prefix), embed=embed)    
         except:
             await self.bot.say("Error: cannot reach Clash Royale Servers. Please try again later.")
             return
@@ -250,6 +258,10 @@ class duels:
         duelBet = self.settings["DUELS"][duelID]["BET"]
         privateDuel = self.settings["DUELS"][duelID]["PRIVATE"]
 
+        if duelPlayers[0] == author.id:
+            await self.bot.say("Sorry, You cannot duel yourself.")
+            return
+
         if privateDuel is not None:
             if privateDuel is not author.id:
                 await self.bot.say("Cannot join the duel, it is set to private.")
@@ -261,10 +273,6 @@ class duels:
 
         if self.account_check(author.id) is False:
             await self.bot.say("You need to register before accepting a duel, type ``{}duel register``.".format(ctx.prefix))
-            return
-
-        if duelPlayers[0] == author.id:
-            await self.bot.say("Sorry, You cannot duel yourself.")
             return
 
         try:
@@ -438,7 +446,15 @@ def check_files():
     f = settings_path
     if not fileIO(f, "check"):
         print("Creating duels settings.json...")
-        dataIO.save_json(f, {"CONFIG" : {}, "USERS" : {},"DUELS" : {}})
+        fileIO(f, {"CONFIG" : {}, "USERS" : {},"DUELS" : {}})
+    f = "cogs/tags.json"
+    if not fileIO(f, "check"):
+        print("Creating empty tags.json...")
+        fileIO(f, "save", {"0" : {"tag" : "DONOTREMOVE"}})
+    f = "cogs/auth.json"
+    if not fileIO(f, "check"):
+        print("enter your RoyaleAPI token in auth.json...")
+        fileIO(f, "save", {"token" : "enter your RoyaleAPI token here!"})
 
 def setup(bot):
     check_folders()

@@ -142,12 +142,11 @@ class shop:
                                 epic = await self._is_epic(user)
                                 legendary = await self._is_legendary(user)
 
-                                perDonation = 15
+                                perDonation = 25
                                 BonusMult = 1
 
                                 if rare:
                                     BonusMult = 1.2
-    
                                     perDonation *= BonusMult
 
                                 if epic:
@@ -255,7 +254,6 @@ class shop:
     @commands.group(pass_context=True)
     async def buy(self, ctx):
         """Buy different items from the legend shop"""
-        author = ctx.message.author
 
         await self.bot.type()
 
@@ -300,7 +298,7 @@ class shop:
             return
 
         if self.bank_check(author, 75000):
-            await self.bot.say("please contact @GR8#7968 or rakerran#7837 to purchase it for you.")
+            await self.bot.say("please contact @GR8#7968 to purchase it for you.")
         else:
             await self.bot.say("You do not have enough credits to buy this item.")
 
@@ -364,7 +362,7 @@ class shop:
                         newclanname = self.clans[savekey]['nickname']
                         newname = "{} {} | {}".format(ign, emoji, newclanname)
                     else:
-                        newname = "{} {}".format(ign, emoji)
+                        newname = "{} | Guest {}".format(ign, emoji)
                     await self.bot.change_nickname(author, newname)
                 except discord.HTTPException:
                     await self.bot.say("I don’t have permission to change nick for this user.")
@@ -388,7 +386,7 @@ class shop:
             return
 
         if self.bank_check(author, 90000):
-            await self.bot.say("please contact @GR8#7968 or rakerran#7837 to purchase it for you.")
+            await self.bot.say("please contact @GR8#7968 to purchase it for you.")
         else:
             await self.bot.say("You do not have enough credits to buy this item.")
 
@@ -502,5 +500,22 @@ class shop:
         else:
             await self.bot.say("You do not have enough credits to buy Nitro.")
 
+def check_files():
+    f = "cogs/tags.json"
+    if not fileIO(f, "check"):
+        print("Creating empty tags.json...")
+        fileIO(f, "save", {"0" : {"tag" : "DONOTREMOVE"}})
+
+    f = "cogs/clans.json"
+    if not fileIO(f, "check"):
+        print("Creating empty clans.json...")
+        fileIO(f, "save", {})
+
+    f = "cogs/auth.json"
+    if not fileIO(f, "check"):
+        print("enter your RoyaleAPI token in auth.json...")
+        fileIO(f, "save", {"token" : "enter your RoyaleAPI token here!"})
+
 def setup(bot):
+    check_files()
     bot.add_cog(shop(bot))
