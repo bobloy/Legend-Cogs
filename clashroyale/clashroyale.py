@@ -225,7 +225,6 @@ class clashroyale:
 
         await self.bot.delete_message(ctx.message)
 
-
         tourneydata = requests.get('https://api.royaleapi.com/tournaments/{}'.format(tag), headers=self.getAuth(),
                                    timeout=10).json()
 
@@ -346,11 +345,11 @@ def check_files():
     f = "cogs/tags.json"
     if not fileIO(f, "check"):
         print("Creating empty tags.json...")
-        fileIO(f, "save", {"0": {"tag": "DONOTREMOVE"}})
+        dataIO.save_json(f, {"0": {"tag": "DONOTREMOVE"}})
     f = "cogs/auth.json"
     if not fileIO(f, "check"):
         print("enter your RoyaleAPI token in auth.json...")
-        fileIO(f, "save", {"token": "enter your RoyaleAPI token here!"})
+        dataIO.save_json(f, {"token": "enter your RoyaleAPI token here!"})
 
 
 def check_auth():
