@@ -91,15 +91,17 @@ class clashroyale:
         if profiledata['clan'] is not None:
             embed.add_field(name="Clan", value=profiledata['clan']['name'], inline=True)
             embed.add_field(name="Role", value=profiledata['clan']['role'].capitalize(), inline=True)
-        embed.add_field(name="Cards Found", value=str(profiledata['stats']['cardsFound']) + "/83", inline=True)
+        embed.add_field(name="Cards Found", value=str(profiledata['stats']['cardsFound']) + "/86", inline=True)
         embed.add_field(name="Favourite Card", value=profiledata['stats']['favoriteCard']['name'], inline=True)
         embed.add_field(name="Games Played", value=profiledata['games']['total'], inline=True)
         embed.add_field(name="Tournament Games Played", value=profiledata['games']['tournamentGames'], inline=True)
         embed.add_field(name="Wins", value=profiledata['games']['wins'], inline=True)
         embed.add_field(name="Losses", value=profiledata['games']['losses'], inline=True)
         embed.add_field(name="Draws", value=profiledata['games']['draws'], inline=True)
+        embed.add_field(name="War Day Wins", value=profiledata['games']['warDayWins'], inline=True)
         embed.add_field(name="Three Crown Wins", value=profiledata['stats']['threeCrownWins'], inline=True)
         embed.add_field(name="Total Donations", value=profiledata['stats']['totalDonations'], inline=True)
+        embed.add_field(name="Clan Card Collected", value=profiledata['stats']['clanCardsCollected'], inline=True)
         embed.add_field(name="Challenge Max Wins", value=profiledata['stats']['challengeMaxWins'], inline=True)
         embed.add_field(name="Challenge Cards Won", value=profiledata['stats']['challengeCardsWon'], inline=True)
         embed.add_field(name="Tournament Cards Won", value=profiledata['stats']['tournamentCardsWon'], inline=True)
@@ -223,117 +225,115 @@ class clashroyale:
 
         await self.bot.delete_message(ctx.message)
 
-        try:
-            tourneydata = requests.get('https://api.royaleapi.com/tournaments/{}'.format(tag), headers=self.getAuth(),
-                                       timeout=10).json()
 
-            maxCapacity = tourneydata['maxCapacity']
-            cards = self.getCards(maxCapacity)
-            coins = self.getCoins(maxCapacity)
+        tourneydata = requests.get('https://api.royaleapi.com/tournaments/{}'.format(tag), headers=self.getAuth(),
+                                   timeout=10).json()
 
-            embed = discord.Embed(title="Click this link to join the Tournament in Clash Royale!",
-                                  url="https://legendclans.com/tournaments?id={}&pass={}".format(tag, password),
-                                  color=0xFAA61A)
-            embed.set_thumbnail(url='https://statsroyale.com/images/tournament.png')
+        maxPlayers = tourneydata['maxPlayers']
+        cards = self.getCards(maxPlayers)
+        coins = self.getCoins(maxPlayers)
 
-            embed.set_author(name=tourneydata['name'] + " (#" + tourneydata['tag'] + ")")
+        embed = discord.Embed(title="Click this link to join the Tournament in Clash Royale!",
+                              url="https://legendclans.com/tournaments?id={}&pass={}".format(tag, password),
+                              color=0xFAA61A)
+        embed.set_thumbnail(url='https://statsroyale.com/images/tournament.png')
 
-            embed.add_field(name="Players", value=str(tourneydata['playerCount']) + "/" + str(maxCapacity), inline=True)
-            embed.add_field(name="Status", value=tourneydata['status'].title(), inline=True)
+        embed.set_author(name=tourneydata['name'] + " (#" + tourneydata['tag'] + ")")
 
-            if tourneydata['type'] == "passwordProtected":
-                if password is not None:
-                    embed.add_field(name="Password", value=password, inline=True)
-                else:
-                    await self.bot.say("Error: Please enter a tournament password.")
+        embed.add_field(name="Players", value=str(tourneydata['currentPlayers']) + "/" + str(maxPlayers), inline=True)
+        embed.add_field(name="Status", value=tourneydata['status'].title(), inline=True)
+
+        if tourneydata['open']:
+            if password is not None:
+                embed.add_field(name="Password", value=password, inline=True)
+            else:
+                await self.bot.say("Error: Please enter a tournament password.")
+                return
+
+        if tourneydata['status'] != "ended":
+
+            if tourneydata['status'] != "inProgress":
+                startTime = self.sec2tme((tourneydata['createTime'] + tourneydata['prepTime']) - int(time.time()))
+                embed.add_field(name="Starts In", value=startTime, inline=True)
+
+            endTime = self.sec2tme(
+                (tourneydata['createTime'] + tourneydata['prepTime'] + tourneydata['duration']) - int(time.time()))
+            embed.add_field(name="Ends In", value=endTime, inline=True)
+
+        embed.add_field(name="Hosted By", value=tourneydata['creator']['name'], inline=True)
+        embed.add_field(name="Top prize", value="<:tournamentcards:380832770454192140> " + str(
+            cards) + "	 <:coin:380832316932489268> " + str(coins), inline=True)
+        embed.set_footer(text=credits, icon_url=creditIcon)
+        await self.bot.say(embed=embed)
+
+        # await self.bot.say("Error: Tournament not found. Please try again later!")
+
+
+@commands.command(pass_context=True)
+async def save(self, ctx, profiletag: str, member: discord.Member = None):
+    """ save your Clash Royale Profile Tag
+
+    Example:
+        !save #CRRYTPTT @GR8
+        !save #CRRYRPCC
+
+    Type !contact to ask for help.
+    """
+
+    server = ctx.message.server
+    author = ctx.message.author
+
+    profiletag = profiletag.strip('#').upper().replace('O', '0')
+    check = ['P', 'Y', 'L', 'Q', 'G', 'R', 'J', 'C', 'U', 'V', '0', '2', '8', '9']
+
+    if any(i not in check for i in profiletag):
+        await self.bot.say("The ID you provided has invalid characters. Please try again.")
+        return
+
+    allowed = False
+    if member is None:
+        allowed = True
+    elif member.id == author.id:
+        allowed = True
+    else:
+        botcommander_roles = [discord.utils.get(server.roles, name=r) for r in BOTCOMMANDER_ROLES]
+        botcommander_roles = set(botcommander_roles)
+        author_roles = set(author.roles)
+        if len(author_roles.intersection(botcommander_roles)):
+            allowed = True
+
+    if not allowed:
+        await self.bot.say("You dont have enough permissions to set tags for others.")
+        return
+
+    await self.bot.type()
+
+    if member is None:
+        member = ctx.message.author
+
+    try:
+        profiledata = requests.get('https://api.royaleapi.com/player/{}'.format(profiletag), headers=self.getAuth(),
+                                   timeout=10).json()
+
+        for key, value in self.clash.items():
+            if profiletag == self.clash[key]['tag']:
+                user = discord.utils.get(ctx.message.server.members, id=key)
+                try:
+                    await self.bot.say("Error, This Player ID is already linked with **" + user.display_name + "**")
                     return
+                except:
+                    pass
 
-            if tourneydata['status'] != "ended":
+        self.clash.update({member.id: {'tag': profiletag}})
+        dataIO.save_json('cogs/tags.json', self.clash)
 
-                if tourneydata['status'] != "inProgress":
-                    startTime = self.sec2tme(
-                        (tourneydata['createTime'] + tourneydata['preparationDuration']) - int(time.time()))
-                    embed.add_field(name="Starts In", value=startTime, inline=True)
-
-                endTime = self.sec2tme(
-                    (tourneydata['createTime'] + tourneydata['preparationDuration'] + tourneydata['duration']) - int(
-                        time.time()))
-                embed.add_field(name="Ends In", value=endTime, inline=True)
-
-            embed.add_field(name="Hosted By", value=tourneydata['creator']['name'], inline=True)
-            embed.add_field(name="Top prize", value="<:tournamentcards:380832770454192140> " + str(
-                cards) + "	 <:coin:380832316932489268> " + str(coins), inline=True)
-            embed.set_footer(text=credits, icon_url=creditIcon)
-            await self.bot.say(embed=embed)
-
-        except:
-            await self.bot.say("Error: Tournament not found. Please try again later!")
-
-    @commands.command(pass_context=True)
-    async def save(self, ctx, profiletag: str, member: discord.Member = None):
-        """ save your Clash Royale Profile Tag
-
-        Example:
-            !save #CRRYTPTT @GR8
-            !save #CRRYRPCC
-
-        Type !contact to ask for help.
-        """
-
-        server = ctx.message.server
-        author = ctx.message.author
-
-        profiletag = profiletag.strip('#').upper().replace('O', '0')
-        check = ['P', 'Y', 'L', 'Q', 'G', 'R', 'J', 'C', 'U', 'V', '0', '2', '8', '9']
-
-        if any(i not in check for i in profiletag):
-            await self.bot.say("The ID you provided has invalid characters. Please try again.")
-            return
-
-        allowed = False
-        if member is None:
-            allowed = True
-        elif member.id == author.id:
-            allowed = True
-        else:
-            botcommander_roles = [discord.utils.get(server.roles, name=r) for r in BOTCOMMANDER_ROLES]
-            botcommander_roles = set(botcommander_roles)
-            author_roles = set(author.roles)
-            if len(author_roles.intersection(botcommander_roles)):
-                allowed = True
-
-        if not allowed:
-            await self.bot.say("You dont have enough permissions to set tags for others.")
-            return
-
-        await self.bot.type()
-
-        if member is None:
-            member = ctx.message.author
-
-        try:
-            profiledata = requests.get('https://api.royaleapi.com/player/{}'.format(profiletag), headers=self.getAuth(),
-                                       timeout=10).json()
-
-            for key, value in self.clash.items():
-                if profiletag == self.clash[key]['tag']:
-                    user = discord.utils.get(ctx.message.server.members, id=key)
-                    try:
-                        await self.bot.say("Error, This Player ID is already linked with **" + user.display_name + "**")
-                        return
-                    except:
-                        pass
-
-            self.clash.update({member.id: {'tag': profiletag}})
-            dataIO.save_json('cogs/tags.json', self.clash)
-
-            embed = discord.Embed(color=discord.Color.green())
-            avatar = member.avatar_url if member.avatar else member.default_avatar_url
-            embed.set_author(name='{} (#{}) has been successfully saved.'.format(profiledata['name'], profiletag),
-                             icon_url=avatar)
-            await self.bot.say(embed=embed)
-        except:
-            await self.bot.say("We cannot find your ID in our database, please try again.")
+        embed = discord.Embed(color=discord.Color.green())
+        avatar = member.avatar_url if member.avatar else member.default_avatar_url
+        embed.set_author(name='{} (#{}) has been successfully saved.'.format(profiledata['name'], profiletag),
+                         icon_url=avatar)
+        await self.bot.say(embed=embed)
+    except:
+        await self.bot.say("We cannot find your ID in our database, please try again.")
 
 
 def check_folders():
@@ -350,7 +350,7 @@ def check_files():
     f = "cogs/auth.json"
     if not fileIO(f, "check"):
         print("enter your RoyaleAPI token in auth.json...")
-        dataIO.save_json(f, "save", {"token": "enter your RoyaleAPI token here!"})
+        fileIO(f, "save", {"token": "enter your RoyaleAPI token here!"})
 
 
 def check_auth():

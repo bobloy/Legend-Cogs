@@ -73,5 +73,12 @@ class friendlink:
 
         await self.friend_link(message)
 
+def check_files():
+    f = "cogs/auth.json"
+    if not fileIO(f, "check"):
+        print("enter your RoyaleAPI token in auth.json...")
+        fileIO(f, "save", {"token" : "enter your RoyaleAPI token here!"})
+
 def setup(bot):
+    check_files()
     bot.add_cog(friendlink(bot))

@@ -23,7 +23,7 @@ from tabulate import tabulate
 creditIcon = "https://i.imgur.com/TP8GXZb.png"
 credits = "Cog by GR8 | Titan"
 
-BOTCOMMANDER_ROLES =  ["Family Representative", "Clan Manager", "admin", "Heist Manager"];
+BOTCOMMANDER_ROLES =  ["Family Representative", "Clan Manager", "admin", "Heist Manager", "admin"]
 
 # Thanks stack overflow http://stackoverflow.com/questions/21872366/plural-string-formatting
 class PluralDict(dict):
@@ -68,16 +68,11 @@ class Heist:
         await self.bot.say("Available Themes:```\n{}```".format('\n'.join(themes)))
 
     @heist.command(name="reset", pass_context=True)
+    @commands.has_any_role(*BOTCOMMANDER_ROLES)
     async def _reset_heist(self, ctx):
         """Resets heist in case it hangs"""
         server = ctx.message.server
         author = ctx.message.author
-
-        allowed = await self._is_commander(author)
-
-        if not allowed:
-            await self.bot.say("You dont have enough permissions to reset Heist.")
-            return
 
         settings = self.check_server_settings(server)
         self.reset_heist(settings)
@@ -531,10 +526,14 @@ class Heist:
             self.subtract_costs(author, cost)
             settings["Config"]["Heist Planned"] = True
             settings["Crew"][author.id] = {}
-            await self.bot.say("A {4} is being planned by {0}\nThe {4} "
+            heist_role = discord.utils.get(server.roles, name="Heist")
+            await self.bot.edit_role(server, heist_role, mentionable=True)
+            await self.bot.say("A {5} is being planned by {0}\nThe {4} "
                                "will begin in {1} seconds. Type ``{2}heist play`` to join their "
                                "{3}.\n"
-                               "Type ``!togglerole heist`` to get notified on the next heist.".format(author.display_name, wait_time, ctx.prefix, t_crew, t_heist))
+                               "Type ``!togglerole heist`` to get notified on the next heist.".format(author.display_name, wait_time, ctx.prefix, t_crew, t_heist, heist_role.mention))
+            await self.bot.edit_role(server, heist_role, mentionable=False)
+            self.pause = False
             await asyncio.sleep(wait_time)
 
             if len(settings["Crew"]) <= 1:
@@ -551,17 +550,72 @@ class Heist:
             await self.bot.say("{0} has joined the {2}.\nThe {2} now has {1} "
                                "members.".format(author.display_name, crew_size, t_crew))
 
+    @heist.command(name="grand", pass_context=True)
+    @checks.admin()
+    async def _grand_heist(self, ctx):
+        """This begins a Grand Heist"""
+        author = ctx.message.author
+        server = ctx.message.server
+        settings = self.check_server_settings(server)
+        cost = settings["Config"]["Heist Cost"]
+        wait_time = settings["Config"]["Wait Time"]
+        prefix = ctx.prefix
+        heist_role = discord.utils.get(server.roles, name="Heist")
+        heist_channel = discord.utils.get(ctx.message.server.channels, name="heist")
+
+        await self.bot.edit_role(server, heist_role, mentionable=True)
+        await self.bot.send_message(discord.Object(id='391382712499568641'), "**Weekly Grand** {} is going to start in an hour.".format(heist_role.mention))
+        await self.bot.edit_role(server, heist_role, mentionable=False)
+
+        self.pause = True
+
+        await asyncio.sleep(3000)
+
+        await self.bot.edit_role(server, heist_role, mentionable=True)
+        await self.bot.send_message(discord.Object(id='391382712499568641'), "**Weekly Grand** {} is going to start in 10 minutes.".format(heist_role.mention))
+        await self.bot.edit_role(server, heist_role, mentionable=False)
+
+
+        await asyncio.sleep(540)
+
+        await self.bot.edit_role(server, heist_role, mentionable=True)
+        await self.bot.send_message(discord.Object(id='391382712499568641'), "**Weekly Grand** {} is going to start in 60 seconds. We have set the gather time to **10 minutes**, prepare and bring your friends to {}.".format(heist_role.mention, heist_channel.mention))
+        await self.bot.edit_role(server, heist_role, mentionable=False)
+
+        await asyncio.sleep(60)
+
+        # Theme Variables
+        t_crew = settings["Theme"]["Crew"]
+        t_heist = settings["Theme"]["Heist"]
+        t_vault = settings["Theme"]["Vault"]
+
+        settings["Config"]["Heist Planned"] = True
+
+        heist_role = discord.utils.get(server.roles, name="Heist")
+        await self.bot.edit_role(server, heist_role, mentionable=True)
+        await self.bot.say("A Weekly GRAND {5} is being planned.\nThe {4} "
+                           "will begin in 10 minutes. Type ``{2}heist play`` to join the "
+                           "{3}.\n"
+                           "Type ``!togglerole heist`` to get notified on the next Grand Heist.".format(author.display_name, wait_time, ctx.prefix, t_crew, t_heist, heist_role.mention))
+        await self.bot.edit_role(server, heist_role, mentionable=False)
+
+        self.pause = False
+
+        await asyncio.sleep(600)
+
+        if len(settings["Crew"]) <= 1:
+            await self.bot.say("We tried to rally a {}, but no one wanted to join. The "
+                               "Grand {} has been cancelled.".format(t_crew, t_heist))
+            self.reset_heist(settings)
+        else:
+            await self.heist_game(settings, server, t_heist, t_crew, t_vault)
+
     @heist.command(name="pause", pass_context=True)
+    @commands.has_any_role(*BOTCOMMANDER_ROLES)
     async def _pause_heist(self, ctx, *, text=None):
         """This pauses !heist play"""
         server = ctx.message.server
         author = ctx.message.author
-
-        allowed = await self._is_commander(author)
-
-        if not allowed:
-            await self.bot.say("You dont have enough permissions to pause Heist.")
-            return
 
         self.pause = not self.pause
         if self.pause:
@@ -570,17 +624,12 @@ class Heist:
             await self.bot.say("Heist has been resumed!")
 
     @heist.command(name="mention", pass_context=True)
+    @commands.has_any_role(*BOTCOMMANDER_ROLES)
     async def _mention_heist(self, ctx, *, text=None):
         """This mentions the @Heist role"""
         server = ctx.message.server
         author = ctx.message.author
         role_name = "Heist"
-
-        allowed = await self._is_commander(author)
-
-        if not allowed:
-            await self.bot.say("You dont have enough permissions to mention Heist.")
-            return
 
         if role_name is not None:
             heist_role = discord.utils.get(server.roles, name=role_name)
@@ -837,16 +886,6 @@ class Heist:
         self.cycle_task.cancel()
         self.shutdown_save()
         self.save_system()
-
-    async def _is_commander(self, member):
-        server = member.server
-        botcommander_roles = [discord.utils.get(server.roles, name=r) for r in BOTCOMMANDER_ROLES]
-        botcommander_roles = set(botcommander_roles)
-        author_roles = set(member.roles)
-        if len(author_roles.intersection(botcommander_roles)):
-            return True
-        else:
-            return False
 
     def theme_loader(self, settings, theme_name):
         keys = ["Jail", "OOB", "Police", "Bail", "Crew", "Sentence", "Heist", "Vault"]
