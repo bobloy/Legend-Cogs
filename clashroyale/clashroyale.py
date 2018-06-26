@@ -267,72 +267,71 @@ class clashroyale:
 
         # await self.bot.say("Error: Tournament not found. Please try again later!")
 
+    @commands.command(pass_context=True)
+    async def save(self, ctx, profiletag: str, member: discord.Member = None):
+        """ save your Clash Royale Profile Tag
 
-@commands.command(pass_context=True)
-async def save(self, ctx, profiletag: str, member: discord.Member = None):
-    """ save your Clash Royale Profile Tag
+        Example:
+            !save #CRRYTPTT @GR8
+            !save #CRRYRPCC
 
-    Example:
-        !save #CRRYTPTT @GR8
-        !save #CRRYRPCC
+        Type !contact to ask for help.
+        """
 
-    Type !contact to ask for help.
-    """
+        server = ctx.message.server
+        author = ctx.message.author
 
-    server = ctx.message.server
-    author = ctx.message.author
+        profiletag = profiletag.strip('#').upper().replace('O', '0')
+        check = ['P', 'Y', 'L', 'Q', 'G', 'R', 'J', 'C', 'U', 'V', '0', '2', '8', '9']
 
-    profiletag = profiletag.strip('#').upper().replace('O', '0')
-    check = ['P', 'Y', 'L', 'Q', 'G', 'R', 'J', 'C', 'U', 'V', '0', '2', '8', '9']
+        if any(i not in check for i in profiletag):
+            await self.bot.say("The ID you provided has invalid characters. Please try again.")
+            return
 
-    if any(i not in check for i in profiletag):
-        await self.bot.say("The ID you provided has invalid characters. Please try again.")
-        return
-
-    allowed = False
-    if member is None:
-        allowed = True
-    elif member.id == author.id:
-        allowed = True
-    else:
-        botcommander_roles = [discord.utils.get(server.roles, name=r) for r in BOTCOMMANDER_ROLES]
-        botcommander_roles = set(botcommander_roles)
-        author_roles = set(author.roles)
-        if len(author_roles.intersection(botcommander_roles)):
+        allowed = False
+        if member is None:
             allowed = True
+        elif member.id == author.id:
+            allowed = True
+        else:
+            botcommander_roles = [discord.utils.get(server.roles, name=r) for r in BOTCOMMANDER_ROLES]
+            botcommander_roles = set(botcommander_roles)
+            author_roles = set(author.roles)
+            if len(author_roles.intersection(botcommander_roles)):
+                allowed = True
 
-    if not allowed:
-        await self.bot.say("You dont have enough permissions to set tags for others.")
-        return
+        if not allowed:
+            await self.bot.say("You dont have enough permissions to set tags for others.")
+            return
 
-    await self.bot.type()
+        await self.bot.type()
 
-    if member is None:
-        member = ctx.message.author
+        if member is None:
+            member = ctx.message.author
 
-    try:
-        profiledata = requests.get('https://api.royaleapi.com/player/{}'.format(profiletag), headers=self.getAuth(),
-                                   timeout=10).json()
+        try:
+            profiledata = requests.get('https://api.royaleapi.com/player/{}'.format(profiletag), headers=self.getAuth(),
+                                       timeout=10).json()
 
-        for key, value in self.clash.items():
-            if profiletag == self.clash[key]['tag']:
-                user = discord.utils.get(ctx.message.server.members, id=key)
-                try:
-                    await self.bot.say("Error, This Player ID is already linked with **" + user.display_name + "**")
-                    return
-                except:
-                    pass
+            for key, value in self.clash.items():
+                if profiletag == self.clash[key]['tag']:
+                    user = discord.utils.get(ctx.message.server.members, id=key)
+                    try:
+                        await self.bot.say("Error, This Player ID is already linked with **" + user.display_name + "**")
+                        return
+                    except:
+                        pass
 
-        self.clash.update({member.id: {'tag': profiletag}})
-        dataIO.save_json('cogs/tags.json', self.clash)
+            self.clash.update({member.id: {'tag': profiletag}})
+            dataIO.save_json('cogs/tags.json', self.clash)
 
-        embed = discord.Embed(color=discord.Color.green())
-        avatar = member.avatar_url if member.avatar else member.default_avatar_url
-        embed.set_author(name='{} (#{}) has been successfully saved.'.format(profiledata['name'], profiletag),
-                         icon_url=avatar)
-        await self.bot.say(embed=embed)
-    except:
-        await self.bot.say("We cannot find your ID in our database, please try again.")
+            embed = discord.Embed(color=discord.Color.green())
+            avatar = member.avatar_url if member.avatar else member.default_avatar_url
+            embed.set_author(name='{} (#{}) has been successfully saved.'.format(profiledata['name'], profiletag),
+                             icon_url=avatar)
+            await self.bot.say(embed=embed)
+        except:
+            await self.bot.say("We cannot find your ID in our database, please try again.")
 
 
 def check_folders():
