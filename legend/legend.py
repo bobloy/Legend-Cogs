@@ -464,11 +464,12 @@ class legend:
             if bonustitle is not None:
                 title += bonustitle
 
-            desc = "{}      <:crtrophy:448609948008579073> {}+     <:wartrophy:448609141796241408> {}   <:openlink:448611387040595979> [Open](https://legendclans.com/clanInfo/{})".format(
+            desc = "{}      <:crtrophy:448609948008579073> {}+     <:wartrophy:448609141796241408> {}   " \
+                   "<:openlink:448611387040595979> [Open](https://legendclans.com/clanInfo/{})".format(
                 showMembers, str(clans[x]['requiredScore']), str(warTrophies), clans[x]['tag'])
 
             if (member is None) or ((clans[x]['requiredScore'] <= trophies) and (maxtrophies > personalbest) and (
-                    trophies - clans[x]['requiredScore'] < 1200) and (clans[x]['type'] != 'closed')):
+                    clans[x]['type'] != 'closed')):
                 foundClan = True
                 embed.add_field(name=title, value=desc, inline=False)
 
@@ -485,7 +486,8 @@ class legend:
 
         if member is not None:
             await self.bot.say(
-                "Hello **{}**, above are all the clans you are allowed to join, based on your statistics. Which clan would you like to join? \n\n**Name:** {} (#{})\n**Trophies:** {}/{}\n**Clan:** {}\n```WARNING: PLEASE DO NOT REQUEST TO JOIN ANY CLANS IF YOU HAVE NOT YET RECIEVED YOUR RECRUIT CODE!```".format(
+                "Hello **{}**, above are all the clans you are allowed to join, based on your statistics. "
+                "\n\n**Name:** {} (#{})\n**Trophies:** {}/{}\n**Clan:** {}\n".format(
                     ign, ign, profiletag, str(trophies), str(maxtrophies), clanname))
 
     @commands.command(pass_context=True, no_pm=True)
