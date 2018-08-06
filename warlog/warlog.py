@@ -1,12 +1,14 @@
-import discord
-from discord.ext import commands
-import io
 import asyncio
-from PIL import ImageFont
+import io
+from datetime import datetime, timedelta
+
+import clashroyale
+import discord
 from PIL import Image
 from PIL import ImageDraw
-import clashroyale
 from datetime import datetime, timedelta
+from PIL import ImageFont
+from discord.ext import commands
 
 creditIcon = "https://i.imgur.com/TP8GXZb.png"
 credits = "Cog by Gr8 | Titan"
