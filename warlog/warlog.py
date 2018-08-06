@@ -6,7 +6,6 @@ import clashroyale
 import discord
 from PIL import Image
 from PIL import ImageDraw
-from datetime import datetime, timedelta
 from PIL import ImageFont
 from discord.ext import commands
 
