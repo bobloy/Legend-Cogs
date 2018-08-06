@@ -1,8 +1,10 @@
-import discord
-from discord.ext import commands
-from .utils.dataIO import dataIO, fileIO
 import os
+
+import discord
 from cogs.utils import checks
+from discord.ext import commands
+
+from .utils.dataIO import dataIO, fileIO
 
 tags_path = "data/crtools/tags.json"
 auth_path = "data/crtools/auth.json"
@@ -17,6 +19,7 @@ default_clans = {'defualt': {'tag': '9PJYVVL2', 'role': 'everyone', 'name': 'def
 
 class constants:
     """constants Management"""
+
     def __init__(self):
         self.constants = dataIO.load_json(constants_path)
         self.images = 'https://royaleapi.github.io/cr-api-assets/'
@@ -65,6 +68,7 @@ class constants:
 
 class tags:
     """Tags Management"""
+
     def __init__(self):
         self.tags = dataIO.load_json(tags_path)
 
@@ -111,6 +115,7 @@ class tags:
 
 class auth:
     """RoyaleAPI key management"""
+
     def __init__(self):
         self.auth = dataIO.load_json(auth_path)
 
@@ -144,6 +149,7 @@ class auth:
 
 class clans:
     """Clan Family Management"""
+
     def __init__(self):
         self.clans = dataIO.load_json(clans_path)
 
@@ -306,6 +312,7 @@ class clans:
 
 class crtools:
     """Clash Royale Tools"""
+
     def __init__(self, bot):
         self.bot = bot
         self.tags = tags()
