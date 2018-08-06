@@ -100,3 +100,10 @@ ENV/
 # mypy
 .mypy_cache/
 .idea/
+
+# Test Bot script
+enable-cog.bat
+
+#Sublime Text
+*.sublime-workspace
+*.sublime-project

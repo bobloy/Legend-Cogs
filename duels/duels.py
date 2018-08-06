@@ -2,19 +2,19 @@
 
 import discord
 from discord.ext import commands
-from cogs.utils import checks
 from .utils.dataIO import dataIO, fileIO
 from __main__ import send_cmd_help
 import os
-from copy import deepcopy
 import asyncio
 import time
-import requests
-from operator import itemgetter, attrgetter
+from operator import itemgetter
+import clashroyale
+import datetime
 
 settings_path = "data/duels/settings.json"
 creditIcon = "https://i.imgur.com/TP8GXZb.png"
 credits = "Bot by GR8 | Titan"
+
 
 class duels:
     """Clash Royale 1v1 Duels with bets"""
@@ -22,15 +22,14 @@ class duels:
     def __init__(self, bot):
         self.bot = bot
         self.settings = dataIO.load_json(settings_path)
-        self.tags = dataIO.load_json('cogs/tags.json')
-        self.auth = dataIO.load_json('cogs/auth.json')
+        self.auth = self.bot.get_cog('crtools').auth
+        self.tags = self.bot.get_cog('crtools').tags
+        self.constants = self.bot.get_cog('crtools').constants
+        self.clash = clashroyale.OfficialAPI(self.auth.getOfficialToken(), is_async=True)
         self.active = False
 
-    async def updateClash(self):
-        self.tags = dataIO.load_json('cogs/tags.json')
-
-     # Check if there is an account made.
     def account_check(self, id):
+        """Check if there is an account made"""
         try:
             REG_USERS = self.settings["USERS"]
             data = True
@@ -44,9 +43,6 @@ class duels:
         else:
             return False
 
-    def getAuth(self):
-        return {"auth" : self.auth['token']}
-
     def bank_check(self, user, amount):
         bank = self.bot.get_cog('Economy').bank
         if bank.account_exists(user):
@@ -57,8 +53,8 @@ class duels:
         else:
             return False
 
-    # Retuns a list of top scores.
     async def get_rankings(self, ctx, userId=None):
+        """Retuns a list of top scores"""
         user = ctx.message.author
         # Get all earned points of players.
         topScore = []
@@ -66,7 +62,7 @@ class duels:
             for p in self.settings["USERS"]:
                 points = self.settings["USERS"][p]["WON"]
                 userName = self.settings["USERS"][p]["NAME"].encode("ascii", errors="ignore").decode()
-                topScore.append((p, points, userName.split('|', 1)[0]))            
+                topScore.append((p, points, userName.split('|', 1)[0]))
             topScore = sorted(topScore, key=itemgetter(1), reverse=True)
         # Get player rank.
         userIdRank = 0
@@ -75,6 +71,21 @@ class duels:
                 userIdRank = index+1
                 break
         return {"topScore": topScore, "userIdRank": userIdRank}
+
+    def emoji(self, name):
+        """Emoji by name."""
+        for emoji in self.bot.get_all_emojis():
+            if emoji.name == name:
+                return '<:{}:{}>'.format(emoji.name, emoji.id)
+        return ''
+
+    async def cleanTime(self, time):
+        """Converts time to timestamp"""
+        return int(datetime.strptime(time, '%Y%m%dT%H%M%S.%fZ').timestamp()) + 7200
+
+    async def battleWinner(self, battle):
+        """Gets the winner of the battle, with the difference in crowns"""
+        return battle.team.crowns - battle.opponent.crowns
 
     @commands.group(pass_context=True, no_pm=True)
     async def duel(self, ctx):
@@ -91,54 +102,54 @@ class duels:
         await self.bot.type()
 
         bank = self.bot.get_cog('Economy').bank
-        if bank.account_exists(author) is False:
+        if not bank.account_exists(author):
             await self.bot.say("You need to first open a bank account using ``{}bank register``".format(ctx.prefix))
             return
 
-        await self.updateClash()
-
-        if self.account_check(author.id) is False:
-
-            if author.id in self.tags:
-                self.settings["USERS"][author.id] = {
-                    "WON" : 0,
-                    "DUELID" : "0",
-                    "ID" : author.id,
-                    "NAME" : author.display_name,
-                    "TAG" : self.tags[author.id]['tag']
-                }
-                fileIO(settings_path, "save", self.settings)
-
-                embed = discord.Embed(color=discord.Color.green())
-                avatar = author.avatar_url if author.avatar else author.default_avatar_url
-                embed.set_author(name='{} has been registered to play duels.'.format(author.display_name), icon_url=avatar)
-                await self.bot.say(embed=embed)
-
-            else:
+        if not self.account_check(author.id):
+            try:
+                player_tag = await self.tags.getTag(author.id)
+            except KeyError:
                 await self.bot.say("You need to first save your profile using ``{}save clash #GAMETAG``".format(ctx.prefix))
+                return
+
+            self.settings["USERS"][author.id] = {
+                "WON": 0,
+                "DUELID": "0",
+                "ID": author.id,
+                "NAME": author.display_name,
+                "TAG": player_tag
+            }
+            fileIO(settings_path, "save", self.settings)
+
+            embed = discord.Embed(color=discord.Color.green())
+            avatar = author.avatar_url if author.avatar else author.default_avatar_url
+            embed.set_author(name='{} has been registered to play duels.'.format(author.display_name), icon_url=avatar)
+
+            await self.bot.say(embed=embed)
         else:
             await self.bot.say("{} You are already registered!".format(author.mention))
 
     @duel.command(pass_context=True)
     @commands.cooldown(1, 5, commands.BucketType.server)
-    async def start(self, ctx, bet : int, member: discord.Member = None):
+    async def start(self, ctx, bet: int, member: discord.Member=None):
         """Start a duel with bets"""
         author = ctx.message.author
         server = ctx.message.server
 
         if self.active:
-            await self.bot.say("Another duel is already in progress, type ``!duel accept``.")
+            await self.bot.say("Another duel is already in progress, type ``{}duel accept``.".format(ctx.prefix))
             return
 
         if bet < 5000:
-            await self.bot.say("Your bet is too low, bet a bigger number.")
+            await self.bot.say("Your bet is too low, minimum credits for a duel are 5000.")
             return
 
         if not self.bank_check(author, bet):
             await self.bot.say("You do not have {} credits to bet on this duel.".format(str(bet)))
             return
 
-        if self.account_check(author.id) is False:
+        if not self.account_check(author.id):
             await self.bot.say("You need to register before starting a duel, type ``{}duel register``.".format(ctx.prefix))
             return
 
@@ -147,57 +158,67 @@ class duels:
         else:
             privateDuel = member.id
 
+        if author.id == privateDuel:
+            await self.bot.say("I can't let your duel yourself, go and pick someone else.")
+            return
+
+        if privateDuel == self.bot.user.id:
+            await self.bot.say("I don't play Clash Royale, If i did you wouldn't stand a chance.")
+            return
 
         duelPlayer = self.settings['USERS'][author.id]
 
         await self.bot.type()
 
         try:
-            profiledata = requests.get('https://api.royaleapi.com/player/{}'.format(duelPlayer['TAG']), headers=self.getAuth(), timeout=10).json()
-            
-            self.active = True
-
-            if profiledata['clan'] is None:
-                clanurl = "https://i.imgur.com/4EH5hUn.png"
-            else:
-                clanurl = profiledata['clan']['badge']['image']
-
-            embed=discord.Embed(color=0x0080ff)
-            embed.set_author(name=profiledata['name'] + " (#"+profiledata['tag']+")", icon_url=clanurl)
-            embed.set_thumbnail(url="https://imgur.com/9DoEq22.jpg")
-            embed.add_field(name="Duel Wins", value=str(duelPlayer['WON']), inline=True)
-            embed.add_field(name="Trophies", value=profiledata['trophies'], inline=True)
-            if profiledata['clan'] is not None:
-                embed.add_field(name="Clan", value=profiledata['clan']['name'], inline=True)
-            embed.add_field(name="Arena", value=profiledata['arena']['name'], inline=True)
-            embed.set_footer(text=credits, icon_url=creditIcon)
-
-            if privateDuel is None:
-
-                role_name = "Duels"
-                if role_name is not None:
-                    duels_role = discord.utils.get(server.roles, name=role_name)
-                    if duels_role is None:
-                        await self.bot.create_role(server, name=role_name)
-                        duels_role = discord.utils.get(server.roles, name=role_name)
-
-                await self.bot.edit_role(server, duels_role, mentionable=True)
-                await self.bot.say(content="[{}] {} wants to duel one of you in Clash Royale for {} credits, type ``{}duel accept`` the offer.".format(duels_role.mention, author.mention, str(bet), ctx.prefix), embed=embed)
-                await self.bot.edit_role(server, duels_role, mentionable=False)
-            else:
-                await self.bot.say(content="{} wants to duel {} in Clash Royale for {} credits, type ``{}duel accept`` to accept the offer.".format(author.mention, member.mention, str(bet), ctx.prefix), embed=embed)    
-        except:
+            profiledata = await self.clash.get_player(duelPlayer['TAG'])
+        except clashroyale.RequestError:
             await self.bot.say("Error: cannot reach Clash Royale Servers. Please try again later.")
             return
 
-        
+        self.active = True
+
+        arenaFormat = profiledata.arena.name.replace(' ', '').lower()
+
+        embed = discord.Embed(color=0x0080ff)
+        embed.set_author(name=profiledata.name + " ("+profiledata.tag+")", icon_url=await self.constants.get_clan_image(profiledata))
+        embed.set_thumbnail(url="https://imgur.com/9DoEq22.jpg")
+        embed.add_field(name="Duel Wins", value="{} {}".format(self.emoji("battle"), duelPlayer['WON']), inline=True)
+        embed.add_field(name="Trophies", value="{} {:,}".format(self.emoji(arenaFormat), profiledata.trophies), inline=True)
+        if profiledata.clan is not None:
+            embed.add_field(name="Clan {}".format(profiledata.role.capitalize()),
+                            value="{} {}".format(self.emoji("clan"), profiledata.clan.name), inline=True)
+        embed.add_field(name="Challenge Max Wins", value="{} {}".format(self.emoji("tourney"), profiledata.challenge_max_wins), inline=True)
+        embed.set_footer(text=credits, icon_url=creditIcon)
+
+        if privateDuel is None:
+            role_name = "Duels"
+            if role_name is not None:
+                duels_role = discord.utils.get(server.roles, name=role_name)
+                if duels_role is None:
+                    await self.bot.create_role(server, name=role_name)
+                    duels_role = discord.utils.get(server.roles, name=role_name)
+
+            await self.bot.edit_role(server, duels_role, mentionable=True)
+            await self.bot.say(content=("[{}] {} wants to duel one of you in Clash Royale "
+                                        "for {} credits, type ``{}duel accept`` the offer.".format(duels_role.mention,
+                                                                                                   author.mention,
+                                                                                                   bet,
+                                                                                                   ctx.prefix)), embed=embed)
+            await self.bot.edit_role(server, duels_role, mentionable=False)
+        else:
+            await self.bot.say(content=("{} wants to duel {} in Clash Royale "
+                                        "for {} credits, type ``{}duel accept`` the offer.".format(author.mention,
+                                                                                                   member.mention,
+                                                                                                   bet,
+                                                                                                   ctx.prefix)), embed=embed)
         duelID = str(int(time.time()))
         self.settings["DUELS"][duelID] = {
-            "TIME" : duelID,
-            "PLAYERS" : [author.id],
-            "WINNER" : None,
-            "BET" : bet,
-            "PRIVATE" : privateDuel
+            "TIME": duelID,
+            "PLAYERS": [author.id],
+            "WINNER": None,
+            "BET": bet,
+            "PRIVATE": privateDuel
         }
         self.settings.update({"CONFIG": {'ACTIVE': duelID}})
         fileIO(settings_path, "save", self.settings)
@@ -207,7 +228,7 @@ class duels:
 
         await asyncio.sleep(180)
 
-        if self.settings["DUELS"].get(duelID): 
+        if self.settings["DUELS"].get(duelID):
             if len(self.settings["DUELS"][duelID]["PLAYERS"]) == 1:
                 self.settings["DUELS"].pop(duelID)
                 fileIO(settings_path, "save", self.settings)
@@ -216,7 +237,8 @@ class duels:
                 pay = bank.get_balance(author) + bet
                 bank.set_credits(author, pay)
 
-                await self.bot.say("Duel cancelled, I guess no one is brave enough to go against " + author.mention)
+                await self.bot.say("Duel cancelled, I guess no one is brave enough to go against {}. "
+                                   "To get notified for future duels, type in ``!togglerole duels``".format(author.mention))
 
     @duel.command(pass_context=True)
     async def cancel(self, ctx):
@@ -238,7 +260,7 @@ class duels:
         bank = self.bot.get_cog('Economy').bank
 
         for player in duelPlayers:
-            user = discord.utils.get(ctx.message.server.members, id = player)
+            user = discord.utils.get(ctx.message.server.members, id=player)
             pay = bank.get_balance(user) + duelBet
             bank.set_credits(user, pay)
 
@@ -257,6 +279,7 @@ class duels:
         duelPlayers = self.settings["DUELS"][duelID]["PLAYERS"]
         duelBet = self.settings["DUELS"][duelID]["BET"]
         privateDuel = self.settings["DUELS"][duelID]["PRIVATE"]
+        max_trophies = 0
 
         if duelPlayers[0] == author.id:
             await self.bot.say("Sorry, You cannot duel yourself.")
@@ -271,30 +294,32 @@ class duels:
             await self.bot.say("You do not have {} credits to accept the bet on this duel.".format(str(duelBet)))
             return
 
-        if self.account_check(author.id) is False:
+        if not self.account_check(author.id):
             await self.bot.say("You need to register before accepting a duel, type ``{}duel register``.".format(ctx.prefix))
             return
 
-        try:
-            profiledata = requests.get('https://api.royaleapi.com/player/{},{}?keys=stats'.format(self.settings['USERS'][duelPlayers[0]]["TAG"], self.settings['USERS'][author.id]["TAG"]), headers=self.getAuth(), timeout=10).json()
-
-            if (profiledata[0]['stats']['maxTrophies'] + 600) < profiledata[1]['stats']['maxTrophies']:
-                await self.bot.say("Sorry, your trophies are too high for this duel.")
+        duelPlayers.append(author.id)
+        for player in duelPlayers:
+            try:
+                profiledata = await self.clash.get_player(self.settings['USERS'][player]["TAG"])
+                if max_trophies == 0:
+                    max_trophies = profiledata.best_trophies
+                else:
+                    if (max_trophies + 600) < profiledata.best_trophies:
+                        await self.bot.say("Sorry, your trophies are too high for this duel.")
+                        duelPlayers.remove(author.id)
+                        return
+            except clashroyale.RequestError:
+                duelPlayers.remove(author.id)
+                await self.bot.say("Error: cannot reach Clash Royale Servers. Please try again later.")
                 return
-
-        except:
-            await self.bot.say("Error: cannot reach Clash Royale Servers. Please try again later.")
-            return
 
         await self.bot.say("{} Are you sure you want to accept the bet of {} credits? (Yes/No)".format(author.mention, str(duelBet)))
         answer = await self.bot.wait_for_message(timeout=15, author=author)
 
-        if answer is None:
+        if answer is None or "yes" not in answer.content.lower():
+            duelPlayers.remove(author.id)
             return
-        elif "yes" not in answer.content.lower():
-            return
-
-        duelPlayers.append(author.id)
 
         bank = self.bot.get_cog('Economy').bank
         bank.withdraw_credits(author, duelBet)
@@ -305,18 +330,23 @@ class duels:
         self.settings['USERS'][duelPlayers[1]]["DUELID"] = duelID
         fileIO(settings_path, "save", self.settings)
 
-        userOne = discord.utils.get(ctx.message.server.members, id = self.settings['USERS'][duelPlayers[0]]["ID"])
-        userTwo = discord.utils.get(ctx.message.server.members, id = self.settings['USERS'][duelPlayers[1]]["ID"])
+        userOne = discord.utils.get(ctx.message.server.members, id=self.settings['USERS'][duelPlayers[0]]["ID"])
+        userTwo = discord.utils.get(ctx.message.server.members, id=self.settings['USERS'][duelPlayers[1]]["ID"])
 
         self.active = False
-        await self.bot.say("**DUEL STARTED** — {} vs {} ({} credits)```1. Send your friend links below for your opponent and spectators.\n2. Duel each other once using friendly battle.\n3. Type !duel claim after the game to recieve your credits.```".format(userOne.mention, userTwo.mention, str(duelBet*2)))
+        await self.bot.say(("**DUEL STARTED** — {} vs {} ({} credits)```"
+                            "1. Send your friend links below for your opponent and spectators.\n"
+                            "2. Duel each other once using friendly battle.\n"
+                            "3. Type !duel claim after the game to recieve your credits.```".format(userOne.mention,
+                                                                                                    userTwo.mention,
+                                                                                                    str(duelBet*2))))
 
     @duel.command(pass_context=True)
     async def claim(self, ctx):
         """claim your prize after winning a duel"""
         author = ctx.message.author
 
-        if self.account_check(author.id) is False:
+        if not self.account_check(author.id):
             await self.bot.say("You need to register before claiming your bet, type ``{}duel register``.".format(ctx.prefix))
             return
 
@@ -337,15 +367,16 @@ class duels:
         await self.bot.type()
 
         try:
-            profiledata = requests.get('https://api.royaleapi.com/player/{}/battles'.format(duelPlayer['TAG']), headers=self.getAuth(), timeout=10).json()
-        except:
+            profiledata = await self.clash.get_player_battles(duelPlayer['TAG'])
+        except clashroyale.RequestError:
             await self.bot.say("Error: cannot reach Clash Royale Servers. Please try again later.")
             return
 
         msg = ""
         for battle in profiledata:
-            if (battle["utcTime"] > int(duelID)) and (battle["opponent"][0]["tag"] in playerTags):
-                if battle["winner"] > 0:
+            battle.winner = await self.battleWinner(battle)
+            if (await self.cleanTime(battle.battle_time) > int(duelID)) and (battle.opponent[0].tag.strip("#") in playerTags):
+                if battle.winner > 0:
 
                     duelPlayer["WON"] += 1
                     duelPlayer["DUELID"] = "0"
@@ -353,7 +384,9 @@ class duels:
 
                     fileIO(settings_path, "save", self.settings)
 
-                    msg = "Congratulations {}, you won the duel against **{}** and recieved **{}** credits!".format(author.mention, battle["opponent"][0]["name"], str(duelBet * 2))
+                    msg = "Congratulations {}, you won the duel against **{}** and recieved **{}** credits!".format(author.mention,
+                                                                                                                    battle.opponent[0].name,
+                                                                                                                    str(duelBet * 2))
                     await self.bot.say(msg)
 
                     bank = self.bot.get_cog('Economy').bank
@@ -361,13 +394,13 @@ class duels:
                     bank.set_credits(author, pay)
 
                     return
-                elif battle["winner"] == 0:
-                    msg = "Sorry, you and **{}** tied the match, try again.".format(battle["opponent"][0]["name"])
+                elif battle.winner == 0:
+                    msg = "Sorry, you and **{}** tied the match, try again.".format(battle.opponent[0].name)
                     await self.bot.say(msg)
 
                     return
                 else:
-                    msg = "Sorry {}, you lost the duel against **{}**".format(author.mention, battle["opponent"][0]["name"])
+                    msg = "Sorry {}, you lost the duel against **{}**".format(author.mention, battle.opponent[0].name)
 
                     duelPlayer["DUELID"] = "0"
                     fileIO(settings_path, "save", self.settings)
@@ -387,7 +420,6 @@ class duels:
         try:
             resultRankings = await self.get_rankings(ctx, user.id)
             topScore = resultRankings["topScore"]
-            userIdRank = resultRankings["userIdRank"]
             playerAmount = len(self.settings["USERS"])
             data = True
         except Exception as e:
@@ -399,23 +431,23 @@ class duels:
             pages = []
             totalPages = 0
             usr = 0
-            userFound = False
             userFoundPage = False
             msg = ""
             while (usr < playerAmount):
-                w=usr+10
+                w = usr + 10
                 while (w > usr):
                     if usr >= playerAmount:
                         break
                     ul = len(topScore[usr][2])
-                    sp = '                '# 16
+                    sp = '                '  # 16
                     sp = sp[ul:]
                     sn = '   '
-                    if usr+1 >= 10: sn = '  '
-                    if usr+1 >= 100: sn = ' '
+                    if usr+1 >= 10:
+                        sn = '  '
+                    if usr+1 >= 100:
+                        sn = ' '
                     if user.id == topScore[usr][0]:
                         msg = msg+"(#{}){}| » {} |  ({})\n".format(usr+1, sn, topScore[usr][2]+sp, topScore[usr][1])
-                        userFound = True
                         userFoundPage = totalPages
                     else:
                         msg = msg+"(#{}){}|   {} |  ({})\n".format(usr+1, sn, topScore[usr][2]+sp, topScore[usr][1])
@@ -425,36 +457,35 @@ class duels:
                 msg = ""
                 usr += 1
             # Determine what page to show.
-            if page <= -1:# Show page with user.
+            if page <= -1:  # Show page with user.
                 selectPage = userFoundPage
             elif page >= totalPages:
-                selectPage = totalPages-1# Flood -1
+                selectPage = totalPages-1  # Flood -1
             elif page in range(0, totalPages):
                 selectPage = page
-            else:# Show page 0
+            else:  # Show page 0
                 selectPage = 0
-            await self.bot.say( "{}{}\nTotal players:({})\nPage:({}/{})```".format(msgHeader, pages[selectPage], playerAmount, selectPage+1, totalPages))
+            await self.bot.say("{}{}\nTotal players:({})\nPage:({}/{})```".format(msgHeader,
+                                                                                  pages[selectPage],
+                                                                                  playerAmount,
+                                                                                  selectPage+1,
+                                                                                  totalPages))
         else:
-            await self.bot.say( "`No accounts in the duel register`".format(user.mention))
+            await self.bot.say("`No accounts in the duel register`".format(user.mention))
+
 
 def check_folders():
     if not os.path.exists("data/duels"):
         print("Creating data/duels folder...")
         os.makedirs("data/duels")
 
+
 def check_files():
     f = settings_path
     if not fileIO(f, "check"):
         print("Creating duels settings.json...")
-        fileIO(f, {"CONFIG" : {}, "USERS" : {},"DUELS" : {}})
-    f = "cogs/tags.json"
-    if not fileIO(f, "check"):
-        print("Creating empty tags.json...")
-        fileIO(f, "save", {"0" : {"tag" : "DONOTREMOVE"}})
-    f = "cogs/auth.json"
-    if not fileIO(f, "check"):
-        print("enter your RoyaleAPI token in auth.json...")
-        fileIO(f, "save", {"token" : "enter your RoyaleAPI token here!"})
+        fileIO(f, "save", {"CONFIG": {}, "USERS": {}, "DUELS": {}})
+
 
 def setup(bot):
     check_folders()

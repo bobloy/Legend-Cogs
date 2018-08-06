@@ -10,6 +10,7 @@ import asyncio
 
 settings_path = "data/stats/settings.json"
 
+
 class stats:
     """Clash Royale 1v1 Duels with bets"""
 
@@ -18,7 +19,7 @@ class stats:
         self.settings = dataIO.load_json(settings_path)
         self.member_log = dataIO.load_json('data/clanlog/member_log.json')
         self.discord_log = dataIO.load_json('data/clanlog/discord_log.json')
-        self.last_count = 0
+        self.last_count = {'member': 0, 'guests': 0, 'user': 0, 'server': 0}
         self.cycle_task1 = bot.loop.create_task(self.updateUserCount())
         self.cycle_task2 = bot.loop.create_task(self.updateMiscCount())
 
@@ -42,13 +43,29 @@ class stats:
 
         everyone = discord.PermissionOverwrite(connect=False, view_channel=True)
 
-        member_channel = await self.bot.create_channel(server, '0 Members', (server.default_role, everyone), type=discord.ChannelType.voice)
-        guests_channel = await self.bot.create_channel(server, '0 Guests', (server.default_role, everyone), type=discord.ChannelType.voice)
-        online_channel = await self.bot.create_channel(server, '0 Online Users', (server.default_role, everyone), type=discord.ChannelType.voice)
-        user_channel = await self.bot.create_channel(server, '0 Total Users', (server.default_role, everyone), type=discord.ChannelType.voice)
-        server_channel = await self.bot.create_channel(server, '0 Days Old', (server.default_role, everyone), type=discord.ChannelType.voice)
-        time_channel = await self.bot.create_channel(server, '0 GMT', (server.default_role, everyone), type=discord.ChannelType.voice)
+        member_channel = await self.bot.create_channel(server, '0 Members',
+                                                       (server.default_role, everyone),
+                                                       type=discord.ChannelType.voice)
 
+        guests_channel = await self.bot.create_channel(server, '0 Guests',
+                                                       (server.default_role, everyone),
+                                                       type=discord.ChannelType.voice)
+
+        online_channel = await self.bot.create_channel(server, '0 Online Users',
+                                                       (server.default_role, everyone),
+                                                       type=discord.ChannelType.voice)
+
+        user_channel = await self.bot.create_channel(server, '0 Total Users',
+                                                     (server.default_role, everyone),
+                                                     type=discord.ChannelType.voice)
+
+        server_channel = await self.bot.create_channel(server, '0 Days Old',
+                                                       (server.default_role, everyone),
+                                                       type=discord.ChannelType.voice)
+
+        time_channel = await self.bot.create_channel(server, '0 GMT',
+                                                     (server.default_role, everyone),
+                                                     type=discord.ChannelType.voice)
         self.settings[server.id] = {}
         self.settings[server.id]['channels'] = {}
         self.settings[server.id]['channels']['member_channel'] = member_channel.id
@@ -76,32 +93,43 @@ class stats:
     async def updateUserCount(self):
         """Update counter every few minutes"""
         await self.bot.wait_until_ready()
-
         try:
             await asyncio.sleep(20)  # Start-up Time
             while True:
                 servers = [x for x in self.bot.servers if x.id in self.settings]
                 for server in servers:
                     channels = self.settings[server.id]['channels']
-                    userTotal = len(server.members)
+                    values = self.last_count
 
                     self.member_log = dataIO.load_json('data/clanlog/member_log.json')
-                    passed = (datetime.datetime.utcnow() - server.created_at).days
+                    members = self.member_log[max(self.member_log.keys())]
+                    if members != values['member']:
+                        self.settings[server.id]['values']['member'] = members
+                        await self.bot.edit_channel(server.get_channel(channels['member_channel']),
+                                                    name="{} Members".format(members))
 
-                    await self.bot.edit_channel(server.get_channel(channels['member_channel']),name="{} Members".format(str(self.member_log[max(self.member_log.keys())])))
-                    await self.bot.edit_channel(server.get_channel(channels['guests_channel']),name="{} Guests".format(await self.getUserCount(server, "Guest")))
+                    guests = await self.getUserCount(server, "Guest")
+                    if guests != values['guests']:
+                        self.settings[server.id]['values']['guests'] = guests
+                        await self.bot.edit_channel(server.get_channel(channels['guests_channel']),
+                                                    name="{} Guests".format(guests))
 
-
-                    if self.last_count != userTotal:
-                        current_time = get_time()   
+                    userTotal = len(server.members)
+                    if userTotal != values['user']:
+                        current_time = get_time()
                         self.discord_log[str(current_time)] = userTotal
-                        self.last_count = userTotal
                         dataIO.save_json('data/clanlog/discord_log.json', self.discord_log)
+                        self.settings[server.id]['values']['user'] = userTotal
 
-                        await self.bot.edit_channel(server.get_channel(channels['user_channel']),name="{} Total Users".format(userTotal))
+                        await self.bot.edit_channel(server.get_channel(channels['user_channel']),
+                                                    name="{} Total Users".format(userTotal))
 
-                    await self.bot.edit_channel(server.get_channel(channels['server_channel']),name="{} Days Old".format(str(passed)))
-                    
+                    passed = (datetime.datetime.utcnow() - server.created_at).days
+                    if passed != values['server']:
+                        self.settings[server.id]['values']['server'] = passed
+                        await self.bot.edit_channel(server.get_channel(channels['server_channel']),
+                                                    name="{} Days Old".format(passed))
+
                 await asyncio.sleep(600)  # task runs every 600 seconds
         except asyncio.CancelledError:
             pass
@@ -109,7 +137,6 @@ class stats:
     async def updateMiscCount(self):
         """Update counter every few minutes"""
         await self.bot.wait_until_ready()
-
         try:
             await asyncio.sleep(20)  # Start-up Time
             while True:
@@ -117,40 +144,45 @@ class stats:
                 for server in servers:
                     channels = self.settings[server.id]['channels']
 
-                    online = len([m.status for m in server.members
-                      if m.status == discord.Status.online or
-                      m.status == discord.Status.idle])   
+                    online = len([m.status for m in server.members if m.status == discord.Status.online or m.status == discord.Status.idle])
 
-                    await self.bot.edit_channel(server.get_channel(channels['online_channel']),name="{} Online Users".format(str(online)))
-                    await self.bot.edit_channel(server.get_channel(channels['time_channel']),name="{} GMT".format(datetime.datetime.now(datetime.timezone.utc).strftime("%H:%M")))
-        
-                await asyncio.sleep(15)  # task runs every 60 seconds
+                    await self.bot.edit_channel(server.get_channel(channels['online_channel']),
+                                                name="{} Online Users".format(str(online)))
+                    await self.bot.edit_channel(server.get_channel(channels['time_channel']),
+                                                name="{} GMT".format(datetime.datetime.now(datetime.timezone.utc).strftime("%H:%M")))
+
+                await asyncio.sleep(15)  # task runs every 15 seconds
         except asyncio.CancelledError:
             pass
+
 
 def check_folders():
     if not os.path.exists("data/stats"):
         print("Creating data/stats folder...")
         os.makedirs("data/stats")
+    if not os.path.exists("data/clanlog"):
+        print("Creating data/clanlog folder...")
+        os.makedirs("data/clanlog")
+
 
 def check_files():
     f = settings_path
     if not fileIO(f, "check"):
         print("Creating stats settings.json...")
-        dataIO.save_json(f, {})
+        fileIO(f, "save", {})
 
     f = "data/clanlog/member_log.json"
     if not fileIO(f, "check"):
         print("Creating empty member_log.json...")
-        dataIO.save_json(f, {"1524540132" : 0})
+        fileIO(f, "save", {"1524540132": 0})
 
     f = "data/clanlog/discord_log.json"
     if not fileIO(f, "check"):
         print("Creating empty discord_log.json...")
-        dataIO.save_json(f, {"1524540132" : 0})
+        fileIO(f, "save", {"1524540132": 0})
+
 
 def setup(bot):
     check_folders()
     check_files()
-
     bot.add_cog(stats(bot))
