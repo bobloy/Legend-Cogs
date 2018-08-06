@@ -11,7 +11,7 @@ except:
     print("Deck Cog not found, please do '!cog install Legend-Cogs deck'")
 
 creditIcon = "https://i.imgur.com/TP8GXZb.png"
-credits = "Bot by GR8 | Titan"
+credits = "Cog by Gr8 | Titan"
 
 
 class warbattles:

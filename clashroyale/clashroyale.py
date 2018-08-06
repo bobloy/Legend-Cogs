@@ -7,10 +7,11 @@ import re
 from datetime import datetime
 
 BOTCOMMANDER_ROLES = ["Family Representative", "Clan Manager",
-                      "Clan Deputy", "Co-Leader", "Hub Officer", "admin"]
+                      "Clan Deputy", "Co-Leader", "Hub Officer", "admin",
+                      "Admin", "Leader"]
 
 creditIcon = "https://i.imgur.com/TP8GXZb.png"
-credits = "Bot by GR8 | Titan"
+credits = "Cog by Gr8 | Titan"
 
 
 class clashroyale:
@@ -325,7 +326,6 @@ class clashroyale:
             await self.bot.say("Error: cannot reach Clash Royale Servers. Please try again later.")
             return
         except KeyError:
-            raise
             await self.bot.say("You need to first save your profile using ``{}save #GAMETAG``".format(ctx.prefix))
             return
 
