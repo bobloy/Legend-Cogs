@@ -1,17 +1,17 @@
 import os
 
 import discord
-from cogs.utils import checks
 from discord.ext import commands
 
-from .utils.dataIO import dataIO, fileIO
+from cogs.utils import checks
+from cogs.utils.dataIO import dataIO, fileIO
 
 tags_path = "data/crtools/tags.json"
 auth_path = "data/crtools/auth.json"
 clans_path = "data/crtools/clans.json"
 constants_path = "data/crtools/constants.json"
 
-default_clans = {'defualt': {'tag': '9PJYVVL2', 'role': 'everyone', 'name': 'defualt',
+default_clans = {'default': {'tag': '9PJYVVL2', 'role': 'everyone', 'name': 'default',
                              'nickname': 'defualt', 'discord': None, 'waiting': [], 'members': {},
                              'bonustitle': '', 'personalbest': 0, 'warTrophies': 0, 'approval': False,
                              'log_channel': None, 'warlog_channel': None, 'emoji': '', 'cwr': 0}}
@@ -94,7 +94,7 @@ class tags:
 
     async def unlinkTag(self, userID):
         """Unlink a player tag to a discord User"""
-        if self.c.pop(str(userID), None):
+        if self.tags.pop(str(userID), None):
             dataIO.save_json(tags_path, self.tags)
             return True
         return False
@@ -263,6 +263,12 @@ class clans:
             return True
         return False
 
+    async def addClan(self, clankey, clandict):
+        if clankey not in self.clans:
+            self.clans[clankey] = clandict
+            return True
+        return False
+
     async def setPBTrophies(self, clankey, trophies):
         """Set a clan's PB Trohies"""
         self.clans[clankey]['personalbest'] = trophies
@@ -347,6 +353,45 @@ class crtools:
         """Base command for managing clash royale clans. [p]help clans for details"""
         if ctx.invoked_subcommand is None:
             await self.bot.send_cmd_help(ctx)
+
+    @_clans.command(pass_context=True, name="register")
+    @checks.mod_or_permissions(administrator=True)
+    async def clans_register(self, ctx, clankey, ctag, role: discord.Role, nickname):
+        """Register a clan for tracking"""
+        # toregister = {
+        #     'tag': ctag,
+        #     'role': role.name,
+        #     'role_id': role.id,
+        #     'name': nickname,  # Not good, will fix later
+        #     'nickname': nickname,
+        #     'waiting': [],
+        #     'personalbest': 0,
+        #     'bonustitle': "",
+        #     'discord': None
+        # }
+        toregister = {
+            'tag': ctag,
+            'role': role.name,
+            'name': nickname,
+            'nickname': nickname,
+            'discord': None,
+            'waiting': [],
+            'members': {},
+            'bonustitle': '',
+            'personalbest': 0,
+            'warTrophies': 0,
+            'approval': False,
+            'log_channel': None,
+            'warlog_channel': None,
+            'emoji': '',
+            'cwr': 0}
+
+        clankey = clankey.lower()
+
+        if await self.clans.addClan(clankey, toregister):
+            await self.bot.say("Success")
+        else:
+            await self.bot.say("Failed")
 
     @_clans.command(pass_context=True, name="delete")
     @checks.is_owner()
