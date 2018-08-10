@@ -266,6 +266,7 @@ class clans:
     async def addClan(self, clankey, clandict):
         if clankey not in self.clans:
             self.clans[clankey] = clandict
+            dataIO.save_json(clans_path, self.clans)
             return True
         return False
 
