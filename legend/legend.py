@@ -12,7 +12,7 @@ import discord
 import requests
 from discord.ext import commands
 
-from .utils.dataIO import dataIO, fileIO
+from cogs.utils.dataIO import dataIO, fileIO
 
 creditIcon = "https://i.imgur.com/TP8GXZb.png"
 credits = "Cog by Gr8 | Titan"
