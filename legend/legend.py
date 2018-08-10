@@ -12,6 +12,7 @@ import discord
 import requests
 from discord.ext import commands
 
+from cogs.utils import checks
 from cogs.utils.dataIO import dataIO, fileIO
 
 creditIcon = "https://i.imgur.com/TP8GXZb.png"
@@ -173,6 +174,17 @@ class legend:
     def save_settings(self):
         """Saves the json"""
         dataIO.save_json('data/legend/settings.json', self.settings)
+
+    @commands.command(pass_context=True, name="clanfamily")
+    @checks.mod_or_permissions(administrator=True)
+    async def clan_family(self, ctx, url, *FamilyName):
+        """Add Clan Family name and link"""
+
+        self.settings['url'] = url
+        self.settings['family'] = " ".join(FamilyName)
+
+        self.save_settings()
+        await self.bot.say("Success")
 
     async def id_generator(self, size=6, chars=string.ascii_uppercase + string.digits):
         return ''.join(random.choice(chars) for _ in range(size))
