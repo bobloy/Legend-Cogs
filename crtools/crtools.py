@@ -279,7 +279,7 @@ class clans:
 
     async def delClan(self, clankey):
         """delete a clan from the family"""
-        if self.clans.pop(clankey, None):
+        if self.clans.pop(clankey, None) is None:
             dataIO.save_json(clans_path, self.clans)
             return True
         return False
