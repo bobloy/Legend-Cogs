@@ -29,20 +29,21 @@ import datetime
 import io
 import os
 import re
-import yaml
 import string
-from concurrent.futures import ThreadPoolExecutor
 from collections import namedtuple
+from concurrent.futures import ThreadPoolExecutor
 
 import aiohttp
 import discord
+import yaml
 from PIL import Image
 from PIL import ImageDraw
 from PIL import ImageFont
+from discord.ext import commands
+
 from cogs.utils import checks
 from cogs.utils.chat_formatting import pagify
 from cogs.utils.dataIO import dataIO
-from discord.ext import commands
 
 SETTINGS_PATH = os.path.join("data", "deck", "settings.json")
 AKA_PATH = os.path.join("data", "deck", "cards_aka.yaml")
@@ -194,7 +195,7 @@ class Deck:
     async def deck_get_helper(self, ctx,
                               card1=None, card2=None, card3=None, card4=None,
                               card5=None, card6=None, card7=None, card8=None,
-                              deck_name=None, author: discord.Member=None):
+                              deck_name=None, author: discord.Member = None):
         """Abstract command to run deck_get for other modules."""
         await ctx.invoke(self.deck_get, card1, card2, card3, card4, card5,
                          card6, card7, card8, deck_name, author)
@@ -203,7 +204,7 @@ class Deck:
     async def deck_get(self, ctx,
                        card1=None, card2=None, card3=None, card4=None,
                        card5=None, card6=None, card7=None, card8=None,
-                       deck_name=None, author: discord.Member=None):
+                       deck_name=None, author: discord.Member = None):
         """Display a deck with cards.
 
         Enter 8 cards followed by a name.
@@ -328,7 +329,7 @@ class Deck:
 
     async def decklink_to_cards(self, url):
         """Convert decklink to cards."""
-        m = re.search('(http|ftp|https)://link.clashroyale.com/deck/en\?deck=[\d\;]+', url)
+        m = re.search('(http|ftp|https)://link.clashroyale.com/deck/en\?deck=[\d;]+', url)
         if not m:
             return None
         url = m.group()
@@ -410,7 +411,7 @@ class Deck:
                 self.save_settings()
 
     @deck.command(name="list", pass_context=True, no_pm=True)
-    async def deck_list(self, ctx, member: discord.Member=None):
+    async def deck_list(self, ctx, member: discord.Member = None):
         """List the decks of a user."""
         author = ctx.message.author
         server = ctx.message.server
@@ -443,7 +444,7 @@ class Deck:
                 await self.bot.say("{} hasn’t added any decks yet.".format(member.name))
 
     @deck.command(name="longlist", pass_context=True, no_pm=True)
-    async def deck_longlist(self, ctx, member: discord.Member=None):
+    async def deck_longlist(self, ctx, member: discord.Member = None):
         """List the decks of a user."""
         author = ctx.message.author
         server = ctx.message.server
@@ -491,7 +492,7 @@ class Deck:
                         return
 
     @deck.command(name="show", pass_context=True, no_pm=True)
-    async def deck_show(self, ctx, deck_id=None, member: discord.Member=None):
+    async def deck_show(self, ctx, deck_id=None, member: discord.Member = None):
         """Show the deck of a user by id. With link to copy."""
         author = ctx.message.author
         server = ctx.message.server
@@ -591,12 +592,12 @@ class Deck:
                 member_id = server_member["MemberID"]
                 member_display_name = server_member["MemberDisplayName"]
                 member = server.get_member(member_id)
-                for k, member_deck in member_decks.items():
+                for k2, member_deck in member_decks.items():
                     cards = member_deck["Deck"]
                     # await self.bot.say(set(params))
                     if set(params) < set(cards):
                         found_decks.append({
-                            "UTC": k,
+                            "UTC": k2,
                             "Deck": member_deck["Deck"],
                             "DeckName": member_deck["DeckName"],
                             "Member": member,
