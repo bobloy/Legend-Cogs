@@ -1034,9 +1034,9 @@ class legend:
         if False in cr_clanSettings:
             message += "\n\n:warning: Problems in clan settings for **" + clan_name + "**:```"
 
-            if not cr_clanSettings[0]: message += "\n• Clan Badge is incorrect."
-            if not cr_clanSettings[1]: message += "\n• Clan Location is incorrect."
-            if not cr_clanSettings[2]: message += "\n• Clan description is incorrect."
+            # if not cr_clanSettings[0]: message += "\n• Clan Badge is incorrect."
+            # if not cr_clanSettings[1]: message += "\n• Clan Location is incorrect."
+            # if not cr_clanSettings[2]: message += "\n• Clan description is incorrect."
             if not cr_clanSettings[3]: message += "\n• Clan is closed."
 
             message += "```"
@@ -1065,11 +1065,11 @@ class legend:
             message += "\n• ".join(d_members_without_role)
             message += "```"
 
-        if d_members_without_name:
-            message += "\n\n:warning: **(" + str(len(
-                d_members_without_name)) + ")** Players in **" + clan_name + "**, but have an **INCORRECT** nickname: ```• "
-            message += "\n• ".join(d_members_without_name)
-            message += "```"
+        # if d_members_without_name:
+        #     message += "\n\n:warning: **(" + str(len(
+        #         d_members_without_name)) + ")** Players in **" + clan_name + "**, but have an **INCORRECT** nickname: ```• "
+        #     message += "\n• ".join(d_members_without_name)
+        #     message += "```"
 
         if cr_members_with_less_trophies:
             message += "\n\n:warning: **(" + str(len(
