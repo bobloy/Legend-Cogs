@@ -224,7 +224,7 @@ class clashroyale:
         embed.add_field(name="Level", value=self.emoji("level{}".format(profiledata.expLevel)), inline=True)
         if profiledata.clan is not None:
             embed.add_field(name="Clan {}".format(profiledata.role.capitalize()),
-                            value="{} {}".format(await self.getClanEmoji(profiledata.clan.tag), profiledata.clan.name),
+                            value="{}".format(profiledata.clan.name),
                             inline=True)
         embed.add_field(name="Cards Found", value="{} {}/87".format(self.emoji("card"), len(profiledata.cards)),
                         inline=True)
