@@ -10,10 +10,9 @@ from random import choice as rand_choice
 import clashroyale
 import discord
 import requests
-from discord.ext import commands
-
 from cogs.utils import checks
 from cogs.utils.dataIO import dataIO, fileIO
+from discord.ext import commands
 
 creditIcon = "https://i.imgur.com/TP8GXZb.png"
 credits = "Cog by Gr8 | Titan"
@@ -1031,15 +1030,15 @@ class legend:
 
         message = ""
 
-        if False in cr_clanSettings:
-            message += "\n\n:warning: Problems in clan settings for **" + clan_name + "**:```"
-
-            # if not cr_clanSettings[0]: message += "\n• Clan Badge is incorrect."
-            # if not cr_clanSettings[1]: message += "\n• Clan Location is incorrect."
-            # if not cr_clanSettings[2]: message += "\n• Clan description is incorrect."
-            if not cr_clanSettings[3]: message += "\n• Clan is closed."
-
-            message += "```"
+        # if False in cr_clanSettings:
+        #     message += "\n\n:warning: Problems in clan settings for **" + clan_name + "**:```"
+        #
+        #     if not cr_clanSettings[0]: message += "\n• Clan Badge is incorrect."
+        #     if not cr_clanSettings[1]: message += "\n• Clan Location is incorrect."
+        #     if not cr_clanSettings[2]: message += "\n• Clan description is incorrect."
+        #     if not cr_clanSettings[3]: message += "\n• Clan is closed."
+        #
+        #     message += "```"
 
         if cr_members_with_no_player_tag:
             message += "\n\n:warning: **(" + str(len(
