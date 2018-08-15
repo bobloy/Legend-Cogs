@@ -61,7 +61,7 @@ class clashroyale:
         for emoji in self.bot.get_all_emojis():
             if emoji.name == name.replace(" ", "").replace("-", "").replace(".", ""):
                 return '<:{}:{}>'.format(emoji.name, emoji.id)
-        return ''
+        return name
 
     async def getClanEmoji(self, tag):
         """Check if emoji exists for the clan"""
