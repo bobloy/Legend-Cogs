@@ -434,13 +434,13 @@ class legend:
             try:
                 clan = await self.clash.get_clan(await self.clans.getClanData(clankey, 'tag'))
                 clandata.append(clan)
-                if clan_icon is None or clan_icon == 'https://i.imgur.com/Y3uXsgj.png':
+                if not clan_icon or clan_icon == 'https://i.imgur.com/Y3uXsgj.png':
                     clan_icon = clan.badge_id
             except clashroyale.RequestError:
                 return await self.bot.say("Error: cannot reach Clash Royale Servers. Please try again later.")
 
         clandata = sorted(clandata, key=lambda x: (x.required_trophies, x.clan_score), reverse=True)
-        if clan_icon is None or clan_icon == 'https://i.imgur.com/Y3uXsgj.png':
+        if not clan_icon or clan_icon == 'https://i.imgur.com/Y3uXsgj.png':
             clan_icon = "https://i.imgur.com/dtSMITE.jpg"
 
         embed = discord.Embed(color=0xFAA61A)
