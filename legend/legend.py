@@ -429,23 +429,29 @@ class legend:
                 return await self.bot.say("You must assosiate a tag with this member first using ``{}save #tag @member``".format(ctx.prefix))
 
         clandata = []
+        clan_icon = None
         for clankey in self.clans.keysClans():
             try:
-                clan = await self.clash.get_clan(await self.clans.getClanData(clankey, 'tag'))
+                tag_ = await self.clans.getClanData(clankey, 'tag')
+                clan = await self.clash.get_clan(tag_)
                 clandata.append(clan)
+                if clan_icon is None or clan_icon == 'https://i.imgur.com/Y3uXsgj.png':
+                    clan_icon = await self.clash.get_clan_image(tag_)
             except clashroyale.RequestError:
                 return await self.bot.say("Error: cannot reach Clash Royale Servers. Please try again later.")
 
         clandata = sorted(clandata, key=lambda x: (x.required_trophies, x.clan_score), reverse=True)
+        if clan_icon is None or clan_icon == 'https://i.imgur.com/Y3uXsgj.png':
+            clan_icon = "https://i.imgur.com/dtSMITE.jpg"
 
         embed = discord.Embed(color=0xFAA61A)
         if "url" in self.settings and "family" in self.settings:
             embed.set_author(name=self.settings['family'], url=self.settings['url'],
-                             icon_url="https://i.imgur.com/dtSMITE.jpg")
+                             icon_url=clan_icon)
         else:
             embed.set_author(name="Legend Family Clans",
                              url="http://royaleapi.com/clan/family/legend",
-                             icon_url="https://i.imgur.com/dtSMITE.jpg")
+                             icon_url=clan_icon)
 
         embed.set_footer(text=credits, icon_url=creditIcon)
 
@@ -1440,12 +1446,12 @@ def check_files():
     f = "data/legend/settings.json"
     if not fileIO(f, "check"):
         print("Creating empty settings.json...")
-        fileIO(f, "save", {})
+        dataIO.save_json(f, {})
 
     f = "data/seen/seen.json"
     if not fileIO(f, "check"):
         print("Creating empty seen.json...")
-        fileIO(f, "save", {})
+        dataIO.save_json(f, {})
 
 
 def setup(bot):
