@@ -162,6 +162,7 @@ class legend:
         self.auth = self.bot.get_cog('crtools').auth
         self.tags = self.bot.get_cog('crtools').tags
         self.clans = self.bot.get_cog('crtools').clans
+        self.constants = self.bot.get_cog('crtools').constants
         self.clash = clashroyale.OfficialAPI(self.auth.getOfficialToken(), is_async=True)
         self.welcome = dataIO.load_json('data/legend/welcome.json')
         self.bank = dataIO.load_json('data/economy/bank.json')
@@ -337,7 +338,7 @@ class legend:
                 clan = await self.clash.get_clan(await self.clans.getClanData(clankey, 'tag'))
                 clandata.append(clan)
                 if not clan_icon or clan_icon == 'https://i.imgur.com/Y3uXsgj.png':
-                    clan_icon = clan.badge_id
+                    clan_icon = await self.constants.get_clan_image(clan)
             except clashroyale.RequestError:
                 await self.bot.say("Error: cannot reach Clash Royale Servers. Please try again later.")
                 return
@@ -991,7 +992,7 @@ class legend:
         d_members_without_role = []
         d_members_without_name = []
         d_members_inactive = []
-        cr_clanSettings = []
+        # cr_clanSettings = []
 
         for d_member in d_members:
             try:
@@ -1028,11 +1029,11 @@ class legend:
             if player_trophy < clanReq:
                 cr_members_with_less_trophies.append(cr_members_name[index])
 
-        cr_clanSettings.append(clandata.badge_id == 16000002)
-        cr_clanSettings.append(clandata.location.name == "International")
-        cr_clanSettings.append(
-            "Legend Family🔥14 Clans🔥LegendClans.com🔥Events & Prizes🔥Apply at legendclans.com/discord🔥" in clandata.description)
-        cr_clanSettings.append(clandata.type != "closed")
+        # cr_clanSettings.append(clandata.badge_id == 16000002)
+        # cr_clanSettings.append(clandata.location.name == "International")
+        # cr_clanSettings.append(
+        #     "Legend Family🔥14 Clans🔥LegendClans.com🔥Events & Prizes🔥Apply at legendclans.com/discord🔥" in clandata.description)
+        # cr_clanSettings.append(clandata.type != "closed")
 
         message = ""
 
