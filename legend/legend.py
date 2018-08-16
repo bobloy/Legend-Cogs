@@ -343,9 +343,10 @@ class legend:
                 return
 
         clandata = sorted(clandata, key=lambda x: (x.required_trophies, x.clan_score), reverse=True)
-        if not clan_icon or clan_icon == 'https://i.imgur.com/Y3uXsgj.png':
-            clan_icon = "https://i.imgur.com/dtSMITE.jpg"
 
+        if not clan_icon:
+            clan_icon = 'https://i.imgur.com/Y3uXsgj.png'
+        await self.bot.say(clan_icon)
         embed = discord.Embed(color=0xFAA61A)
         if "url" in self.settings and "family" in self.settings:
             embed.set_author(name=self.settings['family'], url=self.settings['url'],
@@ -353,7 +354,7 @@ class legend:
         else:
             embed.set_author(name="Legend Family Clans",
                              url="http://royaleapi.com/clan/family/legend",
-                             icon_url=clan_icon)
+                             icon_url="https://i.imgur.com/dtSMITE.jpg")
 
         embed.set_footer(text=credits, icon_url=creditIcon)
 
