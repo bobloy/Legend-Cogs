@@ -435,7 +435,7 @@ class legend:
                 clan = await self.clash.get_clan(await self.clans.getClanData(clankey, 'tag'))
                 clandata.append(clan)
                 if clan_icon is None or clan_icon == 'https://i.imgur.com/Y3uXsgj.png':
-                    clan_icon = self.clash.get_clan_image(clan)
+                    clan_icon = clan.badge_id
             except clashroyale.RequestError:
                 return await self.bot.say("Error: cannot reach Clash Royale Servers. Please try again later.")
 
