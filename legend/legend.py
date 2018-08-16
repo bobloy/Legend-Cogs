@@ -443,7 +443,6 @@ class legend:
 
         if not clan_icon:
             clan_icon = 'https://i.imgur.com/Y3uXsgj.png'
-        await self.bot.say(clan_icon)
         embed = discord.Embed(color=0xFAA61A)
         if "url" in self.settings and "family" in self.settings:
             embed.set_author(name=self.settings['family'], url=self.settings['url'],
