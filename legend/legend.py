@@ -154,7 +154,7 @@ Thanks + enjoy!
 """
 
 
-class Legend:
+class legend:
 
     def __init__(self, bot):
         self.bot = bot
@@ -1430,4 +1430,4 @@ def check_files():
 def setup(bot):
     check_folders()
     check_files()
-    bot.add_cog(Legend(bot))
+    bot.add_cog(legend(bot))
