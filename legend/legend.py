@@ -10,9 +10,10 @@ from random import choice as rand_choice
 import clashroyale
 import discord
 import requests
+from discord.ext import commands
+
 from cogs.utils import checks
 from cogs.utils.dataIO import dataIO, fileIO
-from discord.ext import commands
 
 creditIcon = "https://i.imgur.com/TP8GXZb.png"
 credits = "Cog by Gr8 | Titan"
