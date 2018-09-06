@@ -57,6 +57,7 @@ class warlog:
         font2 = ImageFont.truetype("data/warlog/ClashRoyale.ttf", 37)
         font3 = ImageFont.truetype("data/warlog/ClashRoyale.ttf", 41)
 
+
         img = Image.open("data/warlog/images/warlog.jpg")
         draw = ImageDraw.Draw(img)
 
@@ -106,26 +107,26 @@ class warlog:
 
                 clanLeague = await self.getLeague(warTrophies)
 
-                image = await self.genImage(clanLeague,
-                                            str(warTrophies),
-                                            str(clanRank + 1),
-                                            standings[clanRank].clan.name,
-                                            str(standings[clanRank].clan.participants),
-                                            str(standings[clanRank].clan.wins),
-                                            str(standings[clanRank].clan.crowns))
+                # image = await self.genImage(clanLeague,
+                #                             str(warTrophies),
+                #                             str(clanRank + 1),
+                #                             standings[clanRank].clan.name,
+                #                             str(standings[clanRank].clan.participants),
+                #                             str(standings[clanRank].clan.wins),
+                #                             str(standings[clanRank].clan.crowns))
                 filename = "warlog-{}.png".format(clankey)
                 clanChannel = await self.clans.getClanData(clankey, 'warlog_channel')
 
-                with io.BytesIO() as f:
-                    image.save(f, "PNG")
-                    f.seek(0)
-                    await self.bot.send_file(channel, f, filename=filename)
-
-                with io.BytesIO() as f:
-                    image.save(f, "PNG")
-                    f.seek(0)
-                    if clanChannel is not None:
-                        await self.bot.send_file(discord.Object(id=clanChannel), f, filename=filename)
+                # with io.BytesIO() as f:
+                #     image.save(f, "PNG")
+                #     f.seek(0)
+                #     await self.bot.send_file(channel, f, filename=filename)
+                #
+                # with io.BytesIO() as f:
+                #     image.save(f, "PNG")
+                #     f.seek(0)
+                #     if clanChannel is not None:
+                #         await self.bot.send_file(discord.Object(id=clanChannel), f, filename=filename)
 
                 for memberkey in self.clans.keysClanMembers(clankey):
                     WarDayWins = 0
