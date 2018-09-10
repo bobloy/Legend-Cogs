@@ -146,8 +146,10 @@ class warlog:
                 #         await self.bot.send_file(discord.Object(id=clanChannel), f, filename=filename)
 
                 await self.bot.send_message(channel, embed=embed)
+
                 if clanChannel is not None:
-                    await self.bot.send_message(discord.Object(id=clanChannel), embed=embed)
+                    # await self.bot.send_message(discord.Object(id=clanChannel), embed=embed)
+                    await self.bot.say(str(clanChannel))
 
                 for memberkey in self.clans.keysClanMembers(clankey):
                     WarDayWins = 0
