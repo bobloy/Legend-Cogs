@@ -6,7 +6,7 @@ import clashroyale
 
 lastTag = '0'
 creditIcon = "https://i.imgur.com/TP8GXZb.png"
-credits = "Cog by GR8 | Titan"
+credits = "Cog by Gr8 | Titan"
 
 BOTCOMMANDER_ROLES = ["Family Representative", "Clan Manager", "Clan Deputy",
                       "Co-Leader", "Hub Officer", "admin", "Member", "guest"]
@@ -76,7 +76,7 @@ class tournament:
             maxplayers = tourney.max_players
             createTime = tourney.create_time
 
-            if (((int(time.time()) - createTime) < 10800) and (50 < maxplayers < 1000) and ((joined + 4) < maxplayers) and (tag != lastTag)):
+            if (((int(time.time()) - createTime) < 10800) and (maxplayers > 50) and ((joined + 4) < maxplayers) and (tag != lastTag)):
 
                 try:
                     tourneyAPI = await self.clash.get_tournament(tag)
@@ -106,7 +106,7 @@ class tournament:
             maxplayers = tourney.max_players
             createTime = tourney.create_time
 
-            if (((int(time.time()) - createTime) < 10800) and ((joined + 1) < maxplayers) and (maxplayers < 1000)):
+            if (((int(time.time()) - createTime) < 10800) and ((joined + 1) < maxplayers)):
 
                 try:
                     tourneyAPI = await self.clash.get_tournament(tag)
@@ -171,7 +171,6 @@ class tournament:
             await asyncio.sleep(120)
 
     @commands.command()
-    @commands.cooldown(3, 60, commands.BucketType.server)
     @commands.has_any_role(*BOTCOMMANDER_ROLES)
     async def tourney(self):
         """ Get a open tournament"""
@@ -204,7 +203,8 @@ class tournament:
             embed.set_footer(text=credits, icon_url=creditIcon)
             await self.bot.say(embed=embed)
         else:
-            return await self.bot.say("Found nothing, please try again after a few minutes!")
+            await self.bot.say("Found nothing, please try again after a few minutes!")
+            return
 
 
 def setup(bot):
