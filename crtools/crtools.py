@@ -285,6 +285,13 @@ class clans:
             return True
         return False
 
+    async def addClan(self, clankey, clandict):
+        if clankey not in self.clans:
+            self.clans[clankey] = clandict
+            dataIO.save_json(clans_path, self.clans)
+            return True
+        return False
+
     async def setPBTrophies(self, clankey, trophies):
         """Set a clan's PB Trohies"""
         self.clans[clankey]['personalbest'] = trophies
@@ -363,7 +370,7 @@ class crtools:
         await self.bot.say("OfficialAPI Token set")
 
     @commands.group(pass_context=True, name="clans")
-    @commands.has_any_role(*BOTCOMMANDER_ROLES)
+    @checks.mod_or_permissions(administrator=True)
     async def _clans(self, ctx):
         """Base command for managing clash royale clans. [p]help clans for details"""
         if ctx.invoked_subcommand is None:
