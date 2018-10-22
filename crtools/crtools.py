@@ -369,6 +369,43 @@ class crtools:
         if ctx.invoked_subcommand is None:
             await self.bot.send_cmd_help(ctx)
 
+    @_clans.command(pass_context=True, name="register")
+    @checks.mod_or_permissions(administrator=True)
+    async def clans_register(self, ctx, clankey, ctag, role: discord.Role, nickname):
+        """Register a clan for tracking"""
+        # toregister = {
+        #     'tag': ctag,
+        #     'role': role.name,
+        #     'role_id': role.id,
+        #     'name': nickname,  # Not good, will fix later
+        #     'nickname': nickname,
+        #     'waiting': [],
+        #     'personalbest': 0,
+        #     'bonustitle': "",
+        #     'discord': None
+        # }
+        toregister = {
+            'tag': ctag,
+            'role': role.name,
+            'name': nickname,
+            'nickname': nickname,
+            'discord': None,
+            'waiting': [],
+            'members': {},
+            'bonustitle': '',
+            'personalbest': 0,
+            'warTrophies': 0,
+            'approval': False,
+            'log_channel': None,
+            'warlog_channel': None,
+            'emoji': '',
+            'cwr': 0}
+        clankey = clankey.lower()
+        if await self.clans.addClan(clankey, toregister):
+            await self.bot.say("Success")
+        else:
+            await self.bot.say("Failed")
+
     @_clans.command(pass_context=True, name="delete")
     @checks.is_owner()
     async def clans_delete(self, ctx, clankey):
