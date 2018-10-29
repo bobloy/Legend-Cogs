@@ -1064,7 +1064,7 @@ class legend:
                 except:
                     pass
             except KeyError as e:
-                print(e)
+                await self.bot.send_message(self.bot.owner, content=str(e))
                 d_members_with_no_player_tag.append(d_member.display_name)
                 continue
 
