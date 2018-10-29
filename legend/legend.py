@@ -1059,11 +1059,12 @@ class legend:
                     d_members_not_in_clan.append(d_member.display_name)
 
                 try:
-                    if self.seen[legendServer[0]][d_member.id]['TIMESTAMP'] < time.time() - 691200:
+                    if self.seen[server.id][d_member.id]['TIMESTAMP'] < time.time() - 691200:
                         d_members_inactive.append(d_member.display_name)
                 except:
                     pass
-            except KeyError:
+            except KeyError as e:
+                print(e)
                 d_members_with_no_player_tag.append(d_member.display_name)
                 continue
 
@@ -1322,7 +1323,7 @@ class legend:
     @commands.command(pass_context=True, no_pm=True)
     @commands.has_any_role(*BOTCOMMANDER_ROLES)
     async def platoon(self, ctx, member: discord.Member):
-        """Tpgg;e pPlatoon Role for Brawlers"""
+        """Toggle Platoon Role for Brawlers"""
         server = ctx.message.server
         legendServer = ["374596069989810176"]
 
