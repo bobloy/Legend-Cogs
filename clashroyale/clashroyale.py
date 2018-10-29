@@ -520,8 +520,12 @@ class clashroyale:
 
             checkUser = await self.tags.getUser(server.members, profiletag)
             if checkUser is not None:
-                await self.bot.say("Error, This Player ID is already linked with **" + checkUser.display_name + "**")
-                return
+                if checkUser.id == member.id:
+                    await self.bot.say("Error, This Player ID is already linked to this user")
+                    return
+                else:
+                    await self.bot.say("Error, This Player ID is already linked with **" + checkUser.display_name + "**")
+                    return
 
             await self.tags.linkTag(profiletag, member.id)
 

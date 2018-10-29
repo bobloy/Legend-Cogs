@@ -4,7 +4,7 @@ import discord
 from discord.ext import commands
 
 from cogs.utils import checks
-from .utils.dataIO import dataIO, fileIO
+from cogs.utils.dataIO import dataIO, fileIO
 
 tags_path = "data/crtools/tags.json"
 auth_path = "data/crtools/auth.json"
@@ -132,12 +132,12 @@ class tags:
         """Link a player tag to a discord User"""
         tag = await self.formatTag(tag)
 
-        self.tags.update({userID: {"tag": tag}})
+        self.tags[userID] = {"tag": tag}
         dataIO.save_json(tags_path, self.tags)
 
     async def unlinkTag(self, userID):
         """Unlink a player tag to a discord User"""
-        if self.c.pop(str(userID), None):
+        if self.tags.pop(str(userID), None):
             dataIO.save_json(tags_path, self.tags)
             return True
         return False
