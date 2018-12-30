@@ -274,7 +274,8 @@ class clashroyale:
             'Epic Chest': 'epic',
             'Super Magical Chest': 'super',
             'Magical Chest': 'magic',
-            'Legendary Chest': 'legendary'
+            'Legendary Chest': 'legendary',
+            'Mega Lightning Chest': 'lightning'
         }
 
         valuechestText, specialChestText = "", ""
