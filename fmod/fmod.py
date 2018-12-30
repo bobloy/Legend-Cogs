@@ -15,7 +15,7 @@ except Exception as e:
 
 PATH = 'data/fmod/'
 creditIcon = "https://i.imgur.com/TP8GXZb.png"
-credits = "Bot by GR8 | Titan"
+credits = "Cog by Gr8 | Titan"
 
 # stuff for mute time
 UNIT_TABLE = {'s': 1, 'm': 60, 'h': 60 * 60, 'd': 60 * 60 * 24}

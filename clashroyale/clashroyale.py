@@ -7,10 +7,11 @@ import re
 from datetime import datetime
 
 BOTCOMMANDER_ROLES = ["Family Representative", "Clan Manager",
-                      "Clan Deputy", "Co-Leader", "Hub Officer", "admin"]
+                      "Clan Deputy", "Co-Leader", "Hub Officer", "admin",
+                      "Admin", "Leader"]
 
 creditIcon = "https://i.imgur.com/TP8GXZb.png"
-credits = "Bot by GR8 | Titan"
+credits = "Cog by Gr8 | Titan"
 
 
 class clashroyale:
@@ -61,7 +62,7 @@ class clashroyale:
         for emoji in self.bot.get_all_emojis():
             if emoji.name == name.replace(" ", "").replace("-", "").replace(".", ""):
                 return '<:{}:{}>'.format(emoji.name, emoji.id)
-        return ''
+        return name
 
     async def getClanEmoji(self, tag):
         """Check if emoji exists for the clan"""
@@ -91,31 +92,38 @@ class clashroyale:
     def getArenaEmoji(self, trophies):
         """Get Arena and League Emoji"""
         arenaMap = {
-            "arena1": [0, 399],
-            "arena2": [400, 799],
-            "arena3": [800, 1099],
-            "arena4": [1100, 1399],
-            "arena5": [1400, 1699],
-            "arena6": [1700, 1999],
-            "arena7": [2000, 2299],
-            "arena8": [2300, 2599],
-            "arena9": [2600, 2999],
-            "arena10": [3000, 3399],
-            "arena11": [3400, 3799],
-            "arena12": [3800, 3999],
-            "league1": [4000, 4299],
-            "league2": [4300, 4599],
-            "league3": [4600, 4899],
-            "league4": [4900, 5199],
-            "league5": [5200, 5499],
-            "league6": [5500, 5799],
-            "league7": [5800, 6099],
-            "league8": [6100, 6399],
-            "league9": [6400, 9999]
+            "arena1": range(0, 399),
+            "arena2": range(400, 799),
+            "arena3": range(800, 1099),
+            "arena4": range(1100, 1399),
+            "arena5": range(1400, 1699),
+            "arena6": range(1700, 1999),
+            "arena7": range(2000, 2299),
+            "arena8": range(2300, 2599),
+            "arena9": range(2600, 2999),
+            "arena10": range(3000, 3399),
+            "arena11": range(3400, 3799),
+            "arena12": range(3800, 3999),
+            "league1": range(4000, 4299),
+            "league2": range(4300, 4599),
+            "league3": range(4600, 4899),
+            "league4": range(4900, 5199),
+            "league5": range(5200, 5499),
+            "league6": range(5500, 5799),
+            "league7": range(5800, 6099),
+            "league8": range(6100, 6399),
+            "league9": range(6400, 9999)
         }
         for arena in arenaMap.keys():
-            if arenaMap[arena][0] <= trophies <= arenaMap[arena][1]:
+            if trophies in list(arenaMap[arena]):
                 return self.emoji(arena)
+
+    async def getClanWarTrophies(self, tag):
+        """Check if war trophies exists for the clan"""
+        clankey = await self.clans.getClanKey(tag)
+        if clankey is not None:
+            return await self.clans.getClanData(clankey, 'warTrophies')
+        return None
 
     async def getClanLeader(self, members):
         """Return clan leader from a list of members"""
@@ -156,6 +164,7 @@ class clashroyale:
 
         for league in leagueLevels.keys():
             readiness[league] = {"name": league.capitalize(),
+                                 "total": 0,
                                  "percent": 0,
                                  "cards": [],
                                  "levels": str(leagueLevels[league])}
@@ -178,7 +187,7 @@ class clashroyale:
         return readiness
 
     @commands.command(pass_context=True, aliases=['clashprofile'])
-    async def clashProfile(self, ctx, member: discord.Member=None):
+    async def clashProfile(self, ctx, member: discord.Member = None):
         """View your Clash Royale Profile Data and Statstics."""
 
         member = member or ctx.message.author
@@ -188,16 +197,18 @@ class clashroyale:
             profiletag = await self.tags.getTag(member.id)
             profiledata = await self.clash.get_player(profiletag)
         except clashroyaleAPI.RequestError:
-            return await self.bot.say("Error: cannot reach Clash Royale Servers. Please try again later.")
+            await self.bot.say("Error: cannot reach Clash Royale Servers. Please try again later.")
+            return
         except KeyError:
-            return await self.bot.say("You need to first save your profile using ``{}save #GAMETAG``".format(ctx.prefix))
+            await self.bot.say("You need to first save your profile using ``{}save #GAMETAG``".format(ctx.prefix))
+            return
 
         arenaFormat = profiledata.arena.name.replace(' ', '').lower()
 
         embed = discord.Embed(color=0xFAA61A)
-        embed.set_author(name=profiledata.name + " ("+profiledata.tag+")",
+        embed.set_author(name=profiledata.name + " (" + profiledata.tag + ")",
                          icon_url=await self.constants.get_clan_image(profiledata),
-                         url="https://royaleapi.com/player/"+profiledata.tag.strip("#"))
+                         url="https://royaleapi.com/player/" + profiledata.tag.strip("#"))
         embed.set_thumbnail(url="https://royaleapi.github.io/cr-api-assets/arenas/{}.png".format(arenaFormat))
         embed.add_field(name="Trophies", value="{} {:,}".format(self.emoji(arenaFormat), profiledata.trophies), inline=True)
         embed.add_field(name="Highest Trophies", value="{} {:,}".format(self.getArenaEmoji(profiledata.best_trophies),
@@ -226,7 +237,7 @@ class clashroyale:
         await self.bot.say(embed=embed)
 
     @commands.command(pass_context=True)
-    async def chests(self, ctx, member: discord.Member=None):
+    async def chests(self, ctx, member: discord.Member = None):
         """View your upcoming chest cycle for Clash Royale."""
 
         member = member or ctx.message.author
@@ -234,11 +245,13 @@ class clashroyale:
         await self.bot.type()
         try:
             profiletag = await self.tags.getTag(member.id)
-            chestdata = (await self.clash.get_player_chests(profiletag)).get("items")
+            chestdata = await self.clash.get_player_chests(profiletag)
         except clashroyaleAPI.RequestError:
-            return await self.bot.say("Error: cannot reach Clash Royale Servers. Please try again later.")
+            await self.bot.say("Error: cannot reach Clash Royale Servers. Please try again later.")
+            return
         except KeyError:
-            return await self.bot.say("You need to first save your profile using ``{}save #GAMETAG``".format(ctx.prefix))
+            await self.bot.say("You need to first save your profile using ``{}save #GAMETAG``".format(ctx.prefix))
+            return
 
         mapEmoji = {
             'Silver Chest': 'silver',
@@ -251,7 +264,7 @@ class clashroyale:
         }
 
         valuechestText, specialChestText = "", ""
-        for chest in chestdata:
+        for chest in chestdata.get("items"):
             if chest.index < 9:
                 valuechestText += self.emoji(mapEmoji[chest.name]) + " "
             else:
@@ -268,7 +281,7 @@ class clashroyale:
         await self.bot.say(embed=embed)
 
     @commands.command(pass_context=True, aliases=['clashdeck'])
-    async def clashDeck(self, ctx, member: discord.Member=None):
+    async def clashDeck(self, ctx, member: discord.Member = None):
         """View yours or other's clash royale Deck"""
 
         member = member or ctx.message.author
@@ -279,9 +292,11 @@ class clashroyale:
             profiletag = await self.tags.getTag(member.id)
             profiledata = await self.clash.get_player(profiletag)
         except clashroyaleAPI.RequestError:
-            return await self.bot.say("Error: cannot reach Clash Royale Servers. Please try again later.")
+            await self.bot.say("Error: cannot reach Clash Royale Servers. Please try again later.")
+            return
         except KeyError:
-            return await self.bot.say("You need to first save your profile using ``{}save #GAMETAG``".format(ctx.prefix))
+            await self.bot.say("You need to first save your profile using ``{}save #GAMETAG``".format(ctx.prefix))
+            return
 
         message = ctx.message
         message.content = ctx.prefix + "deck gl " + await self.constants.decklink_url(profiledata.current_deck)
@@ -290,7 +305,7 @@ class clashroyale:
         await self.bot.process_commands(message)
 
     @commands.command(pass_context=True, aliases=['cwr'])
-    async def clanwarreadiness(self, ctx, member: discord.Member=None):
+    async def clanwarreadiness(self, ctx, member: discord.Member = None):
         """View yours or other's clash royale CWR"""
 
         member = member or ctx.message.author
@@ -302,12 +317,14 @@ class clashroyale:
             profiledata = await self.clash.get_player(profiletag)
             leagues = await self.clanwarReadiness(profiledata.cards)
         except clashroyaleAPI.RequestError:
-            return await self.bot.say("Error: cannot reach Clash Royale Servers. Please try again later.")
+            await self.bot.say("Error: cannot reach Clash Royale Servers. Please try again later.")
+            return
         except KeyError:
-            return await self.bot.say("You need to first save your profile using ``{}save #GAMETAG``".format(ctx.prefix))
+            await self.bot.say("You need to first save your profile using ``{}save #GAMETAG``".format(ctx.prefix))
+            return
 
         embed = discord.Embed(color=0xFAA61A, description="Clan War Readiness")
-        embed.set_author(name=profiledata.name + " ("+profiledata.tag+")",
+        embed.set_author(name=profiledata.name + " (" + profiledata.tag + ")",
                          icon_url=await self.constants.get_clan_image(profiledata),
                          url="https://royaleapi.com/player/"+profiledata.tag.strip("#"))
         embed.add_field(name="War Day Wins", value="{} {}".format(self.emoji("warwin"), profiledata.war_day_wins), inline=True)
@@ -340,7 +357,8 @@ class clashroyale:
         try:
             clandata = await self.clash.get_clan(clantag)
         except clashroyaleAPI.RequestError:
-            return await self.bot.say("Error: cannot reach Clash Royale Servers. Please try again later.")
+            await self.bot.say("Error: cannot reach Clash Royale Servers. Please try again later.")
+            return
 
         embed = discord.Embed(description=clandata.description, color=0xFAA61A)
         embed.set_author(name=clandata.name + " ("+clandata.tag+")",
@@ -375,14 +393,17 @@ class clashroyale:
         tag = await self.tags.formatTag(tag)
 
         if not await self.tags.verifyTag(tag):
-            return await self.bot.say("The ID you provided has invalid characters. Please try again.")
+            await self.bot.say("The ID you provided has invalid characters. Please try again.")
+            return
 
         try:
             tourneydata = await self.clash.get_tournament(tag)
         except clashroyaleAPI.NotFoundError:
-            return await self.bot.say("Error: Tournament not found. Please double check your #TAG")
+            await self.bot.say("Error: Tournament not found. Please double check your #TAG")
+            return
         except clashroyaleAPI.RequestError:
-            return await self.bot.say("Error: cannot reach Clash Royale Servers. Please try again later.")
+            await self.bot.say("Error: cannot reach Clash Royale Servers. Please try again later.")
+            return
 
         maxPlayers = tourneydata.max_capacity
         cards = self.getCards(maxPlayers)
@@ -405,7 +426,8 @@ class clashroyale:
             if password is not None:
                 embed.add_field(name="Password", value="```{}```".format(password), inline=True)
             else:
-                return await self.bot.say("Error: Please enter a tournament password.")
+                await self.bot.say("Error: Please enter a tournament password.")
+                return
 
         await self.bot.delete_message(ctx.message)
 
@@ -444,7 +466,8 @@ class clashroyale:
         profiletag = await self.tags.formatTag(profiletag)
 
         if not await self.tags.verifyTag(profiletag):
-            return await self.bot.say("The ID you provided has invalid characters. Please try again.")
+            await self.bot.say("The ID you provided has invalid characters. Please try again.")
+            return
 
         await self.bot.type()
 
@@ -461,7 +484,8 @@ class clashroyale:
                 allowed = True
 
         if not allowed:
-            return await self.bot.say("You dont have enough permissions to set tags for others.")
+            await self.bot.say("You dont have enough permissions to set tags for others.")
+            return
 
         member = member or ctx.message.author
 
@@ -470,7 +494,12 @@ class clashroyale:
 
             checkUser = await self.tags.getUser(server.members, profiletag)
             if checkUser is not None:
-                return await self.bot.say("Error, This Player ID is already linked with **" + checkUser.display_name + "**")
+                if checkUser.id == member.id:
+                    await self.bot.say("Error, This Player ID is already linked to this user")
+                    return
+                else:
+                    await self.bot.say("Error, This Player ID is already linked with **" + checkUser.display_name + "**")
+                    return
 
             await self.tags.linkTag(profiletag, member.id)
 
@@ -480,9 +509,11 @@ class clashroyale:
                              icon_url=avatar)
             await self.bot.say(embed=embed)
         except clashroyaleAPI.NotFoundError:
-            return await self.bot.say("We cannot find your ID in our database, please try again.")
+            await self.bot.say("We cannot find your ID in our database, please try again.")
+            return
         except clashroyaleAPI.RequestError:
-            return await self.bot.say("Error: cannot reach Clash Royale Servers. Please try again later.")
+            await self.bot.say("Error: cannot reach Clash Royale Servers. Please try again later.")
+            return
 
 
 def setup(bot):

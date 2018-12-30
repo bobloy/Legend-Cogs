@@ -20,7 +20,7 @@ default_settings = {"CHANNEL": "381338442543398912", "CREDITS": 50,
                     "ROLE": None, "LOCK": False, "QUESTIONS": 60, "DELAY": 60}
 settings_path = "data/challenges/settings.json"
 creditIcon = "https://i.imgur.com/TP8GXZb.png"
-credits = "Bot by GR8 | Titan"
+credits = "Cog by GR8 | Titan"
 
 TriviaLine = namedtuple("TriviaLine", "question answers")
 

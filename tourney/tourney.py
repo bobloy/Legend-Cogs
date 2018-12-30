@@ -6,7 +6,7 @@ import clashroyale
 
 lastTag = '0'
 creditIcon = "https://i.imgur.com/TP8GXZb.png"
-credits = "Bot by GR8 | Titan"
+credits = "Cog by Gr8 | Titan"
 
 BOTCOMMANDER_ROLES = ["Family Representative", "Clan Manager", "Clan Deputy",
                       "Co-Leader", "Hub Officer", "admin", "Member", "guest"]
@@ -174,7 +174,6 @@ class tournament:
             await asyncio.sleep(120)
 
     @commands.command()
-    @commands.cooldown(3, 60, commands.BucketType.server)
     @commands.has_any_role(*BOTCOMMANDER_ROLES)
     async def tourney(self):
         """ Get a open tournament"""
@@ -207,7 +206,8 @@ class tournament:
             embed.set_footer(text=credits, icon_url=creditIcon)
             await self.bot.say(embed=embed)
         else:
-            return await self.bot.say("Found nothing, please try again after a few minutes!")
+            await self.bot.say("Found nothing, please try again after a few minutes!")
+            return
 
 
 def setup(bot):

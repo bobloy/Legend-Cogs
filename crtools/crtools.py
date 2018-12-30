@@ -1,28 +1,52 @@
+import os
+
 import discord
 from discord.ext import commands
-from .utils.dataIO import dataIO, fileIO
-import os
+
 from cogs.utils import checks
+from cogs.utils.dataIO import dataIO, fileIO
 
 tags_path = "data/crtools/tags.json"
 auth_path = "data/crtools/auth.json"
 clans_path = "data/crtools/clans.json"
 constants_path = "data/crtools/constants.json"
 
-BOTCOMMANDER_ROLES = ["Family Representative", "Clan Manager",
-                      "Clan Deputy", "Co-Leader", "Hub Officer", "admin"]
+BOTCOMMANDER_ROLES = [
+    "Family Representative",
+    "Clan Manager",
+    "Clan Deputy",
+    "Co-Leader",
+    "Hub Officer",
+    "admin",
+]
 
-default_clans = {'defualt': {'tag': '9PJYVVL2', 'role': 'everyone', 'name': 'defualt',
-                             'nickname': 'defualt', 'discord': None, 'waiting': [], 'members': {},
-                             'bonustitle': '', 'personalbest': 0, 'warTrophies': 0, 'approval': False,
-                             'log_channel': None, 'warlog_channel': None, 'emoji': '', 'cwr': 0}}
+default_clans = {
+    "defualt": {
+        "tag": "9PJYVVL2",
+        "role": "everyone",
+        "name": "defualt",
+        "nickname": "defualt",
+        "discord": None,
+        "waiting": [],
+        "members": {},
+        "bonustitle": "",
+        "personalbest": 0,
+        "warTrophies": 0,
+        "approval": False,
+        "log_channel": None,
+        "warlog_channel": None,
+        "emoji": "",
+        "cwr": 0,
+    }
+}
 
 
 class constants:
     """constants Management"""
+
     def __init__(self):
         self.constants = dataIO.load_json(constants_path)
-        self.images = 'https://royaleapi.github.io/cr-api-assets/'
+        self.images = "https://royaleapi.github.io/cr-api-assets/"
 
     async def card_to_key(self, name):
         """Card key to decklink id."""
@@ -62,9 +86,9 @@ class constants:
         ids = []
         for card in deck:
             ids.append(await self.card_to_key(card["name"]))
-        url = 'https://link.clashroyale.com/deck/en?deck=' + ';'.join(ids)
+        url = "https://link.clashroyale.com/deck/en?deck=" + ";".join(ids)
         if war:
-            url += '&ID=CRRYRPCC&war=1'
+            url += "&ID=CRRYRPCC&war=1"
         return url
 
     async def get_clan_image(self, p):
@@ -75,24 +99,25 @@ class constants:
             try:
                 badge_id = p.badge_id
             except AttributeError:
-                return 'https://i.imgur.com/Y3uXsgj.png'
+                return "https://i.imgur.com/Y3uXsgj.png"
 
         if badge_id is None:
-            return 'https://i.imgur.com/Y3uXsgj.png'
+            return "https://i.imgur.com/Y3uXsgj.png"
 
         for i in self.constants["alliance_badges"]:
             if i["id"] == badge_id:
-                return self.images + 'badges/' + i["name"] + '.png'
+                return self.images + "badges/" + i["name"] + ".png"
 
 
 class tags:
     """Tags Management"""
+
     def __init__(self):
         self.tags = dataIO.load_json(tags_path)
 
     async def verifyTag(self, tag):
         """Check if a player/can tag is valid"""
-        check = ['P', 'Y', 'L', 'Q', 'G', 'R', 'J', 'C', 'U', 'V', '0', '2', '8', '9']
+        check = ["P", "Y", "L", "Q", "G", "R", "J", "C", "U", "V", "0", "2", "8", "9"]
 
         if any(i not in check for i in tag):
             return False
@@ -101,31 +126,31 @@ class tags:
 
     async def formatTag(self, tag):
         """Sanitize and format CR Tag"""
-        return tag.strip('#').upper().replace('O', '0')
+        return tag.strip("#").upper().replace("O", "0")
 
     async def linkTag(self, tag, userID):
         """Link a player tag to a discord User"""
         tag = await self.formatTag(tag)
 
-        self.tags.update({userID: {'tag': tag}})
+        self.tags[userID] = {"tag": tag}
         dataIO.save_json(tags_path, self.tags)
 
     async def unlinkTag(self, userID):
         """Unlink a player tag to a discord User"""
-        if self.c.pop(str(userID), None):
+        if self.tags.pop(str(userID), None):
             dataIO.save_json(tags_path, self.tags)
             return True
         return False
 
     async def getTag(self, userID):
         """Get a user's CR Tag"""
-        return self.tags[userID]['tag']
+        return self.tags[userID]["tag"]
 
     async def getUser(self, serverUsers, tag):
         """Get User from CR Tag"""
         for user in serverUsers:
             if user.id in self.tags:
-                player_tag = self.tags[user.id]['tag']
+                player_tag = self.tags[user.id]["tag"]
                 if player_tag == await self.formatTag(tag):
                     return user
         return None
@@ -133,39 +158,41 @@ class tags:
 
 class auth:
     """RoyaleAPI key management"""
+
     def __init__(self):
         self.auth = dataIO.load_json(auth_path)
 
     async def addToken(self, key):
         """Add a RoyaleAPI Token"""
-        self.auth['RoyaleAPI'] = key
+        self.auth["RoyaleAPI"] = key
         dataIO.save_json(auth_path, self.auth)
 
     async def addTokenBS(self, key):
         """Add a brawlstars-api Token"""
-        self.auth['brawlstars-api'] = key
+        self.auth["brawlstars-api"] = key
         dataIO.save_json(auth_path, self.auth)
 
     async def addTokenOfficial(self, key):
         """Add a api.clashroyal.com Token"""
-        self.auth['OfficialAPI'] = key
+        self.auth["OfficialAPI"] = key
         dataIO.save_json(auth_path, self.auth)
 
     def getToken(self):
         """Get RoyaleAPI Token"""
-        return self.auth['RoyaleAPI']
+        return self.auth["RoyaleAPI"]
 
     def getOfficialToken(self):
         """Get OfficialAPI Token"""
-        return self.auth['OfficialAPI']
+        return self.auth["OfficialAPI"]
 
     def getBSToken(self):
         """Get brawlstars-api Token"""
-        return self.auth['brawlstars-api']
+        return self.auth["brawlstars-api"]
 
 
 class clans:
     """Clan Family Management"""
+
     def __init__(self):
         self.clans = dataIO.load_json(clans_path)
 
@@ -179,7 +206,7 @@ class clans:
 
     async def getClanMemberData(self, clankey, memberkey, data):
         """Return clan member's dict"""
-        return self.clans[clankey]['members'][memberkey][data]
+        return self.clans[clankey]["members"][memberkey][data]
 
     async def numClans(self):
         """Return the number of clans"""
@@ -191,7 +218,7 @@ class clans:
 
     def keysClanMembers(self, clankey):
         """Get keys of all the clan members"""
-        return self.clans[clankey]['members'].keys()
+        return self.clans[clankey]["members"].keys()
 
     async def namesClans(self):
         """Get name of all the clans"""
@@ -205,56 +232,56 @@ class clans:
         """Get roles of all the clans"""
         roles = ["Member"]
         for x in self.clans:
-            roles.append(self.clans[x]['role'])
+            roles.append(self.clans[x]["role"])
         return roles
 
     async def verifyMembership(self, clantag):
         """Check if a clan is part of the family"""
         for clankey in self.keysClans():
-            if self.clans[clankey]['tag'] == clantag:
+            if self.clans[clankey]["tag"] == clantag:
                 return True
         return False
 
     async def getClanKey(self, clantag):
         """Get a clan key from a clan tag."""
         for clankey in self.keysClans():
-            if self.clans[clankey]['tag'] == clantag:
+            if self.clans[clankey]["tag"] == clantag:
                 return clankey
         return None
 
     async def numWaiting(self, clankey):
         """Get a clan's wating list length from a clan key."""
-        return len(self.clans[clankey]['waiting'])
+        return len(self.clans[clankey]["waiting"])
 
     async def setWarTrophies(self, clankey, trophies):
         """Set a clan's wartrophies"""
-        self.clans[clankey]['warTrophies'] = trophies
+        self.clans[clankey]["warTrophies"] = trophies
         dataIO.save_json(clans_path, self.clans)
 
     async def setWarstats(self, clankey, tag, trophies, cards):
         """Set a clan member's wins and cards"""
-        self.clans[clankey]['members'][tag]['WarDayWins'] = trophies
-        self.clans[clankey]['members'][tag]['cardsEarned'] = cards
+        self.clans[clankey]["members"][tag]["WarDayWins"] = trophies
+        self.clans[clankey]["members"][tag]["cardsEarned"] = cards
         dataIO.save_json(clans_path, self.clans)
 
     async def getMemberWins(self, clankey, tag):
         """Get a member's war day wins from the week"""
         try:
-            return self.clans[clankey]['members'][tag]['WarDayWins']
+            return self.clans[clankey]["members"][tag]["WarDayWins"]
         except KeyError:
             return 0
 
     async def getMemberCards(self, clankey, tag):
         """Get a member's cardsEarned from the week"""
         try:
-            return self.clans[clankey]['members'][tag]['cardsEarned']
+            return self.clans[clankey]["members"][tag]["cardsEarned"]
         except KeyError:
             return 0
 
     async def addWaitingMember(self, clankey, memberID):
         """Add a user to a clan's waiting list"""
-        if memberID not in self.clans[clankey]['waiting']:
-            self.clans[clankey]['waiting'].append(memberID)
+        if memberID not in self.clans[clankey]["waiting"]:
+            self.clans[clankey]["waiting"].append(memberID)
             dataIO.save_json(clans_path, self.clans)
             return True
         else:
@@ -262,8 +289,8 @@ class clans:
 
     async def delWaitingMember(self, clankey, memberID):
         """Remove a user to a clan's waiting list"""
-        if memberID in self.clans[clankey]['waiting']:
-            self.clans[clankey]['waiting'].remove(memberID)
+        if memberID in self.clans[clankey]["waiting"]:
+            self.clans[clankey]["waiting"].remove(memberID)
             dataIO.save_json(clans_path, self.clans)
 
             return True
@@ -272,11 +299,11 @@ class clans:
 
     async def checkWaitingMember(self, clankey, memberID):
         """check if a user is in a waiting list"""
-        return memberID in self.clans[clankey]['waiting']
+        return memberID in self.clans[clankey]["waiting"]
 
     async def getWaitingIndex(self, clankey, memberID):
         """Get the waiting position from a clan's waiting list"""
-        return self.clans[clankey]['waiting'].index(memberID)
+        return self.clans[clankey]["waiting"].index(memberID)
 
     async def delClan(self, clankey):
         """delete a clan from the family"""
@@ -285,55 +312,63 @@ class clans:
             return True
         return False
 
+    async def addClan(self, clankey, clandict):
+        if clankey not in self.clans:
+            self.clans[clankey] = clandict
+            dataIO.save_json(clans_path, self.clans)
+            return True
+        return False
+
     async def setPBTrophies(self, clankey, trophies):
         """Set a clan's PB Trohies"""
-        self.clans[clankey]['personalbest'] = trophies
+        self.clans[clankey]["personalbest"] = trophies
         dataIO.save_json(clans_path, self.clans)
 
     async def setCWR(self, clankey, cwr):
         """Set a clan's CWR"""
-        self.clans[clankey]['cwr'] = cwr
+        self.clans[clankey]["cwr"] = cwr
         dataIO.save_json(clans_path, self.clans)
 
     async def setBonus(self, clankey, bonus):
         """Set a clan's Bonus Statement"""
-        self.clans[clankey]['bonustitle'] = bonus
+        self.clans[clankey]["bonustitle"] = bonus
         dataIO.save_json(clans_path, self.clans)
 
     async def setLogChannel(self, clankey, channel):
         """Set a clan's log channel"""
-        self.clans[clankey]['log_channel'] = channel
+        self.clans[clankey]["log_channel"] = channel
         dataIO.save_json(clans_path, self.clans)
 
     async def setWarLogChannel(self, clankey, channel):
         """Set a clan's warlog channel"""
-        self.clans[clankey]['warlog_channel'] = channel
+        self.clans[clankey]["warlog_channel"] = channel
         dataIO.save_json(clans_path, self.clans)
 
     async def addMember(self, clankey, name, tag):
         """Add a member to the clan"""
-        self.clans[clankey]['members'][tag] = {}
-        self.clans[clankey]['members'][tag]["tag"] = tag
-        self.clans[clankey]['members'][tag]["name"] = name
-        self.clans[clankey]['members'][tag]["WarDayWins"] = 0
-        self.clans[clankey]['members'][tag]["cardsEarned"] = 0
+        self.clans[clankey]["members"][tag] = {}
+        self.clans[clankey]["members"][tag]["tag"] = tag
+        self.clans[clankey]["members"][tag]["name"] = name
+        self.clans[clankey]["members"][tag]["WarDayWins"] = 0
+        self.clans[clankey]["members"][tag]["cardsEarned"] = 0
         dataIO.save_json(clans_path, self.clans)
 
     async def delMember(self, clankey, tag):
         """Remove a member to the clan"""
-        self.clans[clankey]['members'].pop(tag, None)
+        self.clans[clankey]["members"].pop(tag, None)
         dataIO.save_json(clans_path, self.clans)
 
     async def togglePrivate(self, clankey):
         """oggle Private approval of new recruits"""
-        self.clans[clankey]['approval'] = not self.clans[clankey]['approval']
+        self.clans[clankey]["approval"] = not self.clans[clankey]["approval"]
         dataIO.save_json(clans_path, self.clans)
 
-        return self.clans[clankey]['approval']
+        return self.clans[clankey]["approval"]
 
 
 class crtools:
     """Clash Royale Tools"""
+
     def __init__(self, bot):
         self.bot = bot
         self.tags = tags()
@@ -363,11 +398,49 @@ class crtools:
         await self.bot.say("OfficialAPI Token set")
 
     @commands.group(pass_context=True, name="clans")
-    @commands.has_any_role(*BOTCOMMANDER_ROLES)
+    @checks.mod_or_permissions(administrator=True)
     async def _clans(self, ctx):
         """Base command for managing clash royale clans. [p]help clans for details"""
         if ctx.invoked_subcommand is None:
             await self.bot.send_cmd_help(ctx)
+
+    @_clans.command(pass_context=True, name="register")
+    @checks.mod_or_permissions(administrator=True)
+    async def clans_register(self, ctx, clankey, ctag, role: discord.Role, nickname):
+        """Register a clan for tracking"""
+        # toregister = {
+        #     'tag': ctag,
+        #     'role': role.name,
+        #     'role_id': role.id,
+        #     'name': nickname,  # Not good, will fix later
+        #     'nickname': nickname,
+        #     'waiting': [],
+        #     'personalbest': 0,
+        #     'bonustitle': "",
+        #     'discord': None
+        # }
+        toregister = {
+            "tag": ctag,
+            "role": role.name,
+            "name": nickname,
+            "nickname": nickname,
+            "discord": None,
+            "waiting": [],
+            "members": {},
+            "bonustitle": "",
+            "personalbest": 0,
+            "warTrophies": 0,
+            "approval": False,
+            "log_channel": None,
+            "warlog_channel": None,
+            "emoji": "",
+            "cwr": 0,
+        }
+        clankey = clankey.lower()
+        if await self.clans.addClan(clankey, toregister):
+            await self.bot.say("Success")
+        else:
+            await self.bot.say("Failed")
 
     @_clans.command(pass_context=True, name="delete")
     @checks.is_owner()
@@ -386,7 +459,9 @@ class crtools:
         try:
             await self.clans.setPBTrophies(clankey, pb)
         except KeyError:
-            return await self.bot.say("Please use a valid clanname: {}".format(await self.clans.namesClans()))
+            return await self.bot.say(
+                "Please use a valid clanname: {}".format(await self.clans.namesClans())
+            )
 
         await self.bot.say("Success")
 
@@ -397,7 +472,9 @@ class crtools:
         try:
             await self.clans.setCWR(clankey, percent)
         except KeyError:
-            return await self.bot.say("Please use a valid clanname: {}".format(await self.clans.namesClans()))
+            return await self.bot.say(
+                "Please use a valid clanname: {}".format(await self.clans.namesClans())
+            )
 
         await self.bot.say("Success")
 
@@ -408,7 +485,9 @@ class crtools:
         try:
             await self.clans.setBonus(clankey, " ".join(bonus))
         except KeyError:
-            return await self.bot.say("Please use a valid clanname: {}".format(await self.clans.namesClans()))
+            return await self.bot.say(
+                "Please use a valid clanname: {}".format(await self.clans.namesClans())
+            )
 
         await self.bot.say("Success")
 
@@ -420,18 +499,28 @@ class crtools:
             server = ctx.message.server
 
             if not server.get_member(self.bot.user.id).permissions_in(channel).send_messages:
-                return await self.bot.say("I do not have permissions to send messages to {0.mention}".format(channel))
+                return await self.bot.say(
+                    "I do not have permissions to send messages to {0.mention}".format(channel)
+                )
 
             if channel is None:
-                await self.bot.say("I can't find the specified channel. It might have been deleted.")
+                await self.bot.say(
+                    "I can't find the specified channel. It might have been deleted."
+                )
 
             await self.clans.setLogChannel(clankey, channel.id)
 
-            await self.bot.send_message(channel, "I will now send log messages to {0.mention}".format(channel))
-            await self.bot.say("Clash log channel for {} is now set to {}".format(clankey, channel))
+            await self.bot.send_message(
+                channel, "I will now send log messages to {0.mention}".format(channel)
+            )
+            await self.bot.say(
+                "Clash log channel for {} is now set to {}".format(clankey, channel)
+            )
 
         except KeyError:
-            await self.bot.say("Please use a valid clanname: {}".format(await self.clans.namesClans()))
+            await self.bot.say(
+                "Please use a valid clanname: {}".format(await self.clans.namesClans())
+            )
             return
         except discord.errors.Forbidden:
             await self.bot.say("No permission to send messages to that channel")
@@ -444,18 +533,28 @@ class crtools:
             server = ctx.message.server
 
             if not server.get_member(self.bot.user.id).permissions_in(channel).send_messages:
-                return await self.bot.say("I do not have permissions to send messages to {0.mention}".format(channel))
+                return await self.bot.say(
+                    "I do not have permissions to send messages to {0.mention}".format(channel)
+                )
 
             if channel is None:
-                await self.bot.say("I can't find the specified channel. It might have been deleted.")
+                await self.bot.say(
+                    "I can't find the specified channel. It might have been deleted."
+                )
 
             await self.clans.setWarLogChannel(clankey, channel.id)
 
-            await self.bot.send_message(channel, "I will now send war log messages to {0.mention}".format(channel))
-            await self.bot.say("Clash war log channel for {} is now set to {}".format(clankey, channel))
+            await self.bot.send_message(
+                channel, "I will now send war log messages to {0.mention}".format(channel)
+            )
+            await self.bot.say(
+                "Clash war log channel for {} is now set to {}".format(clankey, channel)
+            )
 
         except KeyError:
-            return await self.bot.say("Please use a valid clanname: {}".format(await self.clans.namesClans()))
+            return await self.bot.say(
+                "Please use a valid clanname: {}".format(await self.clans.namesClans())
+            )
         except discord.errors.Forbidden:
             await self.bot.say("No permission to send messages to that channel")
 
@@ -464,9 +563,13 @@ class crtools:
         """Toggle Private approval of new recruits"""
         clankey = clankey.lower()
         try:
-            await self.bot.say("Private Approval now is set to " + str(await self.clans.togglePrivate(clankey)))
+            await self.bot.say(
+                "Private Approval now is set to " + str(await self.clans.togglePrivate(clankey))
+            )
         except KeyError:
-            return await self.bot.say("Please use a valid clanname: {}".format(await self.clans.namesClans()))
+            return await self.bot.say(
+                "Please use a valid clanname: {}".format(await self.clans.namesClans())
+            )
 
 
 def check_folders():
@@ -491,8 +594,8 @@ def check_files():
 
 def check_auth():
     c = dataIO.load_json(auth_path)
-    if 'RoyaleAPI' not in c:
-        c['RoyaleAPI'] = "enter your RoyaleAPI token here!"
+    if "RoyaleAPI" not in c:
+        c["RoyaleAPI"] = "enter your RoyaleAPI token here!"
     dataIO.save_json(auth_path, c)
 
 
@@ -501,4 +604,3 @@ def setup(bot):
     check_files()
     check_auth()
     bot.add_cog(crtools(bot))
-

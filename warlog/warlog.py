@@ -1,15 +1,15 @@
-import discord
-from discord.ext import commands
-import io
 import asyncio
-from PIL import ImageFont
-from PIL import Image
-from PIL import ImageDraw
-import clashroyale
 from datetime import datetime, timedelta
 
+import clashroyale
+import discord
+from PIL import Image
+from PIL import ImageDraw
+from PIL import ImageFont
+from discord.ext import commands
+
 creditIcon = "https://i.imgur.com/TP8GXZb.png"
-credits = "Bot by GR8 | Titan"
+credits = "Cog by Gr8 | Titan"
 
 
 class warlog:
@@ -49,6 +49,16 @@ class warlog:
         if delta_day >= 0:
             delta_day -= 7
         return int((d + timedelta(days=delta_day)).timestamp())
+
+    async def genEmbed(self, leagueName, trophies, rank, clanName, participants, wins, crowns):
+        embed = discord.Embed(title=clanName, description="Clan War Results")
+        embed.add_field(name="League", value=leagueName)
+        embed.add_field(name="Tropies", value=trophies)
+        embed.add_field(name="Rank", value=rank)
+        embed.add_field(name="Participants", value=participants)
+        embed.add_field(name="Wins", value=wins)
+        embed.add_field(name="Crowns", value=crowns)
+        return embed
 
     async def genImage(self, leagueName, trophies, rank, clanName, participants, wins, crowns):
 
@@ -91,13 +101,14 @@ class warlog:
     async def getWarData(self, channel):
 
         for clankey in self.clans.keysClans():
+            self.bot.say("Processing {}".format(clankey))
 
             try:
-                clanwars = (await self.clash.get_clan_war_log(await self.clans.getClanData(clankey, 'tag'))).get("items")
+                clanwars = await self.clash.get_clan_war_log(await self.clans.getClanData(clankey, 'tag'))
             except clashroyale.RequestError:
                 return
 
-            standings = clanwars[0].standings
+            standings = clanwars.get("items")[0].standings
             clanRank = await self.findRank(standings, "tag", await self.clans.getClanData(clankey, 'tag'))
             warTrophies = standings[clanRank].clan.clan_score
 
@@ -105,41 +116,56 @@ class warlog:
 
                 clanLeague = await self.getLeague(warTrophies)
 
-                image = await self.genImage(clanLeague,
+                # image = await self.genImage(clanLeague,
+                #                             str(warTrophies),
+                #                             str(clanRank + 1),
+                #                             standings[clanRank].clan.name,
+                #                             str(standings[clanRank].clan.participants),
+                #                             str(standings[clanRank].clan.wins),
+                #                             str(standings[clanRank].clan.crowns))
+
+                embed = await self.genEmbed(clanLeague,
                                             str(warTrophies),
                                             str(clanRank + 1),
                                             standings[clanRank].clan.name,
                                             str(standings[clanRank].clan.participants),
                                             str(standings[clanRank].clan.wins),
                                             str(standings[clanRank].clan.crowns))
-                filename = "warlog-{}.png".format(clankey)
+                # filename = "warlog-{}.png".format(clankey)
                 clanChannel = await self.clans.getClanData(clankey, 'warlog_channel')
 
-                with io.BytesIO() as f:
-                    image.save(f, "PNG")
-                    f.seek(0)
-                    await self.bot.send_file(channel, f, filename=filename)
+                # with io.BytesIO() as f:
+                #     image.save(f, "PNG")
+                #     f.seek(0)
+                #     await self.bot.send_file(channel, f, filename=filename)
+                #
+                # with io.BytesIO() as f:
+                #     image.save(f, "PNG")
+                #     f.seek(0)
+                #     if clanChannel is not None:
+                #         await self.bot.send_file(discord.Object(id=clanChannel), f, filename=filename)
 
-                with io.BytesIO() as f:
-                    image.save(f, "PNG")
-                    f.seek(0)
-                    if clanChannel is not None:
-                        await self.bot.send_file(discord.Object(id=clanChannel), f, filename=filename)
+                await self.bot.send_message(channel, embed=embed)
 
-                for member in self.clans.keysClanMembers(clankey):
+                if clanChannel is not None:
+                    # await self.bot.send_message(discord.Object(id=clanChannel), embed=embed)
+                    await self.bot.say(str(clanChannel))
+
+                for memberkey in self.clans.keysClanMembers(clankey):
                     WarDayWins = 0
                     cardsEarned = 0
-                    for index, war in enumerate(clanwars):
+                    tag = await self.clans.getClanMemberData(clankey, memberkey, 'tag')
+                    for index, war in enumerate(clanwars.get("items")):
                         if index == 5:
                             break
                         created_date = await self.cleanTime(war.created_date)
                         if created_date > await self.last_day(datetime.today(), 'sunday'):
                             for participant in war.participants:
-                                if participant.tag.strip("#") == member:
+                                if participant.tag.strip("#") == tag:
                                     WarDayWins += participant.wins
                                     cardsEarned += participant.cards_earned
 
-                    await self.clans.setWarstats(clankey, member, WarDayWins, cardsEarned)
+                    await self.clans.setWarstats(clankey, tag, WarDayWins, cardsEarned)
 
                 await self.clans.setWarTrophies(clankey, warTrophies)
 
@@ -150,6 +176,7 @@ class warlog:
         """Track Clan wars"""
         channel = ctx.message.channel
         await self.getWarData(channel)
+        await self.bot.say("Done!")
 
 
 def setup(bot):
