@@ -73,7 +73,7 @@ class clashroyale:
     def getLeagueEmoji(self, trophies):
         """Get clan war League Emoji"""
         mapLeagues = {
-            "legendleague": [3000, 5000],
+            "legendleague": [3000, 9000],
             "gold3league": [2500, 2999],
             "gold2league": [2000, 2499],
             "goldleague": [1500, 1999],
@@ -116,13 +116,6 @@ class clashroyale:
         for arena in arenaMap.keys():
             if arenaMap[arena][0] <= trophies <= arenaMap[arena][1]:
                 return self.emoji(arena)
-
-    async def getClanWarTrophies(self, tag):
-        """Check if war trophies exists for the clan"""
-        clankey = await self.clans.getClanKey(tag)
-        if clankey is not None:
-            return await self.clans.getClanData(clankey, 'warTrophies')
-        return None
 
     async def getClanLeader(self, members):
         """Return clan leader from a list of members"""
@@ -213,7 +206,7 @@ class clashroyale:
         if profiledata.clan is not None:
             embed.add_field(name="Clan {}".format(profiledata.role.capitalize()),
                             value="{} {}".format(await self.getClanEmoji(profiledata.clan.tag), profiledata.clan.name), inline=True)
-        embed.add_field(name="Cards Found", value="{} {}/88".format(self.emoji("card"), len(profiledata.cards)), inline=True)
+        embed.add_field(name="Cards Found", value="{} {}/89".format(self.emoji("card"), len(profiledata.cards)), inline=True)
         embed.add_field(name="Favourite Card", value="{} {}".format(self.emoji(profiledata.current_favourite_card.name),
                                                                     profiledata.current_favourite_card.name), inline=True)
         embed.add_field(name="Games Played", value="{} {:,}".format(self.emoji("battle"), profiledata.battle_count), inline=True)
@@ -339,6 +332,11 @@ class clashroyale:
 
         await self.bot.type()
 
+        clantag = await self.tags.formatTag(clantag)
+
+        if not await self.tags.verifyTag(clantag):
+            return await self.bot.say("The ID you provided has invalid characters. Please try again.")
+
         try:
             clandata = await self.clash.get_clan(clantag)
         except clashroyaleAPI.RequestError:
@@ -353,12 +351,8 @@ class clashroyale:
         embed.add_field(name="Leader", value=await self.getClanLeader(clandata.member_list), inline=True)
         embed.add_field(name="Donations", value="{} {:,}".format(self.emoji("cards"), clandata.donations_per_week), inline=True)
         embed.add_field(name="Score", value="{} {:,}".format(self.emoji("PB"), clandata.clan_score), inline=True)
-
-        warTrophies = await self.getClanWarTrophies(clandata.tag.strip("#"))
-        if warTrophies is not None:
-            embed.add_field(name="War Trophies",
-                            value="{} {:,}".format(self.getLeagueEmoji(warTrophies), warTrophies), inline=True)
-
+        embed.add_field(name="War Trophies",
+                        value="{} {:,}".format(self.getLeagueEmoji(clandata.clan_war_trophies), clandata.clan_war_trophies), inline=True)
         embed.add_field(name="Required Trophies",
                         value="{} {:,}".format(self.emoji("crtrophy"), clandata.required_trophies), inline=True)
         embed.add_field(name="Status", value=":envelope_with_arrow: {}".format(self.camelToString(clandata.type).capitalize()), inline=True)
@@ -425,10 +419,12 @@ class clashroyale:
             embed.add_field(name="Ends In", value=endTime, inline=True)
 
         embed.add_field(name="Hosted By", value=await self.getCreaterName(tourneydata.creator_tag, tourneydata.members_list), inline=True)
-        embed.add_field(name="Top prize", value="{} {}     {} {}".format(self.emoji("tournamentcards"),
-                                                                         cards,
-                                                                         self.emoji("coin"),
-                                                                         coins), inline=True)
+
+        if tourneydata.first_place_card_prize > 0:
+            embed.add_field(name="Top prize", value="{} {}     {} {}".format(self.emoji("tournamentcards"),
+                                                                             cards,
+                                                                             self.emoji("coin"),
+                                                                             coins), inline=True)
         embed.set_footer(text=credits, icon_url=creditIcon)
 
         await self.bot.say(embed=embed)

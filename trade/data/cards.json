@@ -35,6 +35,13 @@
 		"barbs",
 		"barbarians"
 	],
+	"Barbarian Barrel": [
+		"bb", 
+		"barb barrel", 
+		"barbb",
+		"bbarrel",
+		"barbarian barrel"
+	],
 	"Bats": [
 		"bat",
 		"bats"
@@ -68,6 +75,12 @@
 		"dart gob",
 		"dart gobs",
 		"dart goblin"
+	],
+	"Electro Dragon": [
+		"ed",
+		"edrag",
+		"electro dragon",
+		"edragon"
 	],
 	"Electro Wizard": [
 		"ew",
@@ -181,6 +194,7 @@
 		"iw",
 		"ice wiz",
 		"iwiz",
+		"icewiz",
 		"ice wizard"
 	],
 	"Inferno Dragon": [

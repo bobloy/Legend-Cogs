@@ -47,6 +47,7 @@ from discord.ext import commands
 SETTINGS_PATH = os.path.join("data", "deck", "settings.json")
 AKA_PATH = os.path.join("data", "deck", "cards_aka.yaml")
 CARDS_JSON_PATH = os.path.join("data", "deck", "cards.json")
+
 max_deck_per_user = 20
 
 PAGINATION_TIMEOUT = 20.0
@@ -950,3 +951,4 @@ def setup(bot):
     check_file()
     n = Deck(bot)
     bot.add_cog(n)
+

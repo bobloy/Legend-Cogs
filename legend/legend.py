@@ -230,7 +230,7 @@ class legend:
     def getLeagueEmoji(self, trophies):
         """Get clan war League Emoji"""
         mapLeagues = {
-            "legendleague": [3000, 5000],
+            "legendleague": [3000, 9000],
             "gold3league": [2500, 2999],
             "gold2league": [2000, 2499],
             "goldleague": [1500, 1999],
@@ -332,7 +332,7 @@ class legend:
             except clashroyale.RequestError:
                 return await self.bot.say("Error: cannot reach Clash Royale Servers. Please try again later.")
 
-        clandata = sorted(clandata, key=lambda x: (x.required_trophies, x.clan_score), reverse=True)
+        clandata = sorted(clandata, key=lambda x: (x.clan_war_trophies, x.required_trophies, x.clan_score), reverse=True)
 
         embed = discord.Embed(color=0xFAA61A)
         if "url" in self.settings and "family" in self.settings:
@@ -359,7 +359,6 @@ class legend:
             cwr = await self.clans.getClanData(clankey, 'cwr')
             bonustitle = await self.clans.getClanData(clankey, 'bonustitle')
             emoji = await self.clans.getClanData(clankey, 'emoji')
-            warTrophies = await self.clans.getClanData(clankey, 'warTrophies')
             totalWaiting += numWaiting
 
             if numWaiting > 0:
@@ -385,7 +384,7 @@ class legend:
             if cwr > 0:
                 title += "CWR: "+str(cwr)+"%  "
                 if member is not None:
-                    plyrLeagueCWR = await self.getBestPerc(cards, await self.getLeague(warTrophies))
+                    plyrLeagueCWR = await self.getBestPerc(cards, await self.getLeague(clan.clan_war_trophies))
 
             if bonustitle is not None:
                 title += bonustitle
@@ -394,8 +393,8 @@ class legend:
                     "{}+  {} {}".format(emoji,
                                         showMembers,
                                         clan.required_trophies,
-                                        self.getLeagueEmoji(warTrophies),
-                                        warTrophies))
+                                        self.getLeagueEmoji(clan.clan_war_trophies),
+                                        clan.clan_war_trophies))
 
             if (member is None) or ((clan.required_trophies <= trophies) and
                                     (maxtrophies > personalbest) and
@@ -461,7 +460,6 @@ class legend:
             clan_pb = await self.clans.getClanData(clankey, 'personalbest')
             clan_cwr = await self.clans.getClanData(clankey, 'cwr')
             clan_approval = await self.clans.getClanData(clankey, 'approval')
-            clan_war = await self.clans.getClanData(clankey, 'warTrophies')
         except KeyError:
             return await self.bot.say("Please use a valid clanname: {}".format(await self.clans.namesClans()))
 
@@ -490,7 +488,7 @@ class legend:
             trophies = profiledata.trophies
             cards = profiledata.cards
             maxtrophies = profiledata.best_trophies
-            plyrLeagueCWR = await self.getBestPerc(cards, await self.getLeague(clan_war))
+            plyrLeagueCWR = await self.getBestPerc(cards, await self.getLeague(clandata.clan_war_trophies))
 
             if (clandata.get("members") == 50):
                 return await self.bot.say("Approval failed, the clan is Full.")
@@ -505,7 +503,7 @@ class legend:
                 return await self.bot.say("Approval failed, the clan is currently closed.")
 
             if clan_approval:
-                if clan_role in [y.name.lower() for y in member.roles]:
+                if clan_role not in [y.name for y in ctx.message.author.roles]:
                     return await self.bot.say("Approval failed, only {} staff can approve new recruits for this clan.".format(clan_name))
 
             if await self.clans.numWaiting(clankey) > 0:
@@ -735,7 +733,6 @@ class legend:
             clan_name = await self.clans.getClanData(clankey, 'name')
             clan_pb = await self.clans.getClanData(clankey, 'personalbest')
             clan_cwr = await self.clans.getClanData(clankey, 'cwr')
-            clan_war = await self.clans.getClanData(clankey, 'warTrophies')
         except KeyError:
             return await self.bot.say("Please use a valid clanname: {}".format(await self.clans.namesClans()))
 
@@ -750,7 +747,7 @@ class legend:
             cards = profiledata.cards
             maxtrophies = profiledata.best_trophies
 
-            plyrLeagueCWR = await self.getBestPerc(cards, await self.getLeague(clan_war))
+            plyrLeagueCWR = await self.getBestPerc(cards, await self.getLeague(clandata.clan_war_trophies))
         except clashroyale.RequestError:
             return await self.bot.say("Error: cannot reach Clash Royale Servers. Please try again later.")
         except KeyError:

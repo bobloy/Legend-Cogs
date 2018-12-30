@@ -600,6 +600,16 @@
       "id": 26000062
     },
     {
+      "key": "electro-dragon",
+      "name": "Electro Dragon",
+      "elixir": 5,
+      "type": "Troop",
+      "rarity": "Epic",
+      "arena": 11,
+      "description": "Spits out bolts of electricity hitting up to three targets. Suffers from middle child syndrome to boot.",
+      "id": 26000063
+    },
+    {
       "key": "cannon",
       "name": "Cannon",
       "elixir": 3,
@@ -658,6 +668,16 @@
       "arena": 3,
       "description": "Building that periodically spawns Barbarians to fight the enemy. Time to make the Barbarians!",
       "id": 27000005
+    },
+    {
+      "key": "barbarian-barrel",
+      "name": "Barbarian Barrel",
+      "elixir": 2,
+      "type": "Spell",
+      "rarity": "Epic",
+      "arena": 3,
+      "description": "It rolls over and damages anything in its path, then breaks open and out pops a Barbarian! How did he get inside?!",
+      "id": 28000015
     },
     {
       "key": "tesla",
@@ -848,16 +868,6 @@
       "arena": 11,
       "description": "Duplicates all friendly troops in the target area. Cloned troops are fragile, but pack the same punch as the original! Doesn't affect buildings.",
       "id": 28000013
-    },
-    {
-      "key": "barbarian-barrel",
-      "name": "Barbarian Barrel",
-      "elixir": 2,
-      "type": "Spell",
-      "rarity": "Epic",
-      "arena": 3,
-      "description": "It rolls over and damages anything in its path, then breaks open and out pops a Barbarian! How did he get inside?!",
-      "id": 28000015
     },
     {
       "key": "heal",

@@ -57,12 +57,13 @@ class warbattles:
 
     async def cleanTime(self, time):
         """Converts time to timestamp"""
-        return int(datetime.strptime(time, '%Y%m%dT%H%M%S.%fZ').timestamp()) + 7200
+        return int(datetime.strptime(time, '%Y%m%dT%H%M%S.%fZ').timestamp()) + 3600
 
     async def get_clan_battles(self, clankey):
         """ Get war battles from each clan member"""
         battles = []
-        for member in self.clans.keysClanMembers(clankey):
+        members = list(self.clans.keysClanMembers(clankey))
+        for member in members:
             battles += await self.clash.get_player_battles(member)
             await asyncio.sleep(0.08)
         return battles
