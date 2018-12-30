@@ -1,7 +1,8 @@
-import discord
 import re
 import urllib.parse as urlparse
+
 import clashroyale
+import discord
 
 creditIcon = "https://i.imgur.com/TP8GXZb.png"
 credits = "Cog by GR8 | Titan"
@@ -12,7 +13,7 @@ class friendlink:
 
     def __init__(self, bot):
         self.bot = bot
-        self.regex = re.compile(r"<?(https?:\/\/)?(www\.)?(link\.clashroyale\.com\/invite\/friend)\b([-a-zA-Z0-9/]*)>?")
+        self.regex = re.compile(r"<?(https?://)?(www\.)?(link\.clashroyale\.com/invite/friend)\b([-a-zA-Z0-9/]*)>?")
         self.auth = self.bot.get_cog('crtools').auth
         self.constants = self.bot.get_cog('crtools').constants
         self.clash = clashroyale.OfficialAPI(self.auth.getOfficialToken(), is_async=True)
@@ -26,10 +27,10 @@ class friendlink:
 
     async def friend_link(self, message):
 
-        url = re.findall('http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+', message.content)
+        url = re.findall('http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*(),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+',
+                         message.content)
 
         try:
-
             parsed = urlparse.urlparse(url[0])
             profiletag = urlparse.parse_qs(parsed.query)['tag'][0]
 
@@ -41,10 +42,12 @@ class friendlink:
             arenaFormat = profiledata.arena.name.replace(' ', '').lower()
 
             embed = discord.Embed(title='Click this link to add as friend in Clash Royale!', url=url[0], color=0x0080ff)
-            embed.set_author(name=profiledata.name + " ("+profiledata.tag+")", icon_url=await self.constants.get_clan_image(profiledata))
+            embed.set_author(name=profiledata.name + " (" + profiledata.tag + ")",
+                             icon_url=await self.constants.get_clan_image(profiledata))
             embed.set_thumbnail(url="https://imgur.com/C9rLoeh.jpg")
             embed.add_field(name="User", value=message.author.mention, inline=True)
-            embed.add_field(name="Trophies", value="{} {:,}".format(self.emoji(arenaFormat), profiledata.trophies), inline=True)
+            embed.add_field(name="Trophies", value="{} {:,}".format(self.emoji(arenaFormat), profiledata.trophies),
+                            inline=True)
             embed.add_field(name="Level", value=self.emoji("level{}".format(profiledata.expLevel)), inline=True)
             if profiledata.clan is not None:
                 embed.add_field(name="Clan {}".format(profiledata.role.capitalize()),
@@ -58,7 +61,6 @@ class friendlink:
 
         except Exception as e:
             raise
-            return
 
     async def on_message(self, message):
 
