@@ -1,10 +1,11 @@
-import discord
-from discord.ext import commands
-import time
-import clashroyale as clashroyaleAPI
 import itertools
 import re
+import time
 from datetime import datetime
+
+import clashroyale as clashroyaleAPI
+import discord
+from discord.ext import commands
 
 BOTCOMMANDER_ROLES = ["Family Representative", "Clan Manager",
                       "Clan Deputy", "Co-Leader", "Hub Officer", "admin",
@@ -210,28 +211,41 @@ class clashroyale:
                          icon_url=await self.constants.get_clan_image(profiledata),
                          url="https://royaleapi.com/player/" + profiledata.tag.strip("#"))
         embed.set_thumbnail(url="https://royaleapi.github.io/cr-api-assets/arenas/{}.png".format(arenaFormat))
-        embed.add_field(name="Trophies", value="{} {:,}".format(self.emoji(arenaFormat), profiledata.trophies), inline=True)
+        embed.add_field(name="Trophies", value="{} {:,}".format(self.emoji(arenaFormat), profiledata.trophies),
+                        inline=True)
         embed.add_field(name="Highest Trophies", value="{} {:,}".format(self.getArenaEmoji(profiledata.best_trophies),
                                                                         profiledata.best_trophies), inline=True)
         embed.add_field(name="Level", value=self.emoji("level{}".format(profiledata.expLevel)), inline=True)
         if profiledata.clan is not None:
             embed.add_field(name="Clan {}".format(profiledata.role.capitalize()),
-                            value="{} {}".format(await self.getClanEmoji(profiledata.clan.tag), profiledata.clan.name), inline=True)
-        embed.add_field(name="Cards Found", value="{} {}/89".format(self.emoji("card"), len(profiledata.cards)), inline=True)
+                            value="{} {}".format(await self.getClanEmoji(profiledata.clan.tag), profiledata.clan.name),
+                            inline=True)
+        embed.add_field(name="Cards Found", value="{} {}/89".format(self.emoji("card"), len(profiledata.cards)),
+                        inline=True)
         embed.add_field(name="Favourite Card", value="{} {}".format(self.emoji(profiledata.current_favourite_card.name),
-                                                                    profiledata.current_favourite_card.name), inline=True)
-        embed.add_field(name="Games Played", value="{} {:,}".format(self.emoji("battle"), profiledata.battle_count), inline=True)
-        embed.add_field(name="Tourney Games Played", value="{} {:,}".format(self.emoji("tourney"), profiledata.tournament_battle_count), inline=True)
+                                                                    profiledata.current_favourite_card.name),
+                        inline=True)
+        embed.add_field(name="Games Played", value="{} {:,}".format(self.emoji("battle"), profiledata.battle_count),
+                        inline=True)
+        embed.add_field(name="Tourney Games Played",
+                        value="{} {:,}".format(self.emoji("tourney"), profiledata.tournament_battle_count), inline=True)
         embed.add_field(name="Wins/Draws/Losses", value="{:,}/{:,}/{:,}".format(profiledata.wins,
-                                                                                profiledata.battle_count-profiledata.wins-profiledata.losses,
+                                                                                profiledata.battle_count - profiledata.wins - profiledata.losses,
                                                                                 profiledata.losses), inline=True)
-        embed.add_field(name="War Day Wins", value="{} {}".format(self.emoji("warwin"), profiledata.war_day_wins), inline=True)
-        embed.add_field(name="Three Crown Wins", value="{} {:,}".format(self.emoji("3crown"), profiledata.three_crown_wins), inline=True)
-        embed.add_field(name="Total Donations", value="{} {:,}".format(self.emoji("card"), profiledata.total_donations), inline=True)
-        embed.add_field(name="Donations Recieved", value="{} {:,}".format(self.emoji("card"), profiledata.clan_cards_collected), inline=True)
-        embed.add_field(name="Challenge Max Wins", value="{} {}".format(self.emoji("tourney"), profiledata.challenge_max_wins), inline=True)
-        embed.add_field(name="Challenge Cards Won", value="{} {:,}".format(self.emoji("cards"), profiledata.challenge_cards_won), inline=True)
-        embed.add_field(name="Tournament Cards Won", value="{} {:,}".format(self.emoji("cards"), profiledata.tournament_cards_won), inline=True)
+        embed.add_field(name="War Day Wins", value="{} {}".format(self.emoji("warwin"), profiledata.war_day_wins),
+                        inline=True)
+        embed.add_field(name="Three Crown Wins",
+                        value="{} {:,}".format(self.emoji("3crown"), profiledata.three_crown_wins), inline=True)
+        embed.add_field(name="Total Donations", value="{} {:,}".format(self.emoji("card"), profiledata.total_donations),
+                        inline=True)
+        embed.add_field(name="Donations Recieved",
+                        value="{} {:,}".format(self.emoji("card"), profiledata.clan_cards_collected), inline=True)
+        embed.add_field(name="Challenge Max Wins",
+                        value="{} {}".format(self.emoji("tourney"), profiledata.challenge_max_wins), inline=True)
+        embed.add_field(name="Challenge Cards Won",
+                        value="{} {:,}".format(self.emoji("cards"), profiledata.challenge_cards_won), inline=True)
+        embed.add_field(name="Tournament Cards Won",
+                        value="{} {:,}".format(self.emoji("cards"), profiledata.tournament_cards_won), inline=True)
         embed.set_footer(text=credits, icon_url=creditIcon)
 
         await self.bot.say(embed=embed)
@@ -326,13 +340,16 @@ class clashroyale:
         embed = discord.Embed(color=0xFAA61A, description="Clan War Readiness")
         embed.set_author(name=profiledata.name + " (" + profiledata.tag + ")",
                          icon_url=await self.constants.get_clan_image(profiledata),
-                         url="https://royaleapi.com/player/"+profiledata.tag.strip("#"))
-        embed.add_field(name="War Day Wins", value="{} {}".format(self.emoji("warwin"), profiledata.war_day_wins), inline=True)
-        embed.add_field(name="War Cards Collected", value="{} {}".format(self.emoji("card"), profiledata.clan_cards_collected), inline=True)
+                         url="https://royaleapi.com/player/" + profiledata.tag.strip("#"))
+        embed.add_field(name="War Day Wins", value="{} {}".format(self.emoji("warwin"), profiledata.war_day_wins),
+                        inline=True)
+        embed.add_field(name="War Cards Collected",
+                        value="{} {}".format(self.emoji("card"), profiledata.clan_cards_collected), inline=True)
         embed.set_footer(text=credits, icon_url=creditIcon)
 
         for league in leagues.keys():
-            f_title = "{} League (Lvl {}) - {}%".format(leagues[league]["name"], leagues[league]["levels"], leagues[league]["percent"])
+            f_title = "{} League (Lvl {}) - {}%".format(leagues[league]["name"], leagues[league]["levels"],
+                                                        leagues[league]["percent"])
             groups = self.grouper(leagues[league]["cards"], 30)
             for index, cards in enumerate(groups):
                 value = ""
@@ -361,19 +378,24 @@ class clashroyale:
             return
 
         embed = discord.Embed(description=clandata.description, color=0xFAA61A)
-        embed.set_author(name=clandata.name + " ("+clandata.tag+")",
+        embed.set_author(name=clandata.name + " (" + clandata.tag + ")",
                          icon_url=await self.constants.get_clan_image(clandata),
-                         url="https://legendclans.com/clanInfo/"+clandata.tag.strip("#"))
+                         url="https://legendclans.com/clanInfo/" + clandata.tag.strip("#"))
         embed.set_thumbnail(url=await self.constants.get_clan_image(clandata))
-        embed.add_field(name="Members", value="{} {}/50".format(self.emoji("members"), clandata.get("members")), inline=True)
+        embed.add_field(name="Members", value="{} {}/50".format(self.emoji("members"), clandata.get("members")),
+                        inline=True)
         embed.add_field(name="Leader", value=await self.getClanLeader(clandata.member_list), inline=True)
-        embed.add_field(name="Donations", value="{} {:,}".format(self.emoji("cards"), clandata.donations_per_week), inline=True)
+        embed.add_field(name="Donations", value="{} {:,}".format(self.emoji("cards"), clandata.donations_per_week),
+                        inline=True)
         embed.add_field(name="Score", value="{} {:,}".format(self.emoji("PB"), clandata.clan_score), inline=True)
         embed.add_field(name="War Trophies",
-                        value="{} {:,}".format(self.getLeagueEmoji(clandata.clan_war_trophies), clandata.clan_war_trophies), inline=True)
+                        value="{} {:,}".format(self.getLeagueEmoji(clandata.clan_war_trophies),
+                                               clandata.clan_war_trophies), inline=True)
         embed.add_field(name="Required Trophies",
                         value="{} {:,}".format(self.emoji("crtrophy"), clandata.required_trophies), inline=True)
-        embed.add_field(name="Status", value=":envelope_with_arrow: {}".format(self.camelToString(clandata.type).capitalize()), inline=True)
+        embed.add_field(name="Status",
+                        value=":envelope_with_arrow: {}".format(self.camelToString(clandata.type).capitalize()),
+                        inline=True)
         if clandata.location.is_country:
             embed.add_field(name="Country",
                             value=":flag_{}: {}".format(await self.constants.get_region_key(clandata.location.id),
@@ -410,7 +432,8 @@ class clashroyale:
         coins = self.getCoins(maxPlayers)
 
         embed = discord.Embed(title="Click this link to join the Tournament in Clash Royale!",
-                              url="https://legendclans.com/tournaments?id={}&pass={}".format(tag, password), color=0xFAA61A)
+                              url="https://legendclans.com/tournaments?id={}&pass={}".format(tag, password),
+                              color=0xFAA61A)
         embed.set_thumbnail(url='https://statsroyale.com/images/tournament.png')
 
         embed.set_author(name="{} ({})".format(tourneydata.name, tourneydata.tag),
@@ -434,13 +457,16 @@ class clashroyale:
         if tourneydata.status != "ended":
             tourneydata.created_time = await self.cleanTime(tourneydata.created_time)
             if tourneydata.status != "inProgress":
-                startTime = await self.sec2tme((tourneydata.created_time + tourneydata.preparation_duration) - int(time.time()))
+                startTime = await self.sec2tme(
+                    (tourneydata.created_time + tourneydata.preparation_duration) - int(time.time()))
                 embed.add_field(name="Starts In", value=startTime, inline=True)
 
-            endTime = await self.sec2tme((tourneydata.created_time + tourneydata.preparation_duration + tourneydata.duration) - int(time.time()))
+            endTime = await self.sec2tme(
+                (tourneydata.created_time + tourneydata.preparation_duration + tourneydata.duration) - int(time.time()))
             embed.add_field(name="Ends In", value=endTime, inline=True)
 
-        embed.add_field(name="Hosted By", value=await self.getCreaterName(tourneydata.creator_tag, tourneydata.members_list), inline=True)
+        embed.add_field(name="Hosted By",
+                        value=await self.getCreaterName(tourneydata.creator_tag, tourneydata.members_list), inline=True)
 
         if tourneydata.first_place_card_prize > 0:
             embed.add_field(name="Top prize", value="{} {}     {} {}".format(self.emoji("tournamentcards"),
@@ -452,7 +478,7 @@ class clashroyale:
         await self.bot.say(embed=embed)
 
     @commands.command(pass_context=True, no_pm=True)
-    async def save(self, ctx, profiletag: str, member: discord.Member=None):
+    async def save(self, ctx, profiletag: str, member: discord.Member = None):
         """ save your Clash Royale Profile Tag
 
         Example:
@@ -498,7 +524,8 @@ class clashroyale:
                     await self.bot.say("Error, This Player ID is already linked to this user")
                     return
                 else:
-                    await self.bot.say("Error, This Player ID is already linked with **" + checkUser.display_name + "**")
+                    await self.bot.say(
+                        "Error, This Player ID is already linked with **" + checkUser.display_name + "**")
                     return
 
             await self.tags.linkTag(profiletag, member.id)

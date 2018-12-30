@@ -1,16 +1,19 @@
-import discord
-from discord.ext import commands
-import os
-from .utils.dataIO import dataIO, fileIO
 import asyncio
-import random
-from random import choice as rand_choice
-import string
 import datetime
+import os
+import random
+import string
 import time
 from collections import OrderedDict
+from random import choice as rand_choice
+
 import clashroyale
+import discord
 import requests
+from discord.ext import commands
+
+from cogs.utils import checks
+from cogs.utils.dataIO import dataIO, fileIO
 
 creditIcon = "https://i.imgur.com/TP8GXZb.png"
 credits = "Cog by Gr8 | Titan"
@@ -355,7 +358,8 @@ class legend:
                 await self.bot.say("Error: cannot reach Clash Royale Servers. Please try again later.")
                 return
 
-        clandata = sorted(clandata, key=lambda x: (x.clan_war_trophies, x.required_trophies, x.clan_score), reverse=True)
+        clandata = sorted(clandata, key=lambda x: (x.clan_war_trophies, x.required_trophies, x.clan_score),
+                          reverse=True)
 
         if not clan_icon:
             clan_icon = 'https://i.imgur.com/Y3uXsgj.png'
@@ -439,7 +443,8 @@ class legend:
                              "members. We have {} spots left "
                              "and {} members in waiting lists.".format(await self.clans.numClans(),
                                                                        totalMembers,
-                                                                       (await self.clans.numClans()*50)-totalMembers,
+                                                                       (
+                                                                                   await self.clans.numClans() * 50) - totalMembers,
                                                                        totalWaiting))
         await self.bot.say(embed=embed)
 
@@ -529,7 +534,8 @@ class legend:
 
             if clan_approval:
                 if clan_role not in [y.name for y in ctx.message.author.roles]:
-                    return await self.bot.say("Approval failed, only {} staff can approve new recruits for this clan.".format(clan_name))
+                    return await self.bot.say(
+                        "Approval failed, only {} staff can approve new recruits for this clan.".format(clan_name))
 
             if await self.clans.numWaiting(clankey) > 0:
                 if await self.clans.checkWaitingMember(clankey, member.id):
@@ -566,17 +572,18 @@ class legend:
                 recruitCode = ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(6))
 
                 await self.bot.send_message(member, "Congratulations, You have been approved to join **" + clan_name +
-                                                    " (#" + clan_tag + ")**.\n\n\n" +
-                                                    "Your **RECRUIT CODE** is: ``" + recruitCode + "`` \n" +
-                                                    "Send this code in the join request message.\n\n" +
-                                                    "Click this link to join the clan: https://legendclans.com/clanInfo/" +
-                                                    clan_tag + "\n\n" +
-                                                    "That's it! Now wait for your clan leadership to accept you. " +
-                                                    "It usually takes a few minutes to get accepted, but it may take up to a few hours. \n\n" +
-                                                    "**IMPORTANT**: Once your clan leadership has accepted your request, " +
-                                                    "let a staff member in discord know that you have been accepted. " +
-                                                    "They will then unlock all the member channels for you.")
-                await self.bot.say(member.mention + " has been approved for **" + clan_name + "**. Please check your DM for instructions on how to join.")
+                                            " (#" + clan_tag + ")**.\n\n\n" +
+                                            "Your **RECRUIT CODE** is: ``" + recruitCode + "`` \n" +
+                                            "Send this code in the join request message.\n\n" +
+                                            "Click this link to join the clan: https://legendclans.com/clanInfo/" +
+                                            clan_tag + "\n\n" +
+                                            "That's it! Now wait for your clan leadership to accept you. " +
+                                            "It usually takes a few minutes to get accepted, but it may take up to a few hours. \n\n" +
+                                            "**IMPORTANT**: Once your clan leadership has accepted your request, " +
+                                            "let a staff member in discord know that you have been accepted. " +
+                                            "They will then unlock all the member channels for you.")
+                await self.bot.say(
+                    member.mention + " has been approved for **" + clan_name + "**. Please check your DM for instructions on how to join.")
 
                 try:
                     newname = ign + " (Approved)"
@@ -660,17 +667,19 @@ class legend:
                 invite = await self.clans.getClanData(savekey, 'discord')
                 if invite is not None:
                     joinLink = "https://discord.gg/" + str(invite)
-                    await self.bot.send_message(member, "Hi There! Congratulations on getting accepted into our family. " +
-                                                        "We have unlocked all the member channels for you in LeGeND Discord Server. " +
-                                                        "Now you have to carefuly read this message and follow the steps mentioned below: \n\n" +
-                                                        "Please click on the link below to join your clan Discord server. \n\n" +
-                                                        clanname + ": " + joinLink + "\n\n" +
-                                                        "Please do not leave our main or clan servers while you are in the clan. Thank you.")
+                    await self.bot.send_message(member,
+                                                "Hi There! Congratulations on getting accepted into our family. " +
+                                                "We have unlocked all the member channels for you in LeGeND Discord Server. " +
+                                                "Now you have to carefuly read this message and follow the steps mentioned below: \n\n" +
+                                                "Please click on the link below to join your clan Discord server. \n\n" +
+                                                clanname + ": " + joinLink + "\n\n" +
+                                                "Please do not leave our main or clan servers while you are in the clan. Thank you.")
                 else:
 
-                    await self.bot.send_message(member, "Hi There! Congratulations on getting accepted into our family. "
-                                                        "We have unlocked all the member channels for you in LeGeND Discord Server. \n\n" +
-                                                        "Please do not leave our Discord server while you are in the clan. Thank you.")
+                    await self.bot.send_message(member,
+                                                "Hi There! Congratulations on getting accepted into our family. "
+                                                "We have unlocked all the member channels for you in LeGeND Discord Server. \n\n" +
+                                                "Please do not leave our Discord server while you are in the clan. Thank you.")
             except discord.errors.Forbidden:
                 return await self.bot.say(("Membership failed, {} please fix your privacy settings, "
                                            "we are unable to send you Direct Messages.".format(member.mention)))
@@ -820,7 +829,9 @@ class legend:
                            "**. We will mention you when a spot is available.")
 
         roleName = discord.utils.get(server.roles, name=await self.clans.getClanData(clankey, 'role'))
-        await self.bot.send_message(discord.Object(id='375839851955748874'), "**{} (#{})** added to the waiting list for {}".format(ign, profiletag, roleName.mention))
+        await self.bot.send_message(discord.Object(id='375839851955748874'),
+                                    "**{} (#{})** added to the waiting list for {}".format(ign, profiletag,
+                                                                                           roleName.mention))
 
     @commands.command(pass_context=True, no_pm=True)
     @commands.has_any_role(*BOTCOMMANDER_ROLES)
@@ -881,17 +892,18 @@ class legend:
                 for index, userID in enumerate(await self.clans.getClanData(clan, 'waiting')):
                     user = discord.utils.get(ctx.message.server.members, id=userID)
                     try:
-                        message += str(index+1) + ". " + user.display_name + "\n"
+                        message += str(index + 1) + ". " + user.display_name + "\n"
                         counterPlayers += 1
                     except AttributeError:
                         await self.clans.delWaitingMember(clan, userID)
-                        message += str(index+1) + ". " + "*user not found*" + "\n"
+                        message += str(index + 1) + ". " + "*user not found*" + "\n"
                 embed.add_field(name=await self.clans.getClanData(clan, 'name'), value=message, inline=False)
 
         if not message:
             await self.bot.say("The waiting list is empty")
         else:
-            embed.description = "We have " + str(counterPlayers) + " people waiting for " + str(counterClans) + " clans."
+            embed.description = "We have " + str(counterPlayers) + " people waiting for " + str(
+                counterClans) + " clans."
             embed.set_author(name="Legend Family Waiting List", icon_url="https://i.imgur.com/dtSMITE.jpg")
             embed.set_footer(text=credits, icon_url=creditIcon)
             await self.bot.say(embed=embed)
@@ -940,7 +952,7 @@ class legend:
 
     @commands.command(pass_context=True, no_pm=True)
     @commands.has_any_role(*BOTCOMMANDER_ROLES)
-    async def changeclan(self, ctx, member: discord.Member=None):
+    async def changeclan(self, ctx, member: discord.Member = None):
         """ Change clan of a user of their IGN + Clan"""
 
         member = member or ctx.message.author
@@ -957,7 +969,8 @@ class legend:
         except clashroyale.RequestError:
             return await self.bot.say("Error: cannot reach Clash Royale Servers. Please try again later.")
         except KeyError:
-            return await self.bot.say("You must assosiate a tag with this member first using ``{}save #tag @member``".format(ctx.prefix))
+            return await self.bot.say(
+                "You must assosiate a tag with this member first using ``{}save #tag @member``".format(ctx.prefix))
 
         membership = await self.clans.verifyMembership(clantag)
 
