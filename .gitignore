@@ -106,3 +106,5 @@ enable-cog.bat
 
 #Sublime Text
 .vscode
+*.sublime-workspace
+*.sublime-project
